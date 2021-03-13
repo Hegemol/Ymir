@@ -35,9 +35,9 @@
 
     <modules>
         <module>ymir-common</module>
-        <module>ymir-client</module>
-        <module>ymir-client</module>
         <module>ymir-server</module>
+        <module>ymir-core</module>
+        <module>ymir-client</module>
     </modules>
 
     <properties>
