@@ -1,18 +1,13 @@
 package org.season.ymir.core.config;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.Banner;
 import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
-import org.springframework.core.env.ConfigurableEnvironment;
-
 import java.util.Properties;
 
 /**
- * TODO
+ * 启动日志
  *
  * @author KevinClair
  */
