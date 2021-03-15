@@ -1,0 +1,1 @@
+org.springframework.context.ApplicationListener = org.season.ymir.core.config.YmirApplicationStartInfo, org.season.ymir.client.process.DefaultServiceExportProcessor
