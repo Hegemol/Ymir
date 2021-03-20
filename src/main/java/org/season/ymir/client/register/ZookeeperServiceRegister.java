@@ -16,11 +16,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.URLEncoder;
 
-import static org.season.ymir.common.constant.CommonConstant.PATH_DELIMITER;
-import static org.season.ymir.common.constant.CommonConstant.UTF_8;
-import static org.season.ymir.common.constant.CommonConstant.ZK_SERVICE_CLIENT_PATH;
-import static org.season.ymir.common.constant.CommonConstant.ZK_SERVICE_PATH;
-
 /**
  * TODO
  *
@@ -37,6 +32,12 @@ public class ZookeeperServiceRegister extends DefaultAbstractServiceRegister imp
         this.port = port;
         this.protocol = protocol;
         this.weight = weight;
+    }
+
+    @Override
+    public ServiceBean getBean(String name) throws Exception {
+        // TODO 先从内部缓存中读取数据信息，读取不到从zk中读取
+        return super.getBean(name);
     }
 
     @Override
