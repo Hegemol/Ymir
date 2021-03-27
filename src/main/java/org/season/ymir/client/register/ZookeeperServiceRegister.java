@@ -26,8 +26,8 @@ public class ZookeeperServiceRegister extends DefaultAbstractServiceRegister imp
     private ZkClient zkClient;
     private ApplicationEventPublisher applicationEventPublisher;
 
-    public ZookeeperServiceRegister(String zkAddress, Integer port, String protocol, Integer weight) {
-        this.zkClient = new ZkClient(zkAddress);
+    public ZookeeperServiceRegister(ZkClient zkClient, Integer port, String protocol, Integer weight) {
+        this.zkClient = zkClient;
         zkClient.setZkSerializer(new ZookeeperSerializer());
         this.port = port;
         this.protocol = protocol;
