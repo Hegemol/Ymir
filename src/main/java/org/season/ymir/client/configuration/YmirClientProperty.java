@@ -8,19 +8,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @author KevinClair
  */
 @ConfigurationProperties(prefix = "ymir")
-public class YmirClientPropertySource {
-
-    private String address;
+public class YmirClientProperty {
 
     private String port;
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
 
     public String getPort() {
         return port;
