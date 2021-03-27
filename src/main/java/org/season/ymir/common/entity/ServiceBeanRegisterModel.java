@@ -55,4 +55,14 @@ public class ServiceBeanRegisterModel {
     public void setWeight(Integer weight) {
         this.weight = weight;
     }
+
+    public ServiceBeanRegisterModel(String name, String protocol, String address, Integer weight) {
+        this.name = name;
+        this.protocol = protocol;
+        this.address = address;
+        this.weight = weight;
+    }
+
+    public ServiceBeanRegisterModel() {
+    }
 }
