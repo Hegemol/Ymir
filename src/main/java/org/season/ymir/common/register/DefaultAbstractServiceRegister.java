@@ -16,7 +16,13 @@ import java.util.Objects;
  */
 public abstract class DefaultAbstractServiceRegister implements ServiceRegister {
 
+    /**
+     * 协议
+     */
     protected String protocol;
+    /**
+     * 端口
+     */
     protected Integer port;
     /**
      * 权重
