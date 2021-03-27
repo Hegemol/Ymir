@@ -1,5 +1,6 @@
 package org.season.ymir.client.configuration;
 
+import org.I0Itec.zkclient.ZkClient;
 import org.season.ymir.client.register.ZookeeperServiceRegister;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -9,11 +10,16 @@ import org.springframework.context.annotation.Bean;
  *
  * @author KevinClair
  */
-@EnableConfigurationProperties(YmirClientPropertySource.class)
+@EnableConfigurationProperties({YmirClientProperty.class, YmirZookeeperClientProperty.class})
 public class YmirClientAutoConfiguration {
 
     @Bean
-    public ZookeeperServiceRegister zookeeperServiceRegister(YmirClientPropertySource propertySource){
-        return new ZookeeperServiceRegister(propertySource.getAddress(), 20777, propertySource.getPort(), 100);
+    public ZkClient zkClient(YmirZookeeperClientProperty zookeeperClientProperty ){
+        return new ZkClient(zookeeperClientProperty.getUrl(), zookeeperClientProperty.getSessionTimeout(), zookeeperClientProperty.getConnectionTimeout());
+    }
+
+    @Bean
+    public ZookeeperServiceRegister zookeeperServiceRegister(YmirClientProperty clientProperty, ZkClient zkClient){
+        return new ZookeeperServiceRegister(zkClient, 20777, clientProperty.getPort(), 100);
     }
 }
