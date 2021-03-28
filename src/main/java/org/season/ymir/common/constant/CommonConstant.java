@@ -20,12 +20,12 @@ public class CommonConstant {
     /**
      * Zookeeper客户端地址
      */
-    public static final String ZK_SERVICE_CLIENT_PATH = "/client";
+    public static final String ZK_SERVICE_CLIENT_PATH = "providers";
 
     /**
      * Zookeeper服务端地址
      */
-    public static final String ZK_SERVICE_SERVER_PATH = "/server";
+    public static final String ZK_SERVICE_SERVER_PATH = "consumers";
 
     /**
      * 路径分隔符
