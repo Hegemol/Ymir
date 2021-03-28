@@ -8,6 +8,7 @@ import org.season.ymir.common.entity.ServiceBeanRegisterModel;
 import org.season.ymir.common.register.DefaultAbstractServiceRegister;
 import org.season.ymir.common.register.ServiceBean;
 import org.season.ymir.common.utils.GsonUtils;
+import org.season.ymir.common.utils.ZkPathUtils;
 import org.season.ymir.core.zookeeper.ZookeeperSerializer;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
@@ -78,13 +79,15 @@ public class ZookeeperServiceRegister extends DefaultAbstractServiceRegister imp
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
-        String zodePath = CommonConstant.ZK_SERVICE_PATH + CommonConstant.ZK_SERVICE_CLIENT_PATH + CommonConstant.PATH_DELIMITER + serviceName + "/service";
+//        String zodePath = CommonConstant.PATH_DELIMITER + CommonConstant.ZK_SERVICE_PATH + CommonConstant.PATH_DELIMITER + serviceName + CommonConstant.ZK_SERVICE_CLIENT_PATH;
+        String zodePath = ZkPathUtils.buildPath(CommonConstant.ZK_SERVICE_CLIENT_PATH, serviceName);
         if (!zkClient.exists(zodePath)) {
             // 创建节点
             zkClient.createPersistent(zodePath, true);
         }
         exportEventModel.setPath(zodePath);
-        String uriPath = zodePath + CommonConstant.PATH_DELIMITER + uri;
+//        String uriPath = zodePath + CommonConstant.PATH_DELIMITER + uri;
+        String uriPath = ZkPathUtils.buildUriPath(zodePath, uri);
         if (zkClient.exists(uriPath)) {
             // 删除之前的节点
             zkClient.delete(uriPath);
