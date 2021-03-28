@@ -1,1 +1,3 @@
-org.springframework.context.ApplicationListener = org.season.ymir.core.config.YmirApplicationStartInfo, org.season.ymir.client.process.DefaultServiceExportProcessor
+org.springframework.context.ApplicationListener = org.season.ymir.core.config.YmirApplicationStartInfo
+
+org.springframework.boot.autoconfigure.EnableAutoConfiguration = org.season.ymir.client.configuration.YmirClientAutoConfiguration
