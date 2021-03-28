@@ -37,7 +37,7 @@ public class ZookeeperServiceRegister extends DefaultAbstractServiceRegister imp
 
     @Override
     public ServiceBean getBean(String name) throws Exception {
-        // TODO 先从内部缓存中读取数据信息，读取不到从zk中读取
+        // TODO 先从内部缓存中读取数据信息
         return super.getBean(name);
     }
 
