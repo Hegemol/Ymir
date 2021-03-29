@@ -17,6 +17,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.ReferenceCountUtil;
+import org.season.ymir.core.config.YmirConfigurationProperty;
 import org.season.ymir.common.utils.YmirThreadFactory;
 import org.season.ymir.core.handler.RequestHandler;
 import org.slf4j.Logger;
@@ -37,14 +38,12 @@ public class YmirNettyServer {
     private static final Logger logger = LoggerFactory.getLogger(YmirNettyServer.class);
 
     private Channel channel;
-    private int port;
-    private String protocol;
     private RequestHandler requestHandler;
     private ExecutorService executorService;
+    private YmirConfigurationProperty property;
 
-    public YmirNettyServer(int port, String protocol, RequestHandler requestHandler) {
-        this.port = port;
-        this.protocol = protocol;
+    public YmirNettyServer(YmirConfigurationProperty property, RequestHandler requestHandler) {
+        this.property = property;
         this.requestHandler = requestHandler;
         this.executorService = new ThreadPoolExecutor(4, 8,
                 200, TimeUnit.SECONDS,
@@ -71,7 +70,7 @@ public class YmirNettyServer {
             });
 
             // 启动服务
-            ChannelFuture future = b.bind(port).sync();
+            ChannelFuture future = b.bind(property.getPort()).sync();
             logger.debug("Server started successfully.");
             channel = future.channel();
             // 等待服务通道关闭
