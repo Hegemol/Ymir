@@ -1,4 +1,4 @@
-package org.season.ymir.client.configuration;
+package org.season.ymir.core.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -8,7 +8,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @author KevinClair
  */
 @ConfigurationProperties(prefix = "ymir.zookeeper")
-public class YmirZookeeperClientProperty {
+public class YmirZookeeperRegisterCenterProperty {
 
     private String url;
 
