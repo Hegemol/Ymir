@@ -6,6 +6,7 @@ import org.season.ymir.client.annotation.YmirService;
 import org.season.ymir.common.register.ServiceBean;
 import org.season.ymir.common.register.ServiceRegister;
 import org.season.ymir.common.utils.YmirThreadFactory;
+import org.season.ymir.server.YmirNettyServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -31,6 +32,7 @@ public class DefaultServiceExportProcessor implements ApplicationListener<Contex
 
     private ExecutorService executorService;
     private ServiceRegister serviceRegister;
+    private YmirNettyServer nettyServer;
 
     public DefaultServiceExportProcessor(ServiceRegister serviceRegister) {
         this.executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(), new YmirThreadFactory("service-export-"));
