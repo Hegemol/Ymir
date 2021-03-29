@@ -79,14 +79,12 @@ public class ZookeeperServiceRegister extends DefaultAbstractServiceRegister imp
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
-//        String zodePath = CommonConstant.PATH_DELIMITER + CommonConstant.ZK_SERVICE_PATH + CommonConstant.PATH_DELIMITER + serviceName + CommonConstant.ZK_SERVICE_CLIENT_PATH;
         String zodePath = ZkPathUtils.buildPath(CommonConstant.ZK_SERVICE_CLIENT_PATH, serviceName);
         if (!zkClient.exists(zodePath)) {
             // 创建节点
             zkClient.createPersistent(zodePath, true);
         }
         exportEventModel.setPath(zodePath);
-//        String uriPath = zodePath + CommonConstant.PATH_DELIMITER + uri;
         String uriPath = ZkPathUtils.buildUriPath(zodePath, uri);
         if (zkClient.exists(uriPath)) {
             // 删除之前的节点
