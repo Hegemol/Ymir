@@ -9,7 +9,6 @@ import org.season.ymir.common.register.DefaultAbstractServiceRegister;
 import org.season.ymir.common.register.ServiceBean;
 import org.season.ymir.common.utils.GsonUtils;
 import org.season.ymir.common.utils.ZkPathUtils;
-import org.season.ymir.core.zookeeper.ZookeeperSerializer;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 
@@ -29,7 +28,6 @@ public class ZookeeperServiceRegister extends DefaultAbstractServiceRegister imp
 
     public ZookeeperServiceRegister(ZkClient zkClient, Integer port, String protocol, Integer weight) {
         this.zkClient = zkClient;
-        zkClient.setZkSerializer(new ZookeeperSerializer());
         this.port = port;
         this.protocol = protocol;
         this.weight = weight;
