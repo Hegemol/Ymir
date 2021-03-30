@@ -34,9 +34,10 @@ public class DefaultServiceExportProcessor implements ApplicationListener<Contex
     private ServiceRegister serviceRegister;
     private YmirNettyServer nettyServer;
 
-    public DefaultServiceExportProcessor(ServiceRegister serviceRegister) {
+    public DefaultServiceExportProcessor(ServiceRegister serviceRegister, YmirNettyServer nettyServer) {
         this.executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(), new YmirThreadFactory("service-export-"));
         this.serviceRegister = serviceRegister;
+        this.nettyServer = nettyServer;
     }
 
     @Override
