@@ -8,6 +8,7 @@ import org.season.ymir.common.model.YmirResponse;
  *
  * @author KevinClair
  */
+//@SPI("java")
 public interface MessageProtocol {
     /**
      * 编组请求
