@@ -84,6 +84,7 @@ public class DefaultServiceExportProcessor implements ApplicationListener<Contex
                     logger.error("Service {} register error, error message: {}", obj.getClass().getName(), ExceptionUtils.getStackTrace(e));
                 }
             }
+
             nettyServer.start();
         }
 
