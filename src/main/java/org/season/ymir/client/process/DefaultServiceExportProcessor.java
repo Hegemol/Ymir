@@ -28,6 +28,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class DefaultServiceExportProcessor implements ApplicationListener<ContextRefreshedEvent> {
 
     private final AtomicBoolean flag = new AtomicBoolean(false);
+
     private static final Logger logger = LoggerFactory.getLogger(DefaultServiceExportProcessor.class);
 
     private ExecutorService executorService;
@@ -63,8 +64,7 @@ public class DefaultServiceExportProcessor implements ApplicationListener<Contex
             for (Object obj : beans.values()) {
                 try {
                     Class<?> clazz = obj.getClass();
-
-                    ServiceBean serviceBean = null;
+                    ServiceBean serviceBean;
                     YmirService service = clazz.getAnnotation(YmirService.class);
                     if (StringUtils.isNotBlank(service.value())) {
                         serviceBean = new ServiceBean(service.value(), clazz, obj);
@@ -84,6 +84,7 @@ public class DefaultServiceExportProcessor implements ApplicationListener<Contex
                     logger.error("Service {} register error, error message: {}", obj.getClass().getName(), ExceptionUtils.getStackTrace(e));
                 }
             }
+            nettyServer.start();
         }
 
     }
