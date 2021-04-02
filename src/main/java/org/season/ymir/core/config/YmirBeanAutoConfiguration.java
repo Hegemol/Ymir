@@ -59,6 +59,7 @@ public class YmirBeanAutoConfiguration {
     }
 
     private MessageProtocol getMessageProtocol(String name) {
+        // TODO 此处SPI数据改造
         ServiceLoader<MessageProtocol> loader = ServiceLoader.load(MessageProtocol.class);
         Iterator<MessageProtocol> iterator = loader.iterator();
         while (iterator.hasNext()) {
