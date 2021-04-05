@@ -26,6 +26,12 @@ import java.util.ServiceLoader;
 @EnableConfigurationProperties({YmirConfigurationProperty.class, YmirZookeeperRegisterCenterProperty.class})
 public class YmirBeanAutoConfiguration {
 
+    /**
+     * Zk客户端Bean注册
+     *
+     * @param zookeeperClientProperty zk客户端属性{@link YmirZookeeperRegisterCenterProperty}
+     * @return {@link ZkClient}
+     */
     @Bean
     @ConditionalOnProperty(value = "ymir.zookeeper.url")
     public ZkClient zkClient(YmirZookeeperRegisterCenterProperty zookeeperClientProperty ){
@@ -34,24 +40,52 @@ public class YmirBeanAutoConfiguration {
         return zkClient;
     }
 
+    /**
+     * zk服务注册器
+     *
+     * @param clientProperty 配置属性{@link YmirConfigurationProperty}
+     * @param zkClient       zk客户端{@link ZkClient}
+     * @return {@link ZookeeperServiceRegister}
+     */
     @Bean
     @ConditionalOnBean(value = {YmirConfigurationProperty.class, ZkClient.class})
     public ZookeeperServiceRegister zookeeperServiceRegister(YmirConfigurationProperty clientProperty, ZkClient zkClient){
         return new ZookeeperServiceRegister(zkClient, clientProperty.getPort(), clientProperty.getProtocol(), 100);
     }
 
+    /**
+     * RequestHandler注册
+     *
+     * @param serviceRegister 服务注册器{@link ServiceRegister}
+     * @param clientProperty  配置属性{@link YmirConfigurationProperty}
+     * @return {@link RequestHandler}
+     */
     @Bean
     @ConditionalOnBean(value = {ServiceRegister.class, YmirConfigurationProperty.class})
     public RequestHandler requestHandler(ServiceRegister serviceRegister, YmirConfigurationProperty clientProperty){
         return new RequestHandler(getMessageProtocol(clientProperty.getProtocol()), serviceRegister);
     }
 
+    /**
+     * Netty服务注册
+     *
+     * @param property       配置属性{@link YmirConfigurationProperty}
+     * @param requestHandler 注册注册器{@link RequestHandler}
+     * @return {@link YmirNettyServer}
+     */
     @Bean
     @ConditionalOnBean(value = {YmirConfigurationProperty.class, RequestHandler.class})
     public YmirNettyServer ymirNettyServer(YmirConfigurationProperty property, RequestHandler requestHandler){
         return new YmirNettyServer(property, requestHandler);
     }
 
+    /**
+     * 服务到处处理器
+     *
+     * @param serviceRegister 服务注册{@link ServiceRegister}
+     * @param nettyServer     Netty服务{@link YmirNettyServer}
+     * @return {@link DefaultServiceExportProcessor}
+     */
     @Bean
     @ConditionalOnBean(value = {ServiceRegister.class, YmirNettyServer.class})
     public DefaultServiceExportProcessor defaultServiceExportProcessor(ServiceRegister serviceRegister, YmirNettyServer nettyServer){
