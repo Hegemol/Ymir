@@ -92,6 +92,12 @@ public class YmirBeanAutoConfiguration {
         return new DefaultServiceExportProcessor(serviceRegister, nettyServer);
     }
 
+    /**
+     * 获取消息序列化，此处通过模拟Dubbo的SPI机制进行获取对应的实现；
+     *
+     * @param name 序列化协议名
+     * @return {@link MessageProtocol}
+     */
     private MessageProtocol getMessageProtocol(String name) {
         // TODO 此处SPI数据改造
         ServiceLoader<MessageProtocol> loader = ServiceLoader.load(MessageProtocol.class);
