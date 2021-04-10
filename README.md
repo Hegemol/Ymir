@@ -30,3 +30,4 @@ Ymir，出自动漫[进击的巨人](https://baike.baidu.com/item/%E8%BF%9B%E5%8
 * 序列化实现接入；
 * Netty服务器接入；
 * 调整Zookeeper依赖，去zk-client;
+* 借鉴Dubbo的SPI机制实现；
