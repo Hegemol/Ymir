@@ -1,11 +1,18 @@
 package org.season.ymir.client.process;
 
+import org.I0Itec.zkclient.ZkClient;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.season.ymir.client.annotation.YmirReference;
 import org.season.ymir.client.annotation.YmirService;
+import org.season.ymir.client.proxy.YmirClientProxyFactory;
+import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.register.ServiceBean;
 import org.season.ymir.common.register.ServiceRegister;
 import org.season.ymir.common.utils.YmirThreadFactory;
+import org.season.ymir.core.cache.YmirServerDiscoveryCache;
+import org.season.ymir.core.zookeeper.ZkChildListenerImpl;
+import org.season.ymir.core.zookeeper.ZookeeperYmirServerDiscovery;
 import org.season.ymir.server.YmirNettyServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +20,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 
+import java.lang.reflect.Field;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -34,11 +43,13 @@ public class DefaultServiceExportProcessor implements ApplicationListener<Contex
     private ExecutorService executorService;
     private ServiceRegister serviceRegister;
     private YmirNettyServer nettyServer;
+    private YmirClientProxyFactory proxyFactory;
 
-    public DefaultServiceExportProcessor(ServiceRegister serviceRegister, YmirNettyServer nettyServer) {
+    public DefaultServiceExportProcessor(ServiceRegister serviceRegister, YmirNettyServer nettyServer, YmirClientProxyFactory proxyFactory) {
         this.executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(), new YmirThreadFactory("service-export-"));
         this.serviceRegister = serviceRegister;
         this.nettyServer = nettyServer;
+        this.proxyFactory = proxyFactory;
     }
 
     @Override
@@ -51,7 +62,7 @@ public class DefaultServiceExportProcessor implements ApplicationListener<Contex
         executorService.execute(() -> handler(applicationContext));
     }
 
-    private void handler(ApplicationContext applicationContext){
+    private void handler(ApplicationContext applicationContext) {
         // 上传注册信息
         registerService(applicationContext);
         // 注入服务信息
@@ -70,7 +81,7 @@ public class DefaultServiceExportProcessor implements ApplicationListener<Contex
                         serviceBean = new ServiceBean(service.value(), clazz, obj);
                     } else {
                         Class<?>[] interfaces = clazz.getInterfaces();
-                        if (interfaces.length > 1){
+                        if (interfaces.length > 1) {
                             logger.error("Only one interface class can be inherited, class {} is illegal!", obj.getClass().getName());
                             continue;
                         }
@@ -90,7 +101,41 @@ public class DefaultServiceExportProcessor implements ApplicationListener<Contex
 
     }
 
-    private void referenceService(ApplicationContext applicationContext) {
+    private void referenceService(ApplicationContext context) {
+        String[] names = context.getBeanDefinitionNames();
+        for (String name : names) {
+            Class<?> clazz = context.getType(name);
+            if (Objects.isNull(clazz)) {
+                continue;
+            }
 
+            Field[] declaredFields = clazz.getDeclaredFields();
+            for (Field field : declaredFields) {
+                YmirReference reference = field.getAnnotation(YmirReference.class);
+                if (Objects.isNull(reference)) {
+                    continue;
+                }
+
+                Class<?> fieldClass = field.getType();
+                Object object = context.getBean(name);
+                field.setAccessible(true);
+                try {
+                    field.set(object, proxyFactory.getProxy(fieldClass));
+                } catch (IllegalAccessException e) {
+                    logger.error("Service reference error, exception:{}", ExceptionUtils.getStackTrace(e));
+                }
+                YmirServerDiscoveryCache.SERVICE_LIST.add(fieldClass.getName());
+            }
+        }
+        // 注册子节点监听
+        if (proxyFactory.getServerDiscovery() instanceof ZookeeperYmirServerDiscovery) {
+            ZookeeperYmirServerDiscovery serverDiscovery = (ZookeeperYmirServerDiscovery) proxyFactory.getServerDiscovery();
+            ZkClient zkClient = serverDiscovery.getZkClient();
+            YmirServerDiscoveryCache.SERVICE_LIST.forEach(name -> {
+                String servicePath = CommonConstant.ZK_SERVICE_PATH + CommonConstant.PATH_DELIMITER + name + "/service";
+                zkClient.subscribeChildChanges(servicePath, new ZkChildListenerImpl());
+            });
+            logger.info("subscribe service zk node successfully");
+        }
     }
 }
