@@ -2,6 +2,7 @@ package org.season.ymir.core.config;
 
 import org.I0Itec.zkclient.ZkClient;
 import org.season.ymir.client.process.DefaultServiceExportProcessor;
+import org.season.ymir.client.proxy.YmirClientProxyFactory;
 import org.season.ymir.client.register.ZookeeperServiceRegister;
 import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.register.ServiceRegister;
@@ -87,9 +88,9 @@ public class YmirBeanAutoConfiguration {
      * @return {@link DefaultServiceExportProcessor}
      */
     @Bean
-    @ConditionalOnBean(value = {ServiceRegister.class, YmirNettyServer.class})
-    public DefaultServiceExportProcessor defaultServiceExportProcessor(ServiceRegister serviceRegister, YmirNettyServer nettyServer){
-        return new DefaultServiceExportProcessor(serviceRegister, nettyServer);
+    @ConditionalOnBean(value = {ServiceRegister.class, YmirNettyServer.class, YmirClientProxyFactory.class})
+    public DefaultServiceExportProcessor defaultServiceExportProcessor(ServiceRegister serviceRegister, YmirNettyServer nettyServer, YmirClientProxyFactory proxyFactory){
+        return new DefaultServiceExportProcessor(serviceRegister, nettyServer, proxyFactory);
     }
 
     /**
