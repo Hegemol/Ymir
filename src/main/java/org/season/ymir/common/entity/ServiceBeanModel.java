@@ -5,7 +5,7 @@ package org.season.ymir.common.entity;
  *
  * @author KevinClair
  */
-public class ServiceBeanRegisterModel {
+public class ServiceBeanModel {
 
     /**
      * 服务名称
@@ -56,13 +56,13 @@ public class ServiceBeanRegisterModel {
         this.weight = weight;
     }
 
-    public ServiceBeanRegisterModel(String name, String protocol, String address, Integer weight) {
+    public ServiceBeanModel(String name, String protocol, String address, Integer weight) {
         this.name = name;
         this.protocol = protocol;
         this.address = address;
         this.weight = weight;
     }
 
-    public ServiceBeanRegisterModel() {
+    public ServiceBeanModel() {
     }
 }

@@ -5,7 +5,7 @@ package org.season.ymir.common.entity;
  *
  * @author KevinClair
  */
-public class ServiceBeanExportEventModel extends ServiceBeanRegisterModel {
+public class ServiceBeanExportEventModel extends ServiceBeanModel {
 
     private String path;
 

@@ -4,7 +4,7 @@ import org.I0Itec.zkclient.ZkClient;
 import org.season.ymir.client.event.ServiceBeanExportEvent;
 import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.entity.ServiceBeanExportEventModel;
-import org.season.ymir.common.entity.ServiceBeanRegisterModel;
+import org.season.ymir.common.entity.ServiceBeanModel;
 import org.season.ymir.common.register.DefaultAbstractServiceRegister;
 import org.season.ymir.common.register.ServiceBean;
 import org.season.ymir.common.utils.GsonUtils;
@@ -42,7 +42,7 @@ public class ZookeeperServiceRegister extends DefaultAbstractServiceRegister imp
     @Override
     public void registerBean(ServiceBean bean) throws Exception {
         super.registerBean(bean);
-        ServiceBeanRegisterModel registerModel = new ServiceBeanRegisterModel();
+        ServiceBeanModel registerModel = new ServiceBeanModel();
         String host = InetAddress.getLocalHost().getHostAddress();
         String address = host + ":" + port;
         registerModel.setAddress(address);
@@ -69,7 +69,7 @@ public class ZookeeperServiceRegister extends DefaultAbstractServiceRegister imp
      * @param model            服务注册模型
      * @param exportEventModel 服务导出事件模型
      */
-    private void exportService(final ServiceBeanRegisterModel model, final ServiceBeanExportEventModel exportEventModel) {
+    private void exportService(final ServiceBeanModel model, final ServiceBeanExportEventModel exportEventModel) {
         String serviceName = model.getName();
         String uri = GsonUtils.getInstance().toJson(model);
         try {
