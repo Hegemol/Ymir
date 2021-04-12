@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 /**
- * TODO
+ * zk节点监听
  *
  * @author KevinClair
  **/
@@ -19,8 +19,8 @@ public class ZkChildListenerImpl implements IZkChildListener {
     /**
      * 监听子节点的删除和新增事件
      *
-     * @param parentPath /rpc/serviceName/service
-     * @param childList
+     * @param parentPath 父节点名称
+     * @param childList  子节点列表
      * @throws Exception
      */
     @Override
