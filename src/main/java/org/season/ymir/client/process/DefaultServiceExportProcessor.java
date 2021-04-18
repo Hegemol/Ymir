@@ -1,8 +1,8 @@
 package org.season.ymir.client.process;
 
-import org.I0Itec.zkclient.ZkClient;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.curator.framework.CuratorFramework;
 import org.season.ymir.client.annotation.YmirReference;
 import org.season.ymir.client.annotation.YmirService;
 import org.season.ymir.client.proxy.YmirClientProxyFactory;
@@ -11,7 +11,7 @@ import org.season.ymir.common.register.ServiceBean;
 import org.season.ymir.common.register.ServiceRegister;
 import org.season.ymir.common.utils.YmirThreadFactory;
 import org.season.ymir.core.cache.YmirServerDiscoveryCache;
-import org.season.ymir.core.zookeeper.ZkChildListenerImpl;
+import org.season.ymir.core.zookeeper.CuratorListenerImpl;
 import org.season.ymir.core.zookeeper.ZookeeperYmirServerDiscovery;
 import org.season.ymir.server.YmirNettyServer;
 import org.slf4j.Logger;
@@ -130,10 +130,10 @@ public class DefaultServiceExportProcessor implements ApplicationListener<Contex
         // 注册子节点监听
         if (proxyFactory.getServerDiscovery() instanceof ZookeeperYmirServerDiscovery) {
             ZookeeperYmirServerDiscovery serverDiscovery = (ZookeeperYmirServerDiscovery) proxyFactory.getServerDiscovery();
-            ZkClient zkClient = serverDiscovery.getZkClient();
+            CuratorFramework zkClient = serverDiscovery.getZkClient();
             YmirServerDiscoveryCache.SERVICE_LIST.forEach(name -> {
                 String servicePath = CommonConstant.ZK_SERVICE_PATH + CommonConstant.PATH_DELIMITER + name + "/service";
-                zkClient.subscribeChildChanges(servicePath, new ZkChildListenerImpl());
+                zkClient.getCuratorListenable().addListener(new CuratorListenerImpl(), executorService);
             });
             logger.info("subscribe service zk node successfully");
         }

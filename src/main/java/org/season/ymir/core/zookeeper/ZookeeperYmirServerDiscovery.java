@@ -1,7 +1,7 @@
 package org.season.ymir.core.zookeeper;
 
-import org.I0Itec.zkclient.ZkClient;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.curator.framework.CuratorFramework;
 import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.entity.ServiceBeanModel;
 import org.season.ymir.common.utils.GsonUtils;
@@ -25,16 +25,16 @@ public class ZookeeperYmirServerDiscovery implements YmirServerDiscovery {
 
     private static final Logger logger = LoggerFactory.getLogger(ZookeeperYmirServerDiscovery.class);
 
-    private ZkClient zkClient;
+    private CuratorFramework zkClient;
 
-    public ZookeeperYmirServerDiscovery(ZkClient zkClient) {
+    public ZookeeperYmirServerDiscovery(CuratorFramework zkClient) {
         this.zkClient = zkClient;
     }
 
     @Override
-    public List<ServiceBeanModel> findServiceList(String name) {
+    public List<ServiceBeanModel> findServiceList(String name) throws Exception {
         String servicePath = CommonConstant.ZK_SERVICE_PATH + CommonConstant.PATH_DELIMITER + name + "/service";
-        List<String> children = zkClient.getChildren(servicePath);
+        List<String> children = zkClient.getChildren().forPath(servicePath);
         return Optional.ofNullable(children).orElse(new ArrayList<>()).stream().map(str -> {
             String deCh = null;
             try {
@@ -46,7 +46,7 @@ public class ZookeeperYmirServerDiscovery implements YmirServerDiscovery {
         }).collect(Collectors.toList());
     }
 
-    public ZkClient getZkClient() {
+    public CuratorFramework getZkClient() {
         return zkClient;
     }
 }

@@ -17,5 +17,5 @@ public interface YmirServerDiscovery {
      * @param name
      * @return
      */
-    List<ServiceBeanModel> findServiceList(String name);
+    List<ServiceBeanModel> findServiceList(String name) throws Exception;
 }

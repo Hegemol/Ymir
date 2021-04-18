@@ -1,6 +1,7 @@
 package org.season.ymir.client.register;
 
-import org.I0Itec.zkclient.ZkClient;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.zookeeper.CreateMode;
 import org.season.ymir.client.event.ServiceBeanExportEvent;
 import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.entity.ServiceBeanExportEventModel;
@@ -15,6 +16,7 @@ import org.springframework.context.ApplicationEventPublisherAware;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.URLEncoder;
+import java.util.Objects;
 
 /**
  * TODO
@@ -23,10 +25,10 @@ import java.net.URLEncoder;
  */
 public class ZookeeperServiceRegister extends DefaultAbstractServiceRegister implements ApplicationEventPublisherAware {
 
-    private ZkClient zkClient;
+    private CuratorFramework zkClient;
     private ApplicationEventPublisher applicationEventPublisher;
 
-    public ZookeeperServiceRegister(ZkClient zkClient, Integer port, String protocol, Integer weight) {
+    public ZookeeperServiceRegister(CuratorFramework zkClient, Integer port, String protocol, Integer weight) {
         this.zkClient = zkClient;
         this.port = port;
         this.protocol = protocol;
@@ -69,7 +71,7 @@ public class ZookeeperServiceRegister extends DefaultAbstractServiceRegister imp
      * @param model            服务注册模型
      * @param exportEventModel 服务导出事件模型
      */
-    private void exportService(final ServiceBeanModel model, final ServiceBeanExportEventModel exportEventModel) {
+    private void exportService(final ServiceBeanModel model, final ServiceBeanExportEventModel exportEventModel) throws Exception {
         String serviceName = model.getName();
         String uri = GsonUtils.getInstance().toJson(model);
         try {
@@ -78,18 +80,18 @@ public class ZookeeperServiceRegister extends DefaultAbstractServiceRegister imp
             e.printStackTrace();
         }
         String zodePath = ZkPathUtils.buildPath(CommonConstant.ZK_SERVICE_CLIENT_PATH, serviceName);
-        if (!zkClient.exists(zodePath)) {
+        if (Objects.nonNull(zkClient.checkExists().forPath(zodePath))) {
             // 创建节点
-            zkClient.createPersistent(zodePath, true);
+            zkClient.create().creatingParentsIfNeeded().withMode(CreateMode.PERSISTENT).forPath(zodePath);
         }
         exportEventModel.setPath(zodePath);
         String uriPath = ZkPathUtils.buildUriPath(zodePath, uri);
-        if (zkClient.exists(uriPath)) {
+        if (Objects.nonNull(zkClient.checkExists().forPath(uriPath))) {
             // 删除之前的节点
-            zkClient.delete(uriPath);
+            zkClient.delete().guaranteed().forPath(uriPath);
         }
         // 创建一个临时节点，会话失效即被清理
-        zkClient.createEphemeral(uriPath);
+        zkClient.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(uriPath);
         exportEventModel.setUrl(uriPath);
     }
 
