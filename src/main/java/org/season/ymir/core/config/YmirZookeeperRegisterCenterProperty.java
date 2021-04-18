@@ -16,6 +16,8 @@ public class YmirZookeeperRegisterCenterProperty {
 
     private Integer connectionTimeout = 6000;
 
+    private Integer retryTimes = 3;
+
     public String getUrl() {
         return url;
     }
@@ -38,5 +40,13 @@ public class YmirZookeeperRegisterCenterProperty {
 
     public void setConnectionTimeout(Integer connectionTimeout) {
         this.connectionTimeout = connectionTimeout;
+    }
+
+    public Integer getRetryTimes() {
+        return retryTimes;
+    }
+
+    public void setRetryTimes(Integer retryTimes) {
+        this.retryTimes = retryTimes;
     }
 }
