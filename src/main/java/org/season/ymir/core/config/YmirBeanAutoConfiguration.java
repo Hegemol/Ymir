@@ -1,6 +1,9 @@
 package org.season.ymir.core.config;
 
-import org.I0Itec.zkclient.ZkClient;
+import org.apache.curator.RetryPolicy;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.season.ymir.client.process.DefaultServiceExportProcessor;
 import org.season.ymir.client.proxy.YmirClientProxyFactory;
 import org.season.ymir.client.register.ZookeeperServiceRegister;
@@ -8,7 +11,6 @@ import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.register.ServiceRegister;
 import org.season.ymir.core.handler.MessageProtocol;
 import org.season.ymir.core.handler.RequestHandler;
-import org.season.ymir.core.zookeeper.ZookeeperSerializer;
 import org.season.ymir.server.YmirNettyServer;
 import org.season.ymir.spi.annodation.SPI;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -28,29 +30,30 @@ import java.util.ServiceLoader;
 public class YmirBeanAutoConfiguration {
 
     /**
-     * Zk客户端Bean注册
+     * Zk客户端curtor注册
      *
      * @param zookeeperClientProperty zk客户端属性{@link YmirZookeeperRegisterCenterProperty}
-     * @return {@link ZkClient}
+     * @return {@link CuratorFramework}
      */
     @Bean
     @ConditionalOnProperty(value = "ymir.zookeeper.url")
-    public ZkClient zkClient(YmirZookeeperRegisterCenterProperty zookeeperClientProperty ){
-        ZkClient zkClient = new ZkClient(zookeeperClientProperty.getUrl(), zookeeperClientProperty.getSessionTimeout(), zookeeperClientProperty.getConnectionTimeout());
-        zkClient.setZkSerializer(new ZookeeperSerializer());
-        return zkClient;
+    public CuratorFramework curatorFramework(YmirZookeeperRegisterCenterProperty zookeeperClientProperty ){
+        RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000,zookeeperClientProperty.getRetryTimes());
+        CuratorFramework client = CuratorFrameworkFactory.newClient(zookeeperClientProperty.getUrl(),retryPolicy);
+        client.start();
+        return client;
     }
 
     /**
      * zk服务注册器
      *
      * @param clientProperty 配置属性{@link YmirConfigurationProperty}
-     * @param zkClient       zk客户端{@link ZkClient}
+     * @param zkClient       zk客户端{@link CuratorFramework}
      * @return {@link ZookeeperServiceRegister}
      */
     @Bean
-    @ConditionalOnBean(value = {YmirConfigurationProperty.class, ZkClient.class})
-    public ZookeeperServiceRegister zookeeperServiceRegister(YmirConfigurationProperty clientProperty, ZkClient zkClient){
+    @ConditionalOnBean(value = {YmirConfigurationProperty.class, CuratorFramework.class})
+    public ZookeeperServiceRegister zookeeperServiceRegister(YmirConfigurationProperty clientProperty, CuratorFramework zkClient){
         return new ZookeeperServiceRegister(zkClient, clientProperty.getPort(), clientProperty.getProtocol(), 100);
     }
 
