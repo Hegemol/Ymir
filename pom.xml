@@ -36,7 +36,7 @@
     <properties>
         <java.version>1.8</java.version>
         <zkclient.version>0.10</zkclient.version>
-        <curator.version>4.3.0</curator.version>
+        <curator.version>2.7.1</curator.version>
     </properties>
 
     <dependencies>
