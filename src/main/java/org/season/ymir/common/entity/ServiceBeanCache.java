@@ -1,26 +1,25 @@
-package org.season.ymir.common.register;
+package org.season.ymir.common.entity;
 
 /**
- * 服务bean实例
+ * ServiceBean缓存对象
  *
  * @author KevinClair
- */
-public class ServiceBean {
-
+ **/
+public class ServiceBeanCache {
+    /**
+     * 服务名
+     */
     private String name;
 
+    /**
+     * 类示例
+     */
     private Class<?> clazz;
 
+    /**
+     * 对象
+     */
     private Object bean;
-
-    public ServiceBean(String name, Class<?> clazz, Object bean) {
-        this.name = name;
-        this.clazz = clazz;
-        this.bean = bean;
-    }
-
-    public ServiceBean() {
-    }
 
     public String getName() {
         return name;
@@ -43,6 +42,15 @@ public class ServiceBean {
     }
 
     public void setBean(Object bean) {
+        this.bean = bean;
+    }
+
+    public ServiceBeanCache() {
+    }
+
+    public ServiceBeanCache(String name, Class<?> clazz, Object bean) {
+        this.name = name;
+        this.clazz = clazz;
         this.bean = bean;
     }
 }

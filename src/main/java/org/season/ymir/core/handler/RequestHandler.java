@@ -1,9 +1,9 @@
 package org.season.ymir.core.handler;
 
 import org.season.ymir.common.base.ServiceStatusEnum;
+import org.season.ymir.common.entity.ServiceBeanCache;
 import org.season.ymir.common.model.YmirRequest;
 import org.season.ymir.common.model.YmirResponse;
-import org.season.ymir.common.register.ServiceBean;
 import org.season.ymir.common.register.ServiceRegister;
 
 import java.lang.reflect.Method;
@@ -25,12 +25,19 @@ public class RequestHandler {
         this.serviceRegister = serviceRegister;
     }
 
+    /**
+     * 请求处理
+     *
+     * @param data
+     * @return
+     * @throws Exception
+     */
     public byte[] handleRequest(byte[] data) throws Exception {
         // 1.解组消息
         YmirRequest req = this.protocol.unmarshallingRequest(data);
 
         // 2.查找服务对应
-        ServiceBean bean = serviceRegister.getBean(req.getServiceName());
+        ServiceBeanCache bean = serviceRegister.getBean(req.getServiceName());
 
         YmirResponse response = null;
 

@@ -5,7 +5,7 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import org.season.ymir.common.entity.ServiceBeanModel;
+import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.model.YmirRequest;
 import org.season.ymir.common.model.YmirResponse;
 import org.season.ymir.common.utils.YmirThreadFactory;
@@ -36,7 +36,7 @@ public class NettyNetClient {
      */
     public static Map<String, SendHandlerV2> connectedServerNodes = new ConcurrentHashMap<>();
 
-    public byte[] sendRequest(byte[] data, ServiceBeanModel service) throws InterruptedException {
+    public byte[] sendRequest(byte[] data, ServiceBean service) throws InterruptedException {
         String address = service.getAddress();
         String[] addrInfo = address.split(":");
         final String serverAddress = addrInfo[0];
@@ -67,7 +67,7 @@ public class NettyNetClient {
         return respData;
     }
 
-    public YmirResponse sendRequest(YmirRequest rpcRequest, ServiceBeanModel service, MessageProtocol messageProtocol) {
+    public YmirResponse sendRequest(YmirRequest rpcRequest, ServiceBean service, MessageProtocol messageProtocol) {
 
         String address = service.getAddress();
         synchronized (address) {

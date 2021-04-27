@@ -5,12 +5,8 @@ package org.season.ymir.common.entity;
  *
  * @author KevinClair
  */
-public class ServiceBeanModel {
+public class ServiceBean extends ServiceBeanCache {
 
-    /**
-     * 服务名称
-     */
-    private String name;
     /**
      * 服务协议
      */
@@ -23,14 +19,6 @@ public class ServiceBeanModel {
      * 权重，越大优先级越高
      */
     private Integer weight;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
 
     public String getProtocol() {
         return protocol;
@@ -56,13 +44,17 @@ public class ServiceBeanModel {
         this.weight = weight;
     }
 
-    public ServiceBeanModel(String name, String protocol, String address, Integer weight) {
-        this.name = name;
-        this.protocol = protocol;
-        this.address = address;
+    public ServiceBean(String name, Class<?> clazz, Object bean, Integer weight) {
+        super(name, clazz, bean);
+        this.protocol = "";
+        this.address = "";
         this.weight = weight;
     }
 
-    public ServiceBeanModel() {
+    public ServiceBean(String name, Class<?> clazz, Object bean) {
+        super(name, clazz, bean);
+    }
+
+    public ServiceBean() {
     }
 }
