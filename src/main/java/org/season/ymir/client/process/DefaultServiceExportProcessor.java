@@ -7,7 +7,7 @@ import org.season.ymir.client.annotation.YmirReference;
 import org.season.ymir.client.annotation.YmirService;
 import org.season.ymir.client.proxy.YmirClientProxyFactory;
 import org.season.ymir.common.constant.CommonConstant;
-import org.season.ymir.common.register.ServiceBean;
+import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.register.ServiceRegister;
 import org.season.ymir.common.utils.YmirThreadFactory;
 import org.season.ymir.core.cache.YmirServerDiscoveryCache;
@@ -78,7 +78,7 @@ public class DefaultServiceExportProcessor implements ApplicationListener<Contex
                     ServiceBean serviceBean;
                     YmirService service = clazz.getAnnotation(YmirService.class);
                     if (StringUtils.isNotBlank(service.value())) {
-                        serviceBean = new ServiceBean(service.value(), clazz, obj);
+                        serviceBean = new ServiceBean(service.value(), clazz, obj, service.weight());
                     } else {
                         Class<?>[] interfaces = clazz.getInterfaces();
                         if (interfaces.length > 1) {
@@ -86,16 +86,16 @@ public class DefaultServiceExportProcessor implements ApplicationListener<Contex
                             continue;
                         }
                         Class<?> superInterface = interfaces[0];
-                        serviceBean = new ServiceBean(superInterface.getName(), clazz, obj);
+                        serviceBean = new ServiceBean(superInterface.getName(), clazz, obj, service.weight());
                     }
                     // register bean;
-                    serviceRegister.registerBean(serviceBean);
+                    serviceRegister.registerBean(serviceBean, service.weight());
                     logger.info("Service {} register success", obj.getClass().getName());
                 } catch (Exception e) {
                     logger.error("Service {} register error, error message: {}", obj.getClass().getName(), ExceptionUtils.getStackTrace(e));
                 }
             }
-            // TODO netty启动
+            // netty服务端启动
             nettyServer.start();
         }
 
