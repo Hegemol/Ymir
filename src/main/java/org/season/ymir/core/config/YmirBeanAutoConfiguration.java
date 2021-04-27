@@ -12,6 +12,7 @@ import org.season.ymir.common.register.ServiceRegister;
 import org.season.ymir.core.handler.MessageProtocol;
 import org.season.ymir.core.handler.RequestHandler;
 import org.season.ymir.server.YmirNettyServer;
+import org.season.ymir.server.handle.NettyServerHandler;
 import org.season.ymir.spi.annodation.SPI;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -54,7 +55,7 @@ public class YmirBeanAutoConfiguration {
     @Bean
     @ConditionalOnBean(value = {YmirConfigurationProperty.class, CuratorFramework.class})
     public ZookeeperServiceRegister zookeeperServiceRegister(YmirConfigurationProperty clientProperty, CuratorFramework zkClient){
-        return new ZookeeperServiceRegister(zkClient, clientProperty.getPort(), clientProperty.getProtocol(), 100);
+        return new ZookeeperServiceRegister(zkClient, clientProperty.getPort(), clientProperty.getProtocol());
     }
 
     /**
@@ -71,16 +72,28 @@ public class YmirBeanAutoConfiguration {
     }
 
     /**
+     * Netty服务端处理器
+     *
+     * @param requestHandler 请求处理器{@link RequestHandler}
+     * @return Netty服务端处理器 {@link NettyServerHandler}
+     */
+    @Bean
+    @ConditionalOnBean(value = {RequestHandler.class})
+    public NettyServerHandler nettyServerHandler(RequestHandler requestHandler){
+        return new NettyServerHandler(requestHandler);
+    }
+
+    /**
      * Netty服务注册
      *
-     * @param property       配置属性{@link YmirConfigurationProperty}
-     * @param requestHandler 注册注册器{@link RequestHandler}
+     * @param property           配置属性{@link YmirConfigurationProperty}
+     * @param nettyServerHandler Netty服务端处理器{@link NettyServerHandler}
      * @return {@link YmirNettyServer}
      */
     @Bean
     @ConditionalOnBean(value = {YmirConfigurationProperty.class, RequestHandler.class})
-    public YmirNettyServer ymirNettyServer(YmirConfigurationProperty property, RequestHandler requestHandler){
-        return new YmirNettyServer(property, requestHandler);
+    public YmirNettyServer ymirNettyServer(YmirConfigurationProperty property, NettyServerHandler nettyServerHandler){
+        return new YmirNettyServer(property, nettyServerHandler);
     }
 
     /**
