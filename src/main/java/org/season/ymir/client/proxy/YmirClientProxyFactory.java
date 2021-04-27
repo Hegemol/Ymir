@@ -1,7 +1,7 @@
 package org.season.ymir.client.proxy;
 
 import org.season.ymir.client.net.NettyNetClient;
-import org.season.ymir.common.entity.ServiceBeanModel;
+import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.model.YmirRequest;
 import org.season.ymir.common.model.YmirResponse;
@@ -67,8 +67,8 @@ public class YmirClientProxyFactory {
             }
             // 1.获得服务信息
             String serviceName = clazz.getName();
-            List<ServiceBeanModel> services = getServiceList(serviceName);
-            ServiceBeanModel service = loadBalance.load(services);
+            List<ServiceBean> services = getServiceList(serviceName);
+            ServiceBean service = loadBalance.load(services);
             // 2.构造request对象
             YmirRequest request = new YmirRequest();
             request.setRequestId(UUID.randomUUID().toString());
@@ -102,10 +102,11 @@ public class YmirClientProxyFactory {
      * @param serviceName
      * @return
      */
-    private List<ServiceBeanModel> getServiceList(String serviceName) {
-        List<ServiceBeanModel> services;
+    private List<ServiceBean> getServiceList(String serviceName) {
+        List<ServiceBean> services;
 //        synchronized (serviceName){
             if (YmirServerDiscoveryCache.isEmpty(serviceName)) {
+                // TODO 此处需要修改；
                 services = serverDiscovery.findServiceList(serviceName);
                 if (CollectionUtils.isEmpty(services)) {
                     throw new RpcException("No provider available for service "+ serviceName);
