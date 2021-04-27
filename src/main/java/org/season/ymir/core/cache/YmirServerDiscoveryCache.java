@@ -5,7 +5,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.season.ymir.common.entity.ServiceBeanModel;
+import org.season.ymir.common.entity.ServiceBean;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
@@ -19,13 +19,13 @@ import java.util.List;
 public class YmirServerDiscoveryCache {
 
     // 本地缓存
-    private static final LoadingCache<String, List<ServiceBeanModel>> SERVER_MAP = Caffeine.newBuilder()
+    private static final LoadingCache<String, List<ServiceBean>> SERVER_MAP = Caffeine.newBuilder()
             .initialCapacity(10)
             .maximumSize(50000)
-            .build(new CacheLoader<String, List<ServiceBeanModel>>() {
+            .build(new CacheLoader<String, List<ServiceBean>>() {
                 @Nullable
                 @Override
-                public List<ServiceBeanModel> load(@NonNull String s) throws Exception {
+                public List<ServiceBean> load(@NonNull String s) throws Exception {
                     return null;
                 }
             });
@@ -60,7 +60,7 @@ public class YmirServerDiscoveryCache {
      * @param serviceName
      * @return
      */
-    public static List<ServiceBeanModel> get(String serviceName) {
+    public static List<ServiceBean> get(String serviceName) {
         return SERVER_MAP.get(serviceName);
     }
 
@@ -70,7 +70,7 @@ public class YmirServerDiscoveryCache {
      * @param serviceName
      * @param serviceList
      */
-    public static void put(String serviceName, List<ServiceBeanModel> serviceList) {
+    public static void put(String serviceName, List<ServiceBean> serviceList) {
         SERVER_MAP.put(serviceName, serviceList);
     }
 }

@@ -1,6 +1,6 @@
 package org.season.ymir.server;
 
-import org.season.ymir.common.entity.ServiceBeanModel;
+import org.season.ymir.common.entity.ServiceBean;
 
 import java.util.List;
 
@@ -17,5 +17,5 @@ public interface YmirServerDiscovery {
      * @param name
      * @return
      */
-    List<ServiceBeanModel> findServiceList(String name) throws Exception;
+    List<ServiceBean> findServiceList(String name) throws Exception;
 }
