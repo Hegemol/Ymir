@@ -1,5 +1,8 @@
 package org.season.ymir.common.register;
 
+import org.season.ymir.common.entity.ServiceBean;
+import org.season.ymir.common.entity.ServiceBeanCache;
+
 /**
  * TODO
  *
@@ -7,7 +10,21 @@ package org.season.ymir.common.register;
  */
 public interface ServiceRegister {
 
-    void registerBean(final ServiceBean bean) throws Exception;
+    /**
+     * 注册实例
+     *
+     * @param serviceBean
+     * @param weight
+     * @throws Exception
+     */
+    void registerBean(final ServiceBean serviceBean, final int weight) throws Exception;
 
-    ServiceBean getBean(final String name) throws Exception;
+    /**
+     * 获取实例
+     *
+     * @param name
+     * @return
+     * @throws Exception
+     */
+    ServiceBeanCache getBean(final String name) throws Exception;
 }
