@@ -20,4 +20,11 @@ import java.lang.annotation.Target;
 public @interface YmirService {
 
     String value() default "";
+
+    /**
+     * 权重
+     *
+     * @return
+     */
+    int weight() default 0;
 }
