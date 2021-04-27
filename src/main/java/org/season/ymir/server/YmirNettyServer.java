@@ -1,31 +1,18 @@
 package org.season.ymir.server;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelPipeline;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
-import io.netty.util.ReferenceCountUtil;
+import io.netty.handler.timeout.ReadTimeoutHandler;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.season.ymir.core.config.YmirConfigurationProperty;
-import org.season.ymir.common.utils.YmirThreadFactory;
-import org.season.ymir.core.handler.RequestHandler;
+import org.season.ymir.server.handle.NettyServerHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -33,51 +20,58 @@ import java.util.concurrent.TimeUnit;
  *
  * @author KevinClair
  */
-public class YmirNettyServer {
+public class YmirNettyServer implements DisposableBean {
 
     private static final Logger logger = LoggerFactory.getLogger(YmirNettyServer.class);
+    /**
+     * 心跳超时时间
+     */
+    private static final Integer READ_TIMEOUT_SECONDS = 3 * 60;
 
     private Channel channel;
-    private RequestHandler requestHandler;
-    private ExecutorService executorService;
     private YmirConfigurationProperty property;
+    private NettyServerHandler nettyServerHandler;
+    // 配置服务器
+    private EventLoopGroup bossGroup = new NioEventLoopGroup();
+    private EventLoopGroup workerGroup = new NioEventLoopGroup();
 
-    public YmirNettyServer(YmirConfigurationProperty property, RequestHandler requestHandler) {
+    public YmirNettyServer(YmirConfigurationProperty property, NettyServerHandler nettyServerHandler) {
         this.property = property;
-        this.requestHandler = requestHandler;
-        this.executorService = new ThreadPoolExecutor(4, 8,
-                200, TimeUnit.SECONDS,
-                new LinkedBlockingQueue<>(1000),
-                new YmirThreadFactory("netty"));
+        this.nettyServerHandler = nettyServerHandler;
     }
 
     public void start() {
-        // 配置服务器
-        EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-        EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
-            ServerBootstrap b = new ServerBootstrap();
-            b.group(bossGroup, workerGroup)
+            ServerBootstrap bootstrap = new ServerBootstrap();
+            bootstrap.group(bossGroup, workerGroup)
                     .channel(NioServerSocketChannel.class)
-                    .option(ChannelOption.SO_BACKLOG, 100)
-                    .handler(new LoggingHandler(LogLevel.INFO)).childHandler(new ChannelInitializer<SocketChannel>() {
-
-                @Override
-                protected void initChannel(SocketChannel ch) throws Exception {
-                    ChannelPipeline pipeline = ch.pipeline();
-                    pipeline.addLast(new ChannelRequestHandler());
-                }
-            });
+                    .localAddress(new InetSocketAddress(property.getPort()))
+                    .option(ChannelOption.SO_BACKLOG, 1024)
+                    .childOption(ChannelOption.SO_KEEPALIVE, true)
+                    .childOption(ChannelOption.TCP_NODELAY, true)
+                    .childHandler(new ChannelInitializer<Channel>() {
+                        @Override
+                        protected void initChannel(Channel channel) throws Exception {
+                            // 获得 Channel 对应的 ChannelPipeline
+                            ChannelPipeline channelPipeline = channel.pipeline();
+                            // 添加一堆 NettyServerHandler 到 ChannelPipeline 中
+                            channelPipeline
+                                    // 空闲检测
+                                    .addLast(new ReadTimeoutHandler(READ_TIMEOUT_SECONDS, TimeUnit.SECONDS))
+                                    // 服务端处理器
+                                    .addLast(nettyServerHandler);
+                        }
+                    });
 
             // 启动服务
-            ChannelFuture future = b.bind(property.getPort()).sync();
-            logger.debug("Server started successfully.");
-            channel = future.channel();
-            // 等待服务通道关闭
-            future.channel().closeFuture().sync();
+            ChannelFuture future = bootstrap.bind().sync();
+            if (future.isSuccess()){
+                logger.debug("Netty Server started successfully.");
+                channel = future.channel();
+            }
         } catch (Exception e) {
             e.printStackTrace();
-            logger.error("start netty sever failed,msg:{}", e.getMessage());
+            logger.error("netty sever started failed,msg:{}", ExceptionUtils.getStackTrace(e));
         } finally {
             // 释放线程组资源
             bossGroup.shutdownGracefully();
@@ -85,50 +79,14 @@ public class YmirNettyServer {
         }
     }
 
-    public void stop() {
-        this.channel.close();
-    }
-
-    private class ChannelRequestHandler extends ChannelInboundHandlerAdapter {
-
-        @Override
-        public void channelActive(ChannelHandlerContext ctx) throws Exception {
-            logger.debug("Channel active :{}", ctx);
+    @Override
+    public void destroy() {
+        // 关闭 Netty Server
+        if (channel != null) {
+            channel.close();
         }
-
-        @Override
-        public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-            executorService.submit(() -> {
-                try {
-                    logger.debug("the server receives message :{}", msg);
-                    ByteBuf byteBuf = (ByteBuf) msg;
-                    // 消息写入reqData
-                    byte[] reqData = new byte[byteBuf.readableBytes()];
-                    byteBuf.readBytes(reqData);
-                    // 手动回收
-                    ReferenceCountUtil.release(byteBuf);
-                    byte[] respData = requestHandler.handleRequest(reqData);
-                    ByteBuf respBuf = Unpooled.buffer(respData.length);
-                    respBuf.writeBytes(respData);
-                    logger.debug("Send response:{}", respBuf);
-                    ctx.writeAndFlush(respBuf);
-                } catch (Exception e) {
-                    logger.error("server read exception", e);
-                }
-            });
-        }
-
-        @Override
-        public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-            ctx.flush();
-        }
-
-        @Override
-        public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-            // Close the connection when an exception is raised.
-            cause.printStackTrace();
-            logger.error("Exception occurred:{}", cause.getMessage());
-            ctx.close();
-        }
+        // 优雅关闭两个 EventLoopGroup 对象
+        bossGroup.shutdownGracefully();
+        workerGroup.shutdownGracefully();
     }
 }
