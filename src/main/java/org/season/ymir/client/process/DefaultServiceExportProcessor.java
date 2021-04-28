@@ -10,9 +10,7 @@ import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.register.ServiceRegister;
 import org.season.ymir.common.utils.YmirThreadFactory;
-import org.season.ymir.core.cache.YmirServerDiscoveryCache;
-import org.season.ymir.core.zookeeper.CuratorListenerImpl;
-import org.season.ymir.core.zookeeper.ZookeeperYmirServerDiscovery;
+import org.season.ymir.core.discovery.ZookeeperYmirServiceDiscovery;
 import org.season.ymir.server.YmirNettyServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +19,8 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -103,6 +103,7 @@ public class DefaultServiceExportProcessor implements ApplicationListener<Contex
 
     private void referenceService(ApplicationContext context) {
         String[] names = context.getBeanDefinitionNames();
+        List<String> serviceList = new ArrayList<>();
         for (String name : names) {
             Class<?> clazz = context.getType(name);
             if (Objects.isNull(clazz)) {
@@ -120,20 +121,22 @@ public class DefaultServiceExportProcessor implements ApplicationListener<Contex
                 Object object = context.getBean(name);
                 field.setAccessible(true);
                 try {
+                    // 设置代理对象
                     field.set(object, proxyFactory.getProxy(fieldClass));
                 } catch (IllegalAccessException e) {
                     logger.error("Service reference error, exception:{}", ExceptionUtils.getStackTrace(e));
                 }
-                YmirServerDiscoveryCache.SERVICE_LIST.add(fieldClass.getName());
+                serviceList.add(fieldClass.getName());
             }
         }
         // 注册子节点监听
-        if (proxyFactory.getServerDiscovery() instanceof ZookeeperYmirServerDiscovery) {
-            ZookeeperYmirServerDiscovery serverDiscovery = (ZookeeperYmirServerDiscovery) proxyFactory.getServerDiscovery();
+        if (proxyFactory.getServiceDiscovery() instanceof ZookeeperYmirServiceDiscovery) {
+            ZookeeperYmirServiceDiscovery serverDiscovery = (ZookeeperYmirServiceDiscovery) proxyFactory.getServiceDiscovery();
             CuratorFramework zkClient = serverDiscovery.getZkClient();
-            YmirServerDiscoveryCache.SERVICE_LIST.forEach(name -> {
-                String servicePath = CommonConstant.ZK_SERVICE_PATH + CommonConstant.PATH_DELIMITER + name + "/service";
-                zkClient.getCuratorListenable().addListener(new CuratorListenerImpl(), executorService);
+            serviceList.forEach(name -> {
+                String servicePath = CommonConstant.PATH_DELIMITER + name + CommonConstant.ZK_SERVICE_PROVIDER_PATH;
+                // TODO 子节点监听变更
+                zkClient.getCuratorListenable().addListener();
             });
             logger.info("subscribe service zk node successfully");
         }
