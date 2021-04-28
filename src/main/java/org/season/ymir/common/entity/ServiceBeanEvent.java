@@ -5,7 +5,7 @@ package org.season.ymir.common.entity;
  *
  * @author KevinClair
  */
-public class ServiceBeanExportEvent extends ServiceBean {
+public class ServiceBeanEvent extends ServiceBean {
 
     private String path;
 
@@ -27,16 +27,16 @@ public class ServiceBeanExportEvent extends ServiceBean {
         this.url = url;
     }
 
-    public ServiceBeanExportEvent(String name, Class<?> clazz, Object bean, Integer weight, String path, String url) {
+    public ServiceBeanEvent(String name, Class<?> clazz, Object bean, Integer weight, String path, String url) {
         super(name, clazz, bean, weight);
         this.path = path;
         this.url = url;
     }
 
-    public ServiceBeanExportEvent(String name, Class<?> clazz, Object bean, Integer weight) {
+    public ServiceBeanEvent(String name, Class<?> clazz, Object bean, Integer weight) {
         super(name, clazz, bean, weight);
     }
 
-    public ServiceBeanExportEvent() {
+    public ServiceBeanEvent() {
     }
 }
