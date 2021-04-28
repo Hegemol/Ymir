@@ -5,10 +5,9 @@ import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.model.YmirRequest;
 import org.season.ymir.common.model.YmirResponse;
-import org.season.ymir.core.cache.YmirServerDiscoveryCache;
+import org.season.ymir.core.discovery.YmirServiceDiscovery;
 import org.season.ymir.core.handler.LoadBalance;
 import org.season.ymir.core.handler.MessageProtocol;
-import org.season.ymir.server.YmirServerDiscovery;
 import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.InvocationHandler;
@@ -23,7 +22,7 @@ import java.util.*;
  **/
 public class YmirClientProxyFactory {
 
-    private YmirServerDiscovery serverDiscovery;
+    private YmirServiceDiscovery serviceDiscovery;
 
     private NettyNetClient netClient;
 
@@ -79,12 +78,6 @@ public class YmirClientProxyFactory {
             // 3.协议层编组
             MessageProtocol messageProtocol = supportMessageProtocols.get(service.getProtocol());
             YmirResponse response = netClient.sendRequest(request, service, messageProtocol);
-//            byte[] reqData = messageProtocol.marshallingRequest(request);
-//            // 4. 调用网络层发送请求
-//            byte[] respData = netClient.sendRequest(reqData, service);
-//
-//            // 5. 解组响应消息
-//            YmirResponse response = messageProtocol.unmarshallingResponse(respData);
             if (Objects.isNull(response)){
                 throw new RpcException("the response is null");
             }
@@ -102,29 +95,28 @@ public class YmirClientProxyFactory {
      * @param serviceName
      * @return
      */
-    private List<ServiceBean> getServiceList(String serviceName) {
+    private List<ServiceBean> getServiceList(String serviceName) throws Exception {
         List<ServiceBean> services;
 //        synchronized (serviceName){
-            if (YmirServerDiscoveryCache.isEmpty(serviceName)) {
-                // TODO 此处需要修改；
-                services = serverDiscovery.findServiceList(serviceName);
+            if (serviceDiscovery.isEmpty(serviceName)) {
+                services = serviceDiscovery.findServiceList(serviceName);
                 if (CollectionUtils.isEmpty(services)) {
                     throw new RpcException("No provider available for service "+ serviceName);
                 }
-                YmirServerDiscoveryCache.put(serviceName, services);
+                serviceDiscovery.put(serviceName, services);
             } else {
-                services = YmirServerDiscoveryCache.get(serviceName);
+                services = serviceDiscovery.get(serviceName);
             }
 //        }
         return services;
     }
 
-    public YmirServerDiscovery getServerDiscovery() {
-        return serverDiscovery;
+    public YmirServiceDiscovery getServiceDiscovery() {
+        return serviceDiscovery;
     }
 
-    public void setServerDiscovery(YmirServerDiscovery serverDiscovery) {
-        this.serverDiscovery = serverDiscovery;
+    public void setServiceDiscovery(YmirServiceDiscovery serviceDiscovery) {
+        this.serviceDiscovery = serviceDiscovery;
     }
 
     public NettyNetClient getNetClient() {
