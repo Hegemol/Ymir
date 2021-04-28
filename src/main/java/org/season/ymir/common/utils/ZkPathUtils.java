@@ -16,11 +16,11 @@ public class ZkPathUtils {
      * @param name 接口名
      * @return
      */
-    public static String buildPath(String side, String name){
-        return String.join(CommonConstant.PATH_DELIMITER, CommonConstant.ZK_SERVICE_PATH, name, side);
+    public static String buildPath(String side, String name) {
+        return String.join(CommonConstant.PATH_DELIMITER, CommonConstant.PATH_DELIMITER + name, side);
     }
 
-    public static String buildUriPath(String nodePath, String uri){
+    public static String buildUriPath(String nodePath, String uri) {
         return String.join(CommonConstant.PATH_DELIMITER, nodePath, uri);
     }
 }
