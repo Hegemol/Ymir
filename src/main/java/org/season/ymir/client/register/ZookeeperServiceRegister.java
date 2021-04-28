@@ -5,15 +5,14 @@ import org.apache.zookeeper.CreateMode;
 import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.entity.ServiceBeanCache;
-import org.season.ymir.common.entity.ServiceBeanExportEvent;
+import org.season.ymir.common.entity.ServiceBeanEvent;
 import org.season.ymir.common.register.DefaultAbstractServiceRegister;
-import org.season.ymir.common.utils.GsonUtils;
+import org.season.ymir.common.utils.ExportServiceBeanUriUtils;
 import org.season.ymir.common.utils.ZkPathUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 /**
@@ -41,12 +40,7 @@ public class ZookeeperServiceRegister extends DefaultAbstractServiceRegister imp
     @Override
     public void registerBean(ServiceBean serviceBean, int weight) throws Exception {
         super.registerBean(serviceBean, weight);
-//        String host = InetAddress.getLocalHost().getHostAddress();
-//        String address = host + ":" + port;
-//        serviceBeanModel.setAddress(address);
-//        serviceBeanModel.setProtocol(protocol);
-
-        ServiceBeanExportEvent exportEventModel = new ServiceBeanExportEvent();
+        ServiceBeanEvent exportEventModel = new ServiceBeanEvent();
         exportEventModel.setName(serviceBean.getName());
         exportEventModel.setProtocol(protocol);
         exportEventModel.setAddress(serviceBean.getAddress());
@@ -65,29 +59,19 @@ public class ZookeeperServiceRegister extends DefaultAbstractServiceRegister imp
      * @param model            服务注册模型
      * @param exportEventModel 服务导出事件模型
      */
-    private void exportService(final ServiceBean model, final ServiceBeanExportEvent exportEventModel) throws Exception {
+    private void exportService(final ServiceBean model, final ServiceBeanEvent exportEventModel) throws Exception {
         String serviceName = model.getName();
-        String uri = GsonUtils.getInstance().toJson(model);
-        try {
-            uri = URLEncoder.encode(uri, CommonConstant.UTF_8);
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        String zodePath = ZkPathUtils.buildPath(CommonConstant.ZK_SERVICE_PROVIDER_PATH, serviceName);
-        if (Objects.nonNull(zkClient.checkExists().forPath(zodePath))) {
+        String uri = ExportServiceBeanUriUtils.buildUri(model);
+        String zNodePath = ZkPathUtils.buildPath(CommonConstant.ZK_SERVICE_PROVIDER_PATH, serviceName);
+        if (Objects.isNull(zkClient.checkExists().forPath(zNodePath))) {
             // 创建节点
-            zkClient.create().creatingParentsIfNeeded().withMode(CreateMode.PERSISTENT).forPath(zodePath);
+            zkClient.create().creatingParentsIfNeeded().withMode(CreateMode.PERSISTENT).forPath(zNodePath);
         }
-        // TODO 服务导出至zk重构；
-        exportEventModel.setPath(zodePath);
-        String uriPath = ZkPathUtils.buildUriPath(zodePath, uri);
-        if (Objects.nonNull(zkClient.checkExists().forPath(uriPath))) {
-            // 删除之前的节点
-            zkClient.delete().guaranteed().forPath(uriPath);
-        }
+        exportEventModel.setPath(zNodePath);
+        String registerZNodePath = ZkPathUtils.buildUriPath(zNodePath, model.getAddress());
         // 创建一个临时节点，会话失效即被清理
-        zkClient.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(uriPath);
-        exportEventModel.setUrl(uriPath);
+        zkClient.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(registerZNodePath, uri.getBytes(StandardCharsets.UTF_8));
+        exportEventModel.setUrl(uri);
     }
 
     @Override
