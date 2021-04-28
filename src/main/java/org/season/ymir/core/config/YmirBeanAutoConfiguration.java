@@ -14,7 +14,6 @@ import org.season.ymir.core.handler.RequestHandler;
 import org.season.ymir.server.YmirNettyServer;
 import org.season.ymir.server.handle.NettyServerHandler;
 import org.season.ymir.spi.annodation.SPI;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -28,6 +27,7 @@ import java.util.ServiceLoader;
  * @author KevinClair
  */
 @EnableConfigurationProperties({YmirConfigurationProperty.class, YmirZookeeperRegisterCenterProperty.class})
+@ConditionalOnProperty(value = "ymir.zookeeper.url")
 public class YmirBeanAutoConfiguration {
 
     /**
@@ -37,10 +37,15 @@ public class YmirBeanAutoConfiguration {
      * @return {@link CuratorFramework}
      */
     @Bean
-    @ConditionalOnProperty(value = "ymir.zookeeper.url")
     public CuratorFramework curatorFramework(YmirZookeeperRegisterCenterProperty zookeeperClientProperty ){
         RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000,zookeeperClientProperty.getRetryTimes());
-        CuratorFramework client = CuratorFrameworkFactory.newClient(zookeeperClientProperty.getUrl(),retryPolicy);
+        CuratorFramework client = CuratorFrameworkFactory.builder()
+                .connectString(zookeeperClientProperty.getUrl())
+                .connectionTimeoutMs(zookeeperClientProperty.getConnectionTimeout())
+                .sessionTimeoutMs(zookeeperClientProperty.getSessionTimeout())
+                .retryPolicy(retryPolicy)
+                .namespace("ymir")
+                .build();
         client.start();
         return client;
     }
@@ -53,7 +58,6 @@ public class YmirBeanAutoConfiguration {
      * @return {@link ZookeeperServiceRegister}
      */
     @Bean
-    @ConditionalOnBean(value = {YmirConfigurationProperty.class, CuratorFramework.class})
     public ZookeeperServiceRegister zookeeperServiceRegister(YmirConfigurationProperty clientProperty, CuratorFramework zkClient){
         return new ZookeeperServiceRegister(zkClient, clientProperty.getPort(), clientProperty.getProtocol());
     }
@@ -66,7 +70,6 @@ public class YmirBeanAutoConfiguration {
      * @return {@link RequestHandler}
      */
     @Bean
-    @ConditionalOnBean(value = {ServiceRegister.class, YmirConfigurationProperty.class})
     public RequestHandler requestHandler(ServiceRegister serviceRegister, YmirConfigurationProperty clientProperty){
         return new RequestHandler(getMessageProtocol(clientProperty.getProtocol()), serviceRegister);
     }
@@ -78,7 +81,6 @@ public class YmirBeanAutoConfiguration {
      * @return Netty服务端处理器 {@link NettyServerHandler}
      */
     @Bean
-    @ConditionalOnBean(value = {RequestHandler.class})
     public NettyServerHandler nettyServerHandler(RequestHandler requestHandler){
         return new NettyServerHandler(requestHandler);
     }
@@ -91,7 +93,6 @@ public class YmirBeanAutoConfiguration {
      * @return {@link YmirNettyServer}
      */
     @Bean
-    @ConditionalOnBean(value = {YmirConfigurationProperty.class, RequestHandler.class})
     public YmirNettyServer ymirNettyServer(YmirConfigurationProperty property, NettyServerHandler nettyServerHandler){
         return new YmirNettyServer(property, nettyServerHandler);
     }
@@ -104,7 +105,6 @@ public class YmirBeanAutoConfiguration {
      * @return {@link DefaultServiceExportProcessor}
      */
     @Bean
-    @ConditionalOnBean(value = {ServiceRegister.class, YmirNettyServer.class, YmirClientProxyFactory.class})
     public DefaultServiceExportProcessor defaultServiceExportProcessor(ServiceRegister serviceRegister, YmirNettyServer nettyServer, YmirClientProxyFactory proxyFactory){
         return new DefaultServiceExportProcessor(serviceRegister, nettyServer, proxyFactory);
     }
