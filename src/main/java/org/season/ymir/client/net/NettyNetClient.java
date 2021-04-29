@@ -9,7 +9,8 @@ import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.model.YmirRequest;
 import org.season.ymir.common.model.YmirResponse;
 import org.season.ymir.common.utils.YmirThreadFactory;
-import org.season.ymir.core.handler.MessageProtocol;
+import org.season.ymir.core.handler.SendRequestHandler;
+import org.season.ymir.core.protocol.MessageProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,14 +35,14 @@ public class NettyNetClient {
      * 已连接的服务缓存
      * key: 服务地址，格式：ip:port
      */
-    public static Map<String, SendHandlerV2> connectedServerNodes = new ConcurrentHashMap<>();
+    public static Map<String, SendRequestHandler> connectedServerNodes = new ConcurrentHashMap<>();
 
     public YmirResponse sendRequest(YmirRequest rpcRequest, ServiceBean service, MessageProtocol messageProtocol) {
 
         String address = service.getAddress();
         synchronized (address) {
             if (connectedServerNodes.containsKey(address)) {
-                SendHandlerV2 handler = connectedServerNodes.get(address);
+                SendRequestHandler handler = connectedServerNodes.get(address);
                 logger.info("使用现有的连接");
                 return handler.sendRequest(rpcRequest);
             }
@@ -49,7 +50,7 @@ public class NettyNetClient {
             String[] addrInfo = address.split(":");
             final String serverAddress = addrInfo[0];
             final String serverPort = addrInfo[1];
-            final SendHandlerV2 handler = new SendHandlerV2(messageProtocol, address);
+            final SendRequestHandler handler = new SendRequestHandler(messageProtocol, address);
             threadPool.submit(() -> {
                         // 配置客户端
                         Bootstrap b = new Bootstrap();
@@ -60,7 +61,6 @@ public class NettyNetClient {
                                     protected void initChannel(SocketChannel socketChannel) throws Exception {
                                         ChannelPipeline pipeline = socketChannel.pipeline();
                                         pipeline
-//                                                .addLast(new FixedLengthFrameDecoder(20))
                                                 .addLast(handler);
                                     }
                                 });
