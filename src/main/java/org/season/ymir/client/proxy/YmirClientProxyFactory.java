@@ -6,8 +6,8 @@ import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.model.YmirRequest;
 import org.season.ymir.common.model.YmirResponse;
 import org.season.ymir.core.discovery.YmirServiceDiscovery;
-import org.season.ymir.core.handler.LoadBalance;
-import org.season.ymir.core.handler.MessageProtocol;
+import org.season.ymir.core.balance.LoadBalance;
+import org.season.ymir.core.protocol.MessageProtocol;
 import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.InvocationHandler;
@@ -57,13 +57,6 @@ public class YmirClientProxyFactory {
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            if (method.getName().equals("toString")) {
-                return proxy.toString();
-            }
-
-            if (method.getName().equals("hashCode")) {
-                return 0;
-            }
             // 1.获得服务信息
             String serviceName = clazz.getName();
             List<ServiceBean> services = getServiceList(serviceName);
@@ -77,11 +70,12 @@ public class YmirClientProxyFactory {
             request.setParameterTypes(method.getParameterTypes());
             // 3.协议层编组
             MessageProtocol messageProtocol = supportMessageProtocols.get(service.getProtocol());
+            // 4.发送请求
             YmirResponse response = netClient.sendRequest(request, service, messageProtocol);
             if (Objects.isNull(response)){
                 throw new RpcException("the response is null");
             }
-            // 6.结果处理
+            // 5.结果处理
             if (response.getException() != null) {
                 return response.getException();
             }

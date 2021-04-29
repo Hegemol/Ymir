@@ -9,7 +9,7 @@ import org.season.ymir.client.proxy.YmirClientProxyFactory;
 import org.season.ymir.client.register.ZookeeperServiceRegister;
 import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.register.ServiceRegister;
-import org.season.ymir.core.handler.MessageProtocol;
+import org.season.ymir.core.protocol.MessageProtocol;
 import org.season.ymir.core.handler.RequestHandler;
 import org.season.ymir.server.YmirNettyServer;
 import org.season.ymir.server.handle.NettyServerHandler;

@@ -5,6 +5,7 @@ import org.season.ymir.common.entity.ServiceBeanCache;
 import org.season.ymir.common.model.YmirRequest;
 import org.season.ymir.common.model.YmirResponse;
 import org.season.ymir.common.register.ServiceRegister;
+import org.season.ymir.core.protocol.MessageProtocol;
 
 import java.lang.reflect.Method;
 import java.util.Objects;
