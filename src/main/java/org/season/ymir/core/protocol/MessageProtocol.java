@@ -1,4 +1,4 @@
-package org.season.ymir.core.handler;
+package org.season.ymir.core.protocol;
 
 import org.season.ymir.common.model.YmirRequest;
 import org.season.ymir.common.model.YmirResponse;
