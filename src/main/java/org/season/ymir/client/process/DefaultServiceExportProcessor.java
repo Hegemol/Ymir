@@ -3,6 +3,7 @@ package org.season.ymir.client.process;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.season.ymir.client.annotation.YmirReference;
 import org.season.ymir.client.annotation.YmirService;
 import org.season.ymir.client.proxy.YmirClientProxyFactory;
@@ -11,6 +12,7 @@ import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.register.ServiceRegister;
 import org.season.ymir.common.utils.YmirThreadFactory;
 import org.season.ymir.core.discovery.ZookeeperYmirServiceDiscovery;
+import org.season.ymir.core.zookeeper.CuratorListenerImpl;
 import org.season.ymir.server.YmirNettyServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -134,9 +136,17 @@ public class DefaultServiceExportProcessor implements ApplicationListener<Contex
             ZookeeperYmirServiceDiscovery serverDiscovery = (ZookeeperYmirServiceDiscovery) proxyFactory.getServiceDiscovery();
             CuratorFramework zkClient = serverDiscovery.getZkClient();
             serviceList.forEach(name -> {
-                String servicePath = CommonConstant.PATH_DELIMITER + name + CommonConstant.ZK_SERVICE_PROVIDER_PATH;
-                // TODO 子节点监听变更
-                zkClient.getCuratorListenable().addListener();
+                try {
+                    // 节点监听
+                    String servicePath = CommonConstant.PATH_DELIMITER + name + CommonConstant.ZK_SERVICE_PROVIDER_PATH;
+                    final PathChildrenCache childrenCache = new PathChildrenCache(zkClient, servicePath, true);
+                    childrenCache.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
+                    childrenCache.getListenable().addListener(new CuratorListenerImpl(serverDiscovery));
+
+                    // TODO 写入consumer节点数据
+                } catch (Exception e) {
+                    logger.error("Zookeeper node add  listener error, message:{}", ExceptionUtils.getStackTrace(e));
+                }
             });
             logger.info("subscribe service zk node successfully");
         }
