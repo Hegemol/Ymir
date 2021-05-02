@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
+import java.util.Objects;
 
 /**
  * zk节点监听
@@ -28,9 +29,13 @@ public class CuratorListenerImpl implements PathChildrenCacheListener {
     @Override
     public void childEvent(CuratorFramework curatorFramework, PathChildrenCacheEvent pathChildrenCacheEvent) throws Exception {
         // TODO 根据不同的节点变更类型，更新本地缓存和远程zookeeper节点数据
+        if (Objects.isNull(pathChildrenCacheEvent.getData())){
+            return;
+        }
         logger.debug("Ymir service listener change,event type:{}, path:{}, data:{}",pathChildrenCacheEvent.getType().name(), pathChildrenCacheEvent.getData().getPath(), new String(pathChildrenCacheEvent.getData().getData(), CommonConstant.UTF_8));
         switch (pathChildrenCacheEvent.getType()){
             case CHILD_ADDED:
+                // TODO 根据znode节点数据，更新本地缓存；
                 serviceDiscovery.put(pathChildrenCacheEvent.getData().getPath(), Collections.EMPTY_LIST);
                 break;
             case CHILD_REMOVED:
