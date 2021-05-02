@@ -37,6 +37,8 @@
         <java.version>1.8</java.version>
         <zkclient.version>0.10</zkclient.version>
         <curator.version>2.7.1</curator.version>
+        <protostuff.version>1.0.7</protostuff.version>
+        <kryo.version>4.0.2</kryo.version>
     </properties>
 
     <dependencies>
@@ -74,6 +76,25 @@
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-all</artifactId>
+        </dependency>
+
+        <!-- protostuff依赖 -->
+        <dependency>
+            <groupId>com.dyuproject.protostuff</groupId>
+            <artifactId>protostuff-core</artifactId>
+            <version>${protostuff.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.dyuproject.protostuff</groupId>
+            <artifactId>protostuff-runtime</artifactId>
+            <version>${protostuff.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.esotericsoftware</groupId>
+            <artifactId>kryo</artifactId>
+            <version>${kryo.version}</version>
         </dependency>
     </dependencies>
 
