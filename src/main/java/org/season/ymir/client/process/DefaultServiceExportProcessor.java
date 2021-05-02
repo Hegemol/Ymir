@@ -138,7 +138,7 @@ public class DefaultServiceExportProcessor implements ApplicationListener<Contex
             serviceList.forEach(name -> {
                 try {
                     // 节点监听
-                    String servicePath = CommonConstant.PATH_DELIMITER + name + CommonConstant.ZK_SERVICE_PROVIDER_PATH;
+                    String servicePath = CommonConstant.PATH_DELIMITER + name +CommonConstant.PATH_DELIMITER + CommonConstant.ZK_SERVICE_PROVIDER_PATH;
                     final PathChildrenCache childrenCache = new PathChildrenCache(zkClient, servicePath, true);
                     childrenCache.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
                     childrenCache.getListenable().addListener(new CuratorListenerImpl(serverDiscovery));
