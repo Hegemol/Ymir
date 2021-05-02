@@ -4,13 +4,17 @@ import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.season.ymir.client.net.NettyNetClient;
 import org.season.ymir.client.process.DefaultServiceExportProcessor;
 import org.season.ymir.client.proxy.YmirClientProxyFactory;
 import org.season.ymir.client.register.ZookeeperServiceRegister;
 import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.register.ServiceRegister;
-import org.season.ymir.core.protocol.MessageProtocol;
+import org.season.ymir.core.balance.LoadBalance;
+import org.season.ymir.core.discovery.YmirServiceDiscovery;
+import org.season.ymir.core.discovery.ZookeeperYmirServiceDiscovery;
 import org.season.ymir.core.handler.RequestHandler;
+import org.season.ymir.core.protocol.MessageProtocol;
 import org.season.ymir.server.YmirNettyServer;
 import org.season.ymir.server.handle.NettyServerHandler;
 import org.season.ymir.spi.annodation.SPI;
@@ -98,7 +102,41 @@ public class YmirBeanAutoConfiguration {
     }
 
     /**
-     * 服务到处处理器
+     * 服务发现
+     *
+     * @param zkClient zookeeper客户端
+     * @return {@link YmirServiceDiscovery}
+     */
+    @Bean
+    public YmirServiceDiscovery ymirServiceDiscovery(CuratorFramework zkClient){
+        return new ZookeeperYmirServiceDiscovery(zkClient);
+    }
+
+    /**
+     * Netty客户端
+     *
+     * @return {@link NettyNetClient}
+     */
+    @Bean
+    public NettyNetClient nettyNetClient(){
+        return new NettyNetClient();
+    }
+
+    /**
+     * Ymir客户端代理工厂
+     *
+     * @param serviceDiscovery 服务发现
+     * @param netClient        Netty客户端
+     * @param property         配置信息
+     * @return {@link YmirClientProxyFactory}
+     */
+    @Bean
+    public YmirClientProxyFactory ymirClientProxyFactory(YmirServiceDiscovery serviceDiscovery, NettyNetClient netClient, YmirConfigurationProperty property){
+        return new YmirClientProxyFactory(serviceDiscovery, netClient, getMessageProtocol(property.getProtocol()), getLoadBalance(property.getLoadBalance()));
+    }
+
+    /**
+     * 服务导出处理器
      *
      * @param serviceRegister 服务注册{@link ServiceRegister}
      * @param nettyServer     Netty服务{@link YmirNettyServer}
@@ -127,5 +165,24 @@ public class YmirBeanAutoConfiguration {
             }
         }
         throw new RpcException("invalid message protocol config!");
+    }
+
+    /**
+     * 使用spi匹配符合配置的负载均衡算法
+     *
+     * @param name
+     * @return {@link LoadBalance}
+     */
+    private LoadBalance getLoadBalance(String name) {
+        ServiceLoader<LoadBalance> loader = ServiceLoader.load(LoadBalance.class);
+        Iterator<LoadBalance> iterator = loader.iterator();
+        while (iterator.hasNext()) {
+            LoadBalance loadBalance = iterator.next();
+            SPI spi = loadBalance.getClass().getAnnotation(SPI.class);
+            if (name.equals(spi.value())) {
+                return loadBalance;
+            }
+        }
+        throw new RpcException("invalid load balance config");
     }
 }
