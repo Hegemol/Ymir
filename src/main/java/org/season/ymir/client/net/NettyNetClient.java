@@ -3,8 +3,9 @@ package org.season.ymir.client.net;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.timeout.IdleStateHandler;
+import io.netty.handler.timeout.ReadTimeoutHandler;
 import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.model.YmirRequest;
 import org.season.ymir.common.model.YmirResponse;
@@ -43,7 +44,6 @@ public class NettyNetClient {
         synchronized (address) {
             if (connectedServerNodes.containsKey(address)) {
                 SendRequestHandler handler = connectedServerNodes.get(address);
-                logger.info("使用现有的连接");
                 return handler.sendRequest(rpcRequest);
             }
 
@@ -53,19 +53,25 @@ public class NettyNetClient {
             final SendRequestHandler handler = new SendRequestHandler(messageProtocol, address);
             threadPool.submit(() -> {
                         // 配置客户端
-                        Bootstrap b = new Bootstrap();
-                        b.group(loopGroup).channel(NioSocketChannel.class)
+                        Bootstrap bootstrap = new Bootstrap();
+                        bootstrap.group(loopGroup)
+                                .channel(NioSocketChannel.class)
+                                .remoteAddress(serverAddress, Integer.parseInt(serverPort))
+                                .option(ChannelOption.SO_KEEPALIVE, true)
                                 .option(ChannelOption.TCP_NODELAY, true)
-                                .handler(new ChannelInitializer<SocketChannel>() {
+                                .handler(new ChannelInitializer<Channel>() {
                                     @Override
-                                    protected void initChannel(SocketChannel socketChannel) throws Exception {
-                                        ChannelPipeline pipeline = socketChannel.pipeline();
+                                    protected void initChannel(Channel channel) throws Exception {
+                                        ChannelPipeline pipeline = channel.pipeline();
                                         pipeline
+                                                // 空闲检测
+                                                .addLast(new IdleStateHandler(60, 0, 0))
+                                                .addLast(new ReadTimeoutHandler(3 * 60))
                                                 .addLast(handler);
                                     }
                                 });
                         // 启用客户端连接
-                        ChannelFuture channelFuture = b.connect(serverAddress, Integer.parseInt(serverPort));
+                        ChannelFuture channelFuture = bootstrap.connect();
                         channelFuture.addListener(new ChannelFutureListener() {
                             @Override
                             public void operationComplete(ChannelFuture channelFuture) throws Exception {
@@ -74,7 +80,6 @@ public class NettyNetClient {
                         });
                     }
             );
-            logger.info("使用新的连接。。。");
             return handler.sendRequest(rpcRequest);
         }
     }
