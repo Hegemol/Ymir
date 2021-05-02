@@ -36,7 +36,7 @@ public class ZookeeperYmirServiceDiscovery extends DefaultAbstractYmirServiceDis
         if (!CollectionUtils.isEmpty(serviceList)) {
             return serviceList;
         }
-        String servicePath = CommonConstant.PATH_DELIMITER + name + CommonConstant.ZK_SERVICE_PROVIDER_PATH;
+        String servicePath = CommonConstant.PATH_DELIMITER + name + CommonConstant.PATH_DELIMITER + CommonConstant.ZK_SERVICE_PROVIDER_PATH;
         List<String> children = zkClient.getChildren().forPath(servicePath);
         if (CollectionUtils.isEmpty(children)){
             throw new RpcException(String.format("No provider available for service %s from registry address %s",name, zkClient.getZookeeperClient().getCurrentConnectionString()));

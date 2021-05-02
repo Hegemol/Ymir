@@ -3,6 +3,7 @@ package org.season.ymir.core.handler;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
@@ -25,6 +26,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author KevinClair
  **/
+@ChannelHandler.Sharable
 public class SendRequestHandler extends ChannelInboundHandlerAdapter {
 
     private static Logger logger = LoggerFactory.getLogger(SendRequestHandler.class);

@@ -9,6 +9,8 @@ import org.season.ymir.common.entity.ServiceBeanEvent;
 import org.season.ymir.common.register.DefaultAbstractServiceRegister;
 import org.season.ymir.common.utils.ExportServiceBeanUriUtils;
 import org.season.ymir.common.utils.ZkPathUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 
@@ -16,11 +18,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 /**
- * TODO
+ * zookeeper服务注册
  *
  * @author KevinClair
  */
 public class ZookeeperServiceRegister extends DefaultAbstractServiceRegister implements ApplicationEventPublisherAware {
+
+    private static final Logger logger = LoggerFactory.getLogger(ZookeeperServiceRegister.class);
 
     private CuratorFramework zkClient;
     private ApplicationEventPublisher applicationEventPublisher;
@@ -72,6 +76,7 @@ public class ZookeeperServiceRegister extends DefaultAbstractServiceRegister imp
         // 创建一个临时节点，会话失效即被清理
         zkClient.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(registerZNodePath, uri.getBytes(StandardCharsets.UTF_8));
         exportEventModel.setUrl(uri);
+        logger.info("Service export to zookeeper success, register url:{}", uri);
     }
 
     @Override
