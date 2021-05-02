@@ -26,7 +26,7 @@ public class YmirClientProxyFactory {
 
     private NettyNetClient netClient;
 
-    private Map<String, MessageProtocol> supportMessageProtocols;
+    private MessageProtocol messageProtocol;
 
     private Map<Class<?>, Object> objectCache = new HashMap<>();
 
@@ -68,14 +68,12 @@ public class YmirClientProxyFactory {
             request.setMethod(method.getName());
             request.setParameters(args);
             request.setParameterTypes(method.getParameterTypes());
-            // 3.协议层编组
-            MessageProtocol messageProtocol = supportMessageProtocols.get(service.getProtocol());
-            // 4.发送请求
+            // 3.发送请求
             YmirResponse response = netClient.sendRequest(request, service, messageProtocol);
             if (Objects.isNull(response)){
                 throw new RpcException("the response is null");
             }
-            // 5.结果处理
+            // 4.结果处理
             if (response.getException() != null) {
                 return response.getException();
             }
@@ -91,7 +89,7 @@ public class YmirClientProxyFactory {
      */
     private List<ServiceBean> getServiceList(String serviceName) throws Exception {
         List<ServiceBean> services;
-//        synchronized (serviceName){
+        synchronized (serviceName){
             if (serviceDiscovery.isEmpty(serviceName)) {
                 services = serviceDiscovery.findServiceList(serviceName);
                 if (CollectionUtils.isEmpty(services)) {
@@ -101,7 +99,7 @@ public class YmirClientProxyFactory {
             } else {
                 services = serviceDiscovery.get(serviceName);
             }
-//        }
+        }
         return services;
     }
 
@@ -109,39 +107,13 @@ public class YmirClientProxyFactory {
         return serviceDiscovery;
     }
 
-    public void setServiceDiscovery(YmirServiceDiscovery serviceDiscovery) {
+    public YmirClientProxyFactory(YmirServiceDiscovery serviceDiscovery, NettyNetClient netClient, MessageProtocol messageProtocol, LoadBalance loadBalance) {
         this.serviceDiscovery = serviceDiscovery;
-    }
-
-    public NettyNetClient getNetClient() {
-        return netClient;
-    }
-
-    public void setNetClient(NettyNetClient netClient) {
         this.netClient = netClient;
-    }
-
-    public Map<String, MessageProtocol> getSupportMessageProtocols() {
-        return supportMessageProtocols;
-    }
-
-    public void setSupportMessageProtocols(Map<String, MessageProtocol> supportMessageProtocols) {
-        this.supportMessageProtocols = supportMessageProtocols;
-    }
-
-    public Map<Class<?>, Object> getObjectCache() {
-        return objectCache;
-    }
-
-    public void setObjectCache(Map<Class<?>, Object> objectCache) {
-        this.objectCache = objectCache;
-    }
-
-    public LoadBalance getLoadBalance() {
-        return loadBalance;
-    }
-
-    public void setLoadBalance(LoadBalance loadBalance) {
+        this.messageProtocol = messageProtocol;
         this.loadBalance = loadBalance;
+    }
+
+    public YmirClientProxyFactory() {
     }
 }
