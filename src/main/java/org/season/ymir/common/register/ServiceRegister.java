@@ -4,7 +4,7 @@ import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.entity.ServiceBeanCache;
 
 /**
- * TODO
+ * 服务注册接口
  *
  * @author KevinClair
  */

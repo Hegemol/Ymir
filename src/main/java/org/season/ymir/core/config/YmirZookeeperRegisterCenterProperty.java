@@ -3,7 +3,7 @@ package org.season.ymir.core.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * TODO
+ * zookeeper连接信息
  *
  * @author KevinClair
  */

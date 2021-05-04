@@ -1,7 +1,7 @@
 package org.season.ymir.common.constant;
 
 /**
- * TODO
+ * 常量
  *
  * @author KevinClair
  */

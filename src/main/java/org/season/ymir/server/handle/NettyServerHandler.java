@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.*;
 
 /**
- * TODO
+ * Netty服务端处理器
  *
  * @author KevinClair
  **/
@@ -70,7 +70,6 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
                 byteBuf.readBytes(reqData);
                 // 手动回收
                 ReferenceCountUtil.release(byteBuf);
-                // TODO 请求解码
                 byte[] respData = requestHandler.handleRequest(reqData);
                 ByteBuf respBuf = Unpooled.buffer(respData.length);
                 respBuf.writeBytes(respData);
