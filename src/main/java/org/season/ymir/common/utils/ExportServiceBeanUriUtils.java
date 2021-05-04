@@ -16,7 +16,7 @@ public class ExportServiceBeanUriUtils {
      * @return zNode节点的数据
      */
     public static String buildUri(ServiceBean serviceBean) {
-        return String.join("?", String.join("/", String.join("//", serviceBean.getProtocol()+":", serviceBean.getAddress()), serviceBean.getClazz().getName()), appendProperty(serviceBean));
+        return String.join("?", String.join("/", String.join("//", serviceBean.getProtocol()+":", serviceBean.getAddress()), serviceBean.getName()), appendProperty(serviceBean));
     }
 
     /**
@@ -36,7 +36,19 @@ public class ExportServiceBeanUriUtils {
      * @return {@link ServiceBean}
      */
     public static ServiceBean getServiceBeanFromUri(String uri){
-        // TODO 将znode节点中的uri数据转换成对象
-        return new ServiceBean();
+        // TODO 从uri中解析Bean数据信息
+        String[] split = uri.split("//");
+        ServiceBean serviceBean = new ServiceBean();
+//        try {
+//            serviceBean.setClazz(Class.forName("org.season.ymir.example.server.TestServiceImpl"));
+//        } catch (ClassNotFoundException e) {
+//            e.printStackTrace();
+//        }
+        serviceBean.setName("org.season.ymir.common.TestService");
+        serviceBean.setAddress("192.168.0.106:20777");
+        serviceBean.setProtocol("java");
+        serviceBean.setWeight(0);
+//        serviceBean.setBean();
+        return serviceBean;
     }
 }

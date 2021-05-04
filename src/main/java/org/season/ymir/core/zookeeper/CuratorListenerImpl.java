@@ -4,11 +4,14 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.season.ymir.common.constant.CommonConstant;
+import org.season.ymir.common.utils.ExportServiceBeanUriUtils;
 import org.season.ymir.core.discovery.YmirServiceDiscovery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -36,13 +39,19 @@ public class CuratorListenerImpl implements PathChildrenCacheListener {
         switch (pathChildrenCacheEvent.getType()){
             case CHILD_ADDED:
                 // TODO 根据znode节点数据，更新本地缓存；
-                serviceDiscovery.put(pathChildrenCacheEvent.getData().getPath(), Collections.EMPTY_LIST);
+                String uri = new String(pathChildrenCacheEvent.getData().getData());
+                List list = CollectionUtils.isEmpty(serviceDiscovery.get("org.season.ymir.common.TestService")) ? new ArrayList() : serviceDiscovery.get("org.season.ymir.example.server.TestServiceImpl");
+                list.add(ExportServiceBeanUriUtils.getServiceBeanFromUri(uri));
+                serviceDiscovery.put(pathChildrenCacheEvent.getData().getPath(), list);
                 break;
             case CHILD_REMOVED:
                 serviceDiscovery.remove(pathChildrenCacheEvent.getData().getPath());
                 break;
             case CHILD_UPDATED:
-                serviceDiscovery.put(pathChildrenCacheEvent.getData().getPath(), Collections.EMPTY_LIST);
+                String updateUrl = new String(pathChildrenCacheEvent.getData().getData());
+                List updateUrlList = CollectionUtils.isEmpty(serviceDiscovery.get("org.season.ymir.common.TestService")) ? new ArrayList() : serviceDiscovery.get("org.season.ymir.example.server.TestServiceImpl");
+                updateUrlList.add(ExportServiceBeanUriUtils.getServiceBeanFromUri(updateUrl));
+                serviceDiscovery.put(pathChildrenCacheEvent.getData().getPath(), updateUrlList);
                 break;
             default:
                 break;
