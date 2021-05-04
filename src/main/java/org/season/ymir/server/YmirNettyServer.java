@@ -72,10 +72,6 @@ public class YmirNettyServer implements DisposableBean {
         } catch (Exception e) {
             e.printStackTrace();
             logger.error("netty sever started failed,msg:{}", ExceptionUtils.getStackTrace(e));
-        } finally {
-            // 释放线程组资源
-            bossGroup.shutdownGracefully();
-            workerGroup.shutdownGracefully();
         }
     }
 
