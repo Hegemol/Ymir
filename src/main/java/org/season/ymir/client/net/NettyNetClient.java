@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.concurrent.*;
 
 /**
- * TODO
+ * Netty客户端
  *
  * @author KevinClair
  **/
@@ -75,6 +75,11 @@ public class NettyNetClient {
                         channelFuture.addListener(new ChannelFutureListener() {
                             @Override
                             public void operationComplete(ChannelFuture channelFuture) throws Exception {
+                                if (!channelFuture.isSuccess()) {
+                                    // TODO 重新连接
+                                    logger.error("Netty client connect error,address:{}", address);
+                                    return;
+                                }
                                 connectedServerNodes.put(address, handler);
                             }
                         });
