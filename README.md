@@ -27,8 +27,11 @@ Ymir，出自动漫[进击的巨人](https://baike.baidu.com/item/%E8%BF%9B%E5%8
 
 ## 最近计划
 最近准备开始着手做一次项目的重构和升级，调整一下项目的模块以及工程架构；
-* 序列化实现接入；
-* Netty服务器接入；
-* 调整Zookeeper依赖，去zk-client;
+* 多序列化实现接入；
+* Netty优化，粘包拆包；
 * 借鉴Dubbo的SPI机制实现；
 * 取消SpringBoot父框架；
+* 负载均衡实现；
+* YmirService属性扩展，增加register,group等属性；
+* YmirReference属性扩展，增加group，loadbalance等属性；
+* 项目结构优化，包路径重构；
