@@ -15,7 +15,8 @@ public interface LoadBalance {
      * 负载均衡器
      *
      * @param services 服务列表
+     * @param address  服务注册地址
      * @return {@link ServiceBean}
      */
-    ServiceBean load(List<ServiceBean> services);
+    ServiceBean load(List<ServiceBean> services, String address);
 }

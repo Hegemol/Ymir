@@ -10,12 +10,11 @@ import java.util.Random;
  * 随机算法
  */
 @SPI("random")
-public class RandomBalance implements LoadBalance{
+public class RandomBalance extends AbstractLoadBalance{
 
-    private static Random random = new Random();
+    private static final Random random = new Random();
 
-    @Override
-    public ServiceBean load(List<ServiceBean> services) {
+    public ServiceBean loadMethod(List<ServiceBean> services, String address){
         return services.get(random.nextInt(services.size()));
     }
 }
