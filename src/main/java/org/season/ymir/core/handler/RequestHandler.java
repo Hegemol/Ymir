@@ -11,7 +11,7 @@ import java.lang.reflect.Method;
 import java.util.Objects;
 
 /**
- * 请求处理器
+ * 服务端请求处理器
  *
  * @author KevinClair
  */

@@ -1,4 +1,4 @@
-package org.season.ymir.client.event;
+package org.season.ymir.core.event;
 
 
 import org.springframework.context.ApplicationEvent;

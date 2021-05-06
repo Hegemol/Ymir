@@ -9,6 +9,7 @@ import org.season.ymir.common.entity.ServiceBeanEvent;
 import org.season.ymir.common.register.DefaultAbstractServiceRegister;
 import org.season.ymir.common.utils.ExportServiceBeanUriUtils;
 import org.season.ymir.common.utils.ZkPathUtils;
+import org.season.ymir.core.event.ServiceBeanExportEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -54,7 +55,7 @@ public class ZookeeperServiceRegister extends DefaultAbstractServiceRegister imp
         exportService(serviceBean, exportEventModel);
 
         // 发布事件
-        applicationEventPublisher.publishEvent(new org.season.ymir.client.event.ServiceBeanExportEvent(exportEventModel));
+        applicationEventPublisher.publishEvent(new ServiceBeanExportEvent(exportEventModel));
     }
 
     /**

@@ -5,7 +5,7 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.utils.ExportServiceBeanUriUtils;
-import org.season.ymir.core.discovery.YmirServiceDiscovery;
+import org.season.ymir.server.discovery.YmirServiceDiscovery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
@@ -19,13 +19,13 @@ import java.util.Objects;
  *
  * @author KevinClair
  **/
-public class CuratorListenerImpl implements PathChildrenCacheListener {
+public class ZookeeperNodeChangeListener implements PathChildrenCacheListener {
 
-    private static Logger logger = LoggerFactory.getLogger(CuratorListenerImpl.class);
+    private static Logger logger = LoggerFactory.getLogger(ZookeeperNodeChangeListener.class);
 
     private YmirServiceDiscovery serviceDiscovery;
 
-    public CuratorListenerImpl(YmirServiceDiscovery serviceDiscovery) {
+    public ZookeeperNodeChangeListener(YmirServiceDiscovery serviceDiscovery) {
         this.serviceDiscovery = serviceDiscovery;
     }
 

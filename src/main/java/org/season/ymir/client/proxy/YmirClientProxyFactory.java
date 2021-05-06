@@ -1,11 +1,11 @@
 package org.season.ymir.client.proxy;
 
-import org.season.ymir.client.net.NettyNetClient;
+import org.season.ymir.client.YmirNettyClient;
 import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.model.YmirRequest;
 import org.season.ymir.common.model.YmirResponse;
-import org.season.ymir.core.discovery.YmirServiceDiscovery;
+import org.season.ymir.server.discovery.YmirServiceDiscovery;
 import org.season.ymir.core.balance.LoadBalance;
 import org.season.ymir.core.protocol.MessageProtocol;
 import org.springframework.util.CollectionUtils;
@@ -24,7 +24,7 @@ public class YmirClientProxyFactory {
 
     private YmirServiceDiscovery serviceDiscovery;
 
-    private NettyNetClient netClient;
+    private YmirNettyClient netClient;
 
     private MessageProtocol messageProtocol;
 
@@ -107,7 +107,7 @@ public class YmirClientProxyFactory {
         return serviceDiscovery;
     }
 
-    public YmirClientProxyFactory(YmirServiceDiscovery serviceDiscovery, NettyNetClient netClient, MessageProtocol messageProtocol, LoadBalance loadBalance) {
+    public YmirClientProxyFactory(YmirServiceDiscovery serviceDiscovery, YmirNettyClient netClient, MessageProtocol messageProtocol, LoadBalance loadBalance) {
         this.serviceDiscovery = serviceDiscovery;
         this.netClient = netClient;
         this.messageProtocol = messageProtocol;

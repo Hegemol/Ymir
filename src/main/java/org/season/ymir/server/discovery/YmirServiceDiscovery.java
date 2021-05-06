@@ -1,4 +1,4 @@
-package org.season.ymir.core.discovery;
+package org.season.ymir.server.discovery;
 
 import org.season.ymir.common.entity.ServiceBean;
 

@@ -1,4 +1,4 @@
-package org.season.ymir.client.annotation;
+package org.season.ymir.core.annotation;
 
 import org.springframework.stereotype.Component;
 

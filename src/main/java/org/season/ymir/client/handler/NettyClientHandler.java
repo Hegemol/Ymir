@@ -1,4 +1,4 @@
-package org.season.ymir.core.handler;
+package org.season.ymir.client.handler;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -7,7 +7,7 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
-import org.season.ymir.client.net.NettyNetClient;
+import org.season.ymir.client.YmirNettyClient;
 import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.model.YmirFuture;
 import org.season.ymir.common.model.YmirRequest;
@@ -22,14 +22,14 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 发送请求处理器
+ * 客户端客户端请求处理器
  *
  * @author KevinClair
  **/
 @ChannelHandler.Sharable
-public class SendRequestHandler extends ChannelInboundHandlerAdapter {
+public class NettyClientHandler extends ChannelInboundHandlerAdapter {
 
-    private static Logger logger = LoggerFactory.getLogger(SendRequestHandler.class);
+    private static Logger logger = LoggerFactory.getLogger(NettyClientHandler.class);
 
     /**
      * 编码器
@@ -59,7 +59,7 @@ public class SendRequestHandler extends ChannelInboundHandlerAdapter {
 
     private CountDownLatch latch = new CountDownLatch(1);
 
-    public SendRequestHandler(MessageProtocol messageProtocol, String remoteAddress) {
+    public NettyClientHandler(MessageProtocol messageProtocol, String remoteAddress) {
         this.messageProtocol = messageProtocol;
         this.remoteAddress = remoteAddress;
     }
@@ -103,7 +103,7 @@ public class SendRequestHandler extends ChannelInboundHandlerAdapter {
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         super.channelInactive(ctx);
         logger.error("channel inactive with remoteAddress:[{}]",remoteAddress);
-        NettyNetClient.connectedServerNodes.remove(remoteAddress);
+        YmirNettyClient.connectedServerNodes.remove(remoteAddress);
 
     }
 

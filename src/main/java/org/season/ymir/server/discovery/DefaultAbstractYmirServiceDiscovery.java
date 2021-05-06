@@ -1,4 +1,4 @@
-package org.season.ymir.core.discovery;
+package org.season.ymir.server.discovery;
 
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.Caffeine;

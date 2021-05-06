@@ -1,4 +1,4 @@
-package org.season.ymir.core.config;
+package org.season.ymir.core.property;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

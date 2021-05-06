@@ -1,4 +1,4 @@
-package org.season.ymir.core.discovery;
+package org.season.ymir.server.discovery;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.curator.framework.CuratorFramework;

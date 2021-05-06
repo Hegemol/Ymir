@@ -1,4 +1,4 @@
-package org.season.ymir.server.handle;
+package org.season.ymir.server.handler;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;

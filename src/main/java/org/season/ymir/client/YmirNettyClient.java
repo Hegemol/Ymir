@@ -1,4 +1,4 @@
-package org.season.ymir.client.net;
+package org.season.ymir.client;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
@@ -10,7 +10,7 @@ import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.model.YmirRequest;
 import org.season.ymir.common.model.YmirResponse;
 import org.season.ymir.common.utils.YmirThreadFactory;
-import org.season.ymir.core.handler.SendRequestHandler;
+import org.season.ymir.client.handler.NettyClientHandler;
 import org.season.ymir.core.protocol.MessageProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,9 +23,9 @@ import java.util.concurrent.*;
  *
  * @author KevinClair
  **/
-public class NettyNetClient {
+public class YmirNettyClient {
 
-    private static Logger logger = LoggerFactory.getLogger(NettyNetClient.class);
+    private static Logger logger = LoggerFactory.getLogger(YmirNettyClient.class);
 
     private static ExecutorService threadPool = new ThreadPoolExecutor(4, 10, 200,
             TimeUnit.SECONDS, new LinkedBlockingQueue<>(1000), new YmirThreadFactory("netty-client"));
@@ -36,21 +36,21 @@ public class NettyNetClient {
      * 已连接的服务缓存
      * key: 服务地址，格式：ip:port
      */
-    public static Map<String, SendRequestHandler> connectedServerNodes = new ConcurrentHashMap<>();
+    public static Map<String, NettyClientHandler> connectedServerNodes = new ConcurrentHashMap<>();
 
     public YmirResponse sendRequest(YmirRequest rpcRequest, ServiceBean service, MessageProtocol messageProtocol) {
 
         String address = service.getAddress();
         synchronized (address) {
             if (connectedServerNodes.containsKey(address)) {
-                SendRequestHandler handler = connectedServerNodes.get(address);
+                NettyClientHandler handler = connectedServerNodes.get(address);
                 return handler.sendRequest(rpcRequest);
             }
 
             String[] addrInfo = address.split(":");
             final String serverAddress = addrInfo[0];
             final String serverPort = addrInfo[1];
-            final SendRequestHandler handler = new SendRequestHandler(messageProtocol, address);
+            final NettyClientHandler handler = new NettyClientHandler(messageProtocol, address);
             threadPool.submit(() -> {
                         // 配置客户端
                         Bootstrap bootstrap = new Bootstrap();
