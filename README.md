@@ -12,14 +12,14 @@ Ymir，出自动漫[进击的巨人](https://baike.baidu.com/item/%E8%BF%9B%E5%8
 
 ## 有问题反馈
 在使用中有任何问题，欢迎反馈给我，可以用以下联系方式跟我交流
-* Email: mingjay0601@163.com
+* Email: kevinclair@apache.org
 * QQ: 704714211
 
 ## 感激
 感谢以下的项目，在个人学习过程中，给我起到了很大的帮助
 
 * [Dubbo](http://dubbo.apache.org/zh-cn/)
-* [soul](https://github.com/dromara/soul)
+* [shenyu](https://github.com/dromara/shenyu)
 * [rpc-spring-boot-starter](https://github.com/2YSP/rpc-spring-boot-starter)
 
 ## 关于作者
