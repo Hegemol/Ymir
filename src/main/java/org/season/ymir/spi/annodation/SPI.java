@@ -17,5 +17,5 @@ public @interface SPI {
      *
      * @return the string
      */
-    String value() default "";
+    String value();
 }
