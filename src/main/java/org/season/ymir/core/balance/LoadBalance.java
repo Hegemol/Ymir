@@ -1,6 +1,7 @@
 package org.season.ymir.core.balance;
 
 import org.season.ymir.common.entity.ServiceBean;
+import org.season.ymir.spi.annodation.SPI;
 
 import java.util.List;
 
@@ -9,6 +10,7 @@ import java.util.List;
  *
  * @author KevinClair
  **/
+@SPI("random")
 public interface LoadBalance {
 
     /**
