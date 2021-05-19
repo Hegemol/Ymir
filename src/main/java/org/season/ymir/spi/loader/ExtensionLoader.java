@@ -28,11 +28,9 @@ public class ExtensionLoader<T> {
 
     private final Holder<Map<String, Class<?>>> cachedClasses = new Holder<>();
 
-    private final Map<Class<?>, Object> joinInstances = new ConcurrentHashMap<>();
+    private final Map<Class<?>, Object> cachedObjects = new ConcurrentHashMap<>();
 
     private final Class<T> clazz;
-
-    private String cachedDefaultName;
 
     public ExtensionLoader(Class<T> clazz) {
         this.clazz = clazz;
@@ -66,10 +64,12 @@ public class ExtensionLoader<T> {
     /**
      * 获取name对应的实现类
      *
-     * @param name 具体的SPI对应的名称
-     * @return
+     * @param name 扩展名
+     * @return 类对象
      */
-    public T getLoader(final String name) {
+    public T getLoader(String name) {
+        SPI annotation = clazz.getAnnotation(SPI.class);
+        name = StringUtils.isBlank(name) ? annotation.value() : name;
         Holder<Object> objectHolder = cachedInstances.get(name);
         if (objectHolder == null) {
             cachedInstances.putIfAbsent(name, new Holder<>());
@@ -79,7 +79,8 @@ public class ExtensionLoader<T> {
         if (value == null) {
             synchronized (cachedInstances) {
                 if (value == null) {
-                    objectHolder.setValue(createExtension(name));
+                    value = createExtension(name);
+                    objectHolder.setValue(value);
                     cachedInstances.put(name, objectHolder);
                 }
             }
@@ -87,16 +88,22 @@ public class ExtensionLoader<T> {
         return (T) value;
     }
 
+    /**
+     * 创建对象缓存
+     *
+     * @param name 扩展名
+     * @return object对象
+     */
     private T createExtension(final String name) {
         Class<?> aClass = getExtensionClasses(name).get(name);
         if (aClass == null) {
             throw new IllegalArgumentException("name is error");
         }
-        Object o = joinInstances.get(aClass);
+        Object o = cachedObjects.get(aClass);
         if (o == null) {
             try {
-                joinInstances.putIfAbsent(aClass, aClass.newInstance());
-                o = joinInstances.get(aClass);
+                cachedObjects.putIfAbsent(aClass, aClass.newInstance());
+                o = cachedObjects.get(aClass);
             } catch (InstantiationException | IllegalAccessException e) {
                 throw new IllegalStateException("Extension instance(name: " + name + ", class: "
                         + aClass + ")  could not be instantiated: " + e.getMessage(), e);
@@ -107,9 +114,10 @@ public class ExtensionLoader<T> {
     }
 
     /**
-     * Gets extension classes.
+     * 获取class
      *
-     * @return the extension classes
+     * @param name 扩展名
+     * @return {@link Map}
      */
     public Map<String, Class<?>> getExtensionClasses(final String name) {
         Map<String, Class<?>> classes = cachedClasses.getValue();
@@ -117,22 +125,28 @@ public class ExtensionLoader<T> {
             synchronized (cachedClasses) {
                 classes = cachedClasses.getValue();
                 if (classes == null) {
-                    classes = loadExtensionClass(name);
+                    classes = loadDirectory(new HashMap<>(16), name);
                     cachedClasses.setValue(classes);
                 }
             }
         }
+
+        Class<?> aClass = classes.get(name);
+        if (Objects.isNull(aClass)){
+            loadDirectory(classes, name);
+            cachedClasses.setValue(classes);
+        }
         return classes;
     }
 
-    private Map<String, Class<?>> loadExtensionClass(final String name) {
-        SPI annotation = clazz.getAnnotation(SPI.class);
-        Map<String, Class<?>> classes = new HashMap<>(16);
-        loadDirectory(classes, StringUtils.isBlank(name) ? annotation.value() : name);
-        return classes;
-    }
-
-    private void loadDirectory(final Map<String, Class<?>> classes, final String name) {
+    /**
+     * 加载配置类
+     *
+     * @param classes map集合
+     * @param name    扩展名
+     * @return
+     */
+    private Map<String, Class<?>> loadDirectory(final Map<String, Class<?>> classes, final String name) {
         String fileName = DIRECTORY + clazz.getName();
         try {
             ClassLoader classLoader = ExtensionLoader.class.getClassLoader();
@@ -147,13 +161,22 @@ public class ExtensionLoader<T> {
         } catch (IOException t) {
             log.error("load extension class error {}", fileName, t);
         }
+        return classes;
     }
 
+    /**
+     * 根据类型加载资源文件
+     *
+     * @param classes map集合
+     * @param url     {@link URL}
+     * @param name    扩展名
+     * @throws IOException
+     */
     private void loadResources(final Map<String, Class<?>> classes, final URL url, final String name) throws IOException {
         try (InputStream inputStream = url.openStream()) {
             Properties properties = new Properties();
             properties.load(inputStream);
-            String classPath = (String)properties.get(name);
+            String classPath = (String) properties.get(name);
             if (StringUtils.isNotBlank(name) && StringUtils.isNotBlank(classPath)) {
                 try {
                     loadClass(classes, name, classPath);
@@ -166,6 +189,14 @@ public class ExtensionLoader<T> {
         }
     }
 
+    /**
+     * 加载类对象
+     *
+     * @param classes   map集合
+     * @param name      扩展名
+     * @param classPath 类路径
+     * @throws ClassNotFoundException
+     */
     private void loadClass(final Map<String, Class<?>> classes,
                            final String name, final String classPath) throws ClassNotFoundException {
         Class<?> subClass = Class.forName(classPath);
