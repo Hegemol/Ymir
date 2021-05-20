@@ -5,19 +5,18 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.season.ymir.client.YmirNettyClient;
-import org.season.ymir.core.YmirServiceExportProcessor;
 import org.season.ymir.client.proxy.YmirClientProxyFactory;
 import org.season.ymir.client.register.ZookeeperServiceRegister;
 import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.register.ServiceRegister;
-import org.season.ymir.core.balance.LoadBalance;
-import org.season.ymir.server.discovery.YmirServiceDiscovery;
-import org.season.ymir.server.discovery.ZookeeperYmirServiceDiscovery;
+import org.season.ymir.core.YmirServiceExportProcessor;
 import org.season.ymir.core.handler.RequestHandler;
 import org.season.ymir.core.property.YmirConfigurationProperty;
 import org.season.ymir.core.property.YmirZookeeperRegisterCenterProperty;
 import org.season.ymir.core.protocol.MessageProtocol;
 import org.season.ymir.server.YmirNettyServer;
+import org.season.ymir.server.discovery.YmirServiceDiscovery;
+import org.season.ymir.server.discovery.ZookeeperYmirServiceDiscovery;
 import org.season.ymir.server.handler.NettyServerHandler;
 import org.season.ymir.spi.annodation.SPI;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -134,7 +133,7 @@ public class YmirBeanAutoConfiguration {
      */
     @Bean
     public YmirClientProxyFactory ymirClientProxyFactory(YmirServiceDiscovery serviceDiscovery, YmirNettyClient netClient, YmirConfigurationProperty property){
-        return new YmirClientProxyFactory(serviceDiscovery, netClient, getMessageProtocol(property.getProtocol()), getLoadBalance(property.getLoadBalance()));
+        return new YmirClientProxyFactory(serviceDiscovery, netClient, getMessageProtocol(property.getProtocol()));
     }
 
     /**
@@ -167,24 +166,5 @@ public class YmirBeanAutoConfiguration {
             }
         }
         throw new RpcException("invalid message protocol config!");
-    }
-
-    /**
-     * 使用spi匹配符合配置的负载均衡算法
-     *
-     * @param name
-     * @return {@link LoadBalance}
-     */
-    private LoadBalance getLoadBalance(String name) {
-        ServiceLoader<LoadBalance> loader = ServiceLoader.load(LoadBalance.class);
-        Iterator<LoadBalance> iterator = loader.iterator();
-        while (iterator.hasNext()) {
-            LoadBalance loadBalance = iterator.next();
-            SPI spi = loadBalance.getClass().getAnnotation(SPI.class);
-            if (name.equals(spi.value())) {
-                return loadBalance;
-            }
-        }
-        throw new RpcException("invalid load balance config");
     }
 }

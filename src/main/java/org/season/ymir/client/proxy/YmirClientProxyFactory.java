@@ -5,9 +5,9 @@ import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.model.YmirRequest;
 import org.season.ymir.common.model.YmirResponse;
-import org.season.ymir.server.discovery.YmirServiceDiscovery;
-import org.season.ymir.core.balance.LoadBalance;
+import org.season.ymir.common.utils.LoadBalanceUtils;
 import org.season.ymir.core.protocol.MessageProtocol;
+import org.season.ymir.server.discovery.YmirServiceDiscovery;
 import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.InvocationHandler;
@@ -29,8 +29,6 @@ public class YmirClientProxyFactory {
     private MessageProtocol messageProtocol;
 
     private Map<Class<?>, Object> objectCache = new HashMap<>();
-
-    private LoadBalance loadBalance;
 
     /**
      * 通过Java动态代理获取服务代理类
@@ -61,7 +59,7 @@ public class YmirClientProxyFactory {
             String serviceName = clazz.getName();
             List<ServiceBean> services = getServiceList(serviceName);
             // TODO 此处address地址
-            ServiceBean service = loadBalance.load(services, "");
+            ServiceBean service = LoadBalanceUtils.selector(services, "", "");
             // 2.构造request对象
             YmirRequest request = new YmirRequest();
             request.setRequestId(UUID.randomUUID().toString());
@@ -108,11 +106,10 @@ public class YmirClientProxyFactory {
         return serviceDiscovery;
     }
 
-    public YmirClientProxyFactory(YmirServiceDiscovery serviceDiscovery, YmirNettyClient netClient, MessageProtocol messageProtocol, LoadBalance loadBalance) {
+    public YmirClientProxyFactory(YmirServiceDiscovery serviceDiscovery, YmirNettyClient netClient, MessageProtocol messageProtocol) {
         this.serviceDiscovery = serviceDiscovery;
         this.netClient = netClient;
         this.messageProtocol = messageProtocol;
-        this.loadBalance = loadBalance;
     }
 
     public YmirClientProxyFactory() {
