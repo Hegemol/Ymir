@@ -21,11 +21,6 @@ public class YmirConfigurationProperty {
     private String protocol = "java";
 
     /**
-     * 负载均衡
-     */
-    private String loadBalance = "random";
-
-    /**
      * 权重
      */
     private Integer weight = 1;
@@ -44,13 +39,5 @@ public class YmirConfigurationProperty {
 
     public void setProtocol(String protocol) {
         this.protocol = protocol;
-    }
-
-    public String getLoadBalance() {
-        return loadBalance;
-    }
-
-    public void setLoadBalance(String loadBalance) {
-        this.loadBalance = loadBalance;
     }
 }
