@@ -81,7 +81,6 @@ public class ExtensionLoader<T> {
                 if (value == null) {
                     value = createExtension(name);
                     objectHolder.setValue(value);
-                    cachedInstances.put(name, objectHolder);
                 }
             }
         }
