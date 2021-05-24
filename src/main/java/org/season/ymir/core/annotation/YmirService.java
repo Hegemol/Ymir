@@ -19,6 +19,12 @@ import java.lang.annotation.Target;
 @Documented
 public @interface YmirService {
 
+
+    /**
+     * value
+     *
+     * @return
+     */
     String value() default "";
 
     /**
@@ -27,4 +33,11 @@ public @interface YmirService {
      * @return
      */
     int weight() default 0;
+
+    /**
+     * 是否需要注册
+     *
+     * @return
+     */
+    boolean register() default true;
 }

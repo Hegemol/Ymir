@@ -79,6 +79,10 @@ public class YmirServiceExportProcessor implements ApplicationListener<ContextRe
                     Class<?> clazz = obj.getClass();
                     ServiceBean serviceBean;
                     YmirService service = clazz.getAnnotation(YmirService.class);
+                    // 如果不需要注册，跳过
+                    if (!service.register()){
+                        continue;
+                    }
                     if (StringUtils.isNotBlank(service.value())) {
                         serviceBean = new ServiceBean(service.value(), clazz, obj, service.weight());
                     } else {
