@@ -40,4 +40,18 @@ public @interface YmirService {
      * @return
      */
     boolean register() default true;
+
+    /**
+     * 分组
+     *
+     * @return
+     */
+    String group() default "";
+
+    /**
+     * 版本
+     *
+     * @return
+     */
+    String version() default "";
 }
