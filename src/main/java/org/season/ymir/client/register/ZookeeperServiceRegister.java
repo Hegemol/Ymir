@@ -1,5 +1,6 @@
 package org.season.ymir.client.register;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.CreateMode;
 import org.season.ymir.common.constant.CommonConstant;
@@ -27,7 +28,7 @@ public class ZookeeperServiceRegister extends DefaultAbstractServiceRegister imp
 
     private static final Logger logger = LoggerFactory.getLogger(ZookeeperServiceRegister.class);
 
-    private CuratorFramework zkClient;
+    private final CuratorFramework zkClient;
     private ApplicationEventPublisher applicationEventPublisher;
 
     public ZookeeperServiceRegister(CuratorFramework zkClient, Integer port, String protocol) {
@@ -43,13 +44,15 @@ public class ZookeeperServiceRegister extends DefaultAbstractServiceRegister imp
     }
 
     @Override
-    public void registerBean(ServiceBean serviceBean, int weight) throws Exception {
-        super.registerBean(serviceBean, weight);
+    public void registerBean(ServiceBean serviceBean) throws Exception {
+        super.registerBean(serviceBean);
         ServiceBeanEvent exportEventModel = new ServiceBeanEvent();
         exportEventModel.setName(serviceBean.getName());
-        exportEventModel.setProtocol(protocol);
+        exportEventModel.setProtocol(StringUtils.isBlank(serviceBean.getProtocol()) ? protocol : serviceBean.getProtocol());
         exportEventModel.setAddress(serviceBean.getAddress());
-        exportEventModel.setWeight(weight);
+        exportEventModel.setWeight(serviceBean.getWeight());
+        exportEventModel.setGroup(serviceBean.getGroup());
+        exportEventModel.setVersion(serviceBean.getVersion());
 
         // 服务发布至注册中心
         exportService(serviceBean, exportEventModel);

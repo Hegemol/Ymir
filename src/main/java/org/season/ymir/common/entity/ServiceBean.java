@@ -20,6 +20,16 @@ public class ServiceBean extends ServiceBeanCache {
      */
     private Integer weight;
 
+    /**
+     * 分组
+     */
+    private String group;
+
+    /**
+     * 版本
+     */
+    private String version;
+
     public String getProtocol() {
         return protocol;
     }
@@ -44,11 +54,29 @@ public class ServiceBean extends ServiceBeanCache {
         this.weight = weight;
     }
 
-    public ServiceBean(String name, Class<?> clazz, Object bean, Integer weight) {
+    public String getGroup() {
+        return group;
+    }
+
+    public void setGroup(String group) {
+        this.group = group;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    public ServiceBean(String name, Class<?> clazz, Object bean, Integer weight, String group, String version, String protocol) {
         super(name, clazz, bean);
-        this.protocol = "";
         this.address = "";
+        this.protocol = protocol;
         this.weight = weight;
+        this.group = group;
+        this.version = version;
     }
 
     public ServiceBean(String name, Class<?> clazz, Object bean) {
