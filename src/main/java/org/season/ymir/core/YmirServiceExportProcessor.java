@@ -84,7 +84,7 @@ public class YmirServiceExportProcessor implements ApplicationListener<ContextRe
                         continue;
                     }
                     if (StringUtils.isNotBlank(service.value())) {
-                        serviceBean = new ServiceBean(service.value(), clazz, obj, service.weight());
+                        serviceBean = new ServiceBean(service.value(), clazz, obj, service.weight(), service.group(), service.version(), service.protocol());
                     } else {
                         Class<?>[] interfaces = clazz.getInterfaces();
                         if (interfaces.length > 1) {
@@ -92,10 +92,10 @@ public class YmirServiceExportProcessor implements ApplicationListener<ContextRe
                             continue;
                         }
                         Class<?> superInterface = interfaces[0];
-                        serviceBean = new ServiceBean(superInterface.getName(), clazz, obj, service.weight());
+                        serviceBean = new ServiceBean(superInterface.getName(), clazz, obj, service.weight(), service.group(), service.version(), service.protocol());
                     }
                     // register bean;
-                    serviceRegister.registerBean(serviceBean, service.weight());
+                    serviceRegister.registerBean(serviceBean);
                     logger.info("Service {} register success", obj.getClass().getName());
                 } catch (Exception e) {
                     logger.error("Service {} register error, error message: {}", obj.getClass().getName(), ExceptionUtils.getStackTrace(e));

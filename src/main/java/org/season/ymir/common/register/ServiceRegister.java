@@ -14,10 +14,9 @@ public interface ServiceRegister {
      * 注册实例
      *
      * @param serviceBean
-     * @param weight
      * @throws Exception
      */
-    void registerBean(final ServiceBean serviceBean, final int weight) throws Exception;
+    void registerBean(final ServiceBean serviceBean) throws Exception;
 
     /**
      * 获取实例
