@@ -16,6 +16,7 @@ public class ExportServiceBeanUriUtils {
      * @return zNode节点的数据
      */
     public static String buildUri(ServiceBean serviceBean) {
+        // TODO 上传至zookeeper的数据重写
         return String.join("?", String.join("/", String.join("//", serviceBean.getProtocol()+":", serviceBean.getAddress()), serviceBean.getName()), appendProperty(serviceBean));
     }
 
