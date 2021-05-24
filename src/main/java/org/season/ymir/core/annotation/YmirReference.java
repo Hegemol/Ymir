@@ -15,5 +15,17 @@ import java.lang.annotation.*;
 @Documented
 public @interface YmirReference {
 
+    /**
+     * value
+     *
+     * @return
+     */
     String value() default "";
+
+    /**
+     * 检查服务状态
+     *
+     * @return
+     */
+    boolean check() default false;
 }
