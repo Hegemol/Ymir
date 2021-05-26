@@ -29,27 +29,4 @@ public class ExportServiceBeanUriUtils {
     private static String appendProperty(ServiceBean serviceBean) {
         return String.join("&", "protocol=" + serviceBean.getProtocol(), "weight=" + serviceBean.getWeight());
     }
-
-    /**
-     * 获取对象实例
-     *
-     * @param uri node节点中的数据
-     * @return {@link ServiceBean}
-     */
-    public static ServiceBean getServiceBeanFromUri(String uri){
-        // TODO 从uri中解析Bean数据信息
-        String[] split = uri.split("//");
-        ServiceBean serviceBean = new ServiceBean();
-//        try {
-//            serviceBean.setClazz(Class.forName("org.season.ymir.example.server.TestServiceImpl"));
-//        } catch (ClassNotFoundException e) {
-//            e.printStackTrace();
-//        }
-        serviceBean.setName("org.season.ymir.common.TestService");
-        serviceBean.setAddress("192.168.0.106:20777");
-        serviceBean.setProtocol("java");
-        serviceBean.setWeight(0);
-//        serviceBean.setBean();
-        return serviceBean;
-    }
 }
