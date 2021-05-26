@@ -9,6 +9,7 @@ import org.season.ymir.common.entity.ServiceBeanCache;
 import org.season.ymir.common.entity.ServiceBeanEvent;
 import org.season.ymir.common.register.DefaultAbstractServiceRegister;
 import org.season.ymir.common.utils.ExportServiceBeanUriUtils;
+import org.season.ymir.common.utils.GsonUtils;
 import org.season.ymir.common.utils.ZkPathUtils;
 import org.season.ymir.core.event.ServiceBeanExportEvent;
 import org.slf4j.Logger;
@@ -77,8 +78,8 @@ public class ZookeeperServiceRegister extends DefaultAbstractServiceRegister imp
         }
         exportEventModel.setPath(zNodePath);
         String registerZNodePath = ZkPathUtils.buildUriPath(zNodePath, model.getAddress());
-        // 创建一个临时节点，会话失效即被清理
-        zkClient.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(registerZNodePath, uri.getBytes(StandardCharsets.UTF_8));
+        // 创建一个临时节点，会话失效即被清理，此处节点数据存储Json数据
+        zkClient.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(registerZNodePath, GsonUtils.getInstance().toJson(model).getBytes(StandardCharsets.UTF_8));
         exportEventModel.setUrl(uri);
         logger.info("Service export to zookeeper success, register url:{}", uri);
     }

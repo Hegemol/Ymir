@@ -4,7 +4,8 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.season.ymir.common.constant.CommonConstant;
-import org.season.ymir.common.utils.ExportServiceBeanUriUtils;
+import org.season.ymir.common.entity.ServiceBean;
+import org.season.ymir.common.utils.GsonUtils;
 import org.season.ymir.server.discovery.YmirServiceDiscovery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +42,7 @@ public class ZookeeperNodeChangeListener implements PathChildrenCacheListener {
                 // TODO 根据znode节点数据，更新本地缓存；
                 String uri = new String(pathChildrenCacheEvent.getData().getData());
                 List list = CollectionUtils.isEmpty(serviceDiscovery.get("org.season.ymir.common.TestService")) ? new ArrayList() : serviceDiscovery.get("org.season.ymir.example.server.TestServiceImpl");
-                list.add(ExportServiceBeanUriUtils.getServiceBeanFromUri(uri));
+                list.add(GsonUtils.getInstance().fromJson(uri, ServiceBean.class));
                 serviceDiscovery.put(pathChildrenCacheEvent.getData().getPath(), list);
                 break;
             case CHILD_REMOVED:
@@ -50,7 +51,7 @@ public class ZookeeperNodeChangeListener implements PathChildrenCacheListener {
             case CHILD_UPDATED:
                 String updateUrl = new String(pathChildrenCacheEvent.getData().getData());
                 List updateUrlList = CollectionUtils.isEmpty(serviceDiscovery.get("org.season.ymir.common.TestService")) ? new ArrayList() : serviceDiscovery.get("org.season.ymir.example.server.TestServiceImpl");
-                updateUrlList.add(ExportServiceBeanUriUtils.getServiceBeanFromUri(updateUrl));
+                updateUrlList.add(GsonUtils.getInstance().fromJson(updateUrl, ServiceBean.class));
                 serviceDiscovery.put(pathChildrenCacheEvent.getData().getPath(), updateUrlList);
                 break;
             default:

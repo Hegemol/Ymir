@@ -5,7 +5,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.exception.RpcException;
-import org.season.ymir.common.utils.ExportServiceBeanUriUtils;
+import org.season.ymir.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
@@ -48,7 +48,7 @@ public class ZookeeperYmirServiceDiscovery extends DefaultAbstractYmirServiceDis
             } catch (Exception e) {
                 logger.error("Service List get error, exception:{}", ExceptionUtils.getStackTrace(e));
             }
-            return ExportServiceBeanUriUtils.getServiceBeanFromUri(serviceBeanUri);
+            return GsonUtils.getInstance().fromJson(serviceBeanUri, ServiceBean.class);
         }).collect(Collectors.toList());
     }
 
