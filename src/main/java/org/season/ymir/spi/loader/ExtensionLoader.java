@@ -94,7 +94,7 @@ public class ExtensionLoader<T> {
      * @return object对象
      */
     private T createExtension(final String name) {
-        Class<?> aClass = getExtensionClasses(name).get(name);
+        Class<?> aClass = getExtensionClasses().get(name);
         if (aClass == null) {
             throw new IllegalArgumentException("name is error");
         }
@@ -115,25 +115,18 @@ public class ExtensionLoader<T> {
     /**
      * 获取class
      *
-     * @param name 扩展名
      * @return {@link Map}
      */
-    public Map<String, Class<?>> getExtensionClasses(final String name) {
+    public Map<String, Class<?>> getExtensionClasses() {
         Map<String, Class<?>> classes = cachedClasses.getValue();
         if (classes == null) {
             synchronized (cachedClasses) {
                 classes = cachedClasses.getValue();
                 if (classes == null) {
-                    classes = loadDirectory(new HashMap<>(16), name);
+                    classes = loadDirectory(new HashMap<>(16));
                     cachedClasses.setValue(classes);
                 }
             }
-        }
-
-        Class<?> aClass = classes.get(name);
-        if (Objects.isNull(aClass)){
-            loadDirectory(classes, name);
-            cachedClasses.setValue(classes);
         }
         return classes;
     }
@@ -142,10 +135,9 @@ public class ExtensionLoader<T> {
      * 加载配置类
      *
      * @param classes map集合
-     * @param name    扩展名
      * @return
      */
-    private Map<String, Class<?>> loadDirectory(final Map<String, Class<?>> classes, final String name) {
+    private Map<String, Class<?>> loadDirectory(final Map<String, Class<?>> classes) {
         String fileName = DIRECTORY + clazz.getName();
         try {
             ClassLoader classLoader = ExtensionLoader.class.getClassLoader();
@@ -154,7 +146,7 @@ public class ExtensionLoader<T> {
             if (urls != null) {
                 while (urls.hasMoreElements()) {
                     URL url = urls.nextElement();
-                    loadResources(classes, url, name);
+                    loadResources(classes, url);
                 }
             }
         } catch (IOException t) {
@@ -171,18 +163,22 @@ public class ExtensionLoader<T> {
      * @param name    扩展名
      * @throws IOException
      */
-    private void loadResources(final Map<String, Class<?>> classes, final URL url, final String name) throws IOException {
+    private void loadResources(final Map<String, Class<?>> classes, final URL url) throws IOException {
         try (InputStream inputStream = url.openStream()) {
             Properties properties = new Properties();
             properties.load(inputStream);
-            String classPath = (String) properties.get(name);
-            if (StringUtils.isNotBlank(name) && StringUtils.isNotBlank(classPath)) {
-                try {
-                    loadClass(classes, name, classPath);
-                } catch (ClassNotFoundException e) {
-                    throw new IllegalStateException("load extension resources error", e);
+            properties.forEach((key, value) -> {
+                String name = (String) key;
+                String classPath = (String) value;
+                if (StringUtils.isNotBlank(name) && StringUtils.isNotBlank(classPath)) {
+                    try {
+                        loadClass(classes, name, classPath);
+                    } catch (ClassNotFoundException e) {
+                        throw new IllegalStateException("load extension resources error", e);
+                    }
                 }
-            }
+            });
+
         } catch (IOException e) {
             throw new IllegalStateException("load extension resources error", e);
         }
