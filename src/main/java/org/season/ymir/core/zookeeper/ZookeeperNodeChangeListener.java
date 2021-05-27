@@ -37,22 +37,17 @@ public class ZookeeperNodeChangeListener implements PathChildrenCacheListener {
             return;
         }
         logger.debug("Ymir service listener change,event type:{}, path:{}, data:{}",pathChildrenCacheEvent.getType().name(), pathChildrenCacheEvent.getData().getPath(), new String(pathChildrenCacheEvent.getData().getData(), CommonConstant.UTF_8));
+        String uri = new String(pathChildrenCacheEvent.getData().getData(), "utf-8");
+        ServiceBean serviceBean = GsonUtils.getInstance().fromJson(uri, ServiceBean.class);
         switch (pathChildrenCacheEvent.getType()){
             case CHILD_ADDED:
-                // TODO 根据znode节点数据，更新本地缓存；
-                String uri = new String(pathChildrenCacheEvent.getData().getData());
-                List list = CollectionUtils.isEmpty(serviceDiscovery.get("org.season.ymir.common.TestService")) ? new ArrayList() : serviceDiscovery.get("org.season.ymir.example.server.TestServiceImpl");
-                list.add(GsonUtils.getInstance().fromJson(uri, ServiceBean.class));
+            case CHILD_UPDATED:
+                List list = CollectionUtils.isEmpty(serviceDiscovery.get(serviceBean.getName())) ? new ArrayList() : serviceDiscovery.get("org.season.ymir.example.server.TestServiceImpl");
+                list.add(serviceBean);
                 serviceDiscovery.put(pathChildrenCacheEvent.getData().getPath(), list);
                 break;
             case CHILD_REMOVED:
-                serviceDiscovery.remove(pathChildrenCacheEvent.getData().getPath());
-                break;
-            case CHILD_UPDATED:
-                String updateUrl = new String(pathChildrenCacheEvent.getData().getData());
-                List updateUrlList = CollectionUtils.isEmpty(serviceDiscovery.get("org.season.ymir.common.TestService")) ? new ArrayList() : serviceDiscovery.get("org.season.ymir.example.server.TestServiceImpl");
-                updateUrlList.add(GsonUtils.getInstance().fromJson(updateUrl, ServiceBean.class));
-                serviceDiscovery.put(pathChildrenCacheEvent.getData().getPath(), updateUrlList);
+                serviceDiscovery.remove(serviceBean.getName());
                 break;
             default:
                 break;
