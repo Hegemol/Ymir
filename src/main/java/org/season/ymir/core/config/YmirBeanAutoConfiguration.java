@@ -144,8 +144,8 @@ public class YmirBeanAutoConfiguration {
      * @return {@link YmirServiceExportProcessor}
      */
     @Bean
-    public YmirServiceExportProcessor defaultServiceExportProcessor(ServiceRegister serviceRegister, YmirNettyServer nettyServer, YmirClientProxyFactory proxyFactory){
-        return new YmirServiceExportProcessor(serviceRegister, nettyServer, proxyFactory);
+    public YmirServiceExportProcessor defaultServiceExportProcessor(ServiceRegister serviceRegister, YmirNettyServer nettyServer, YmirClientProxyFactory proxyFactory, CuratorFramework zkClient){
+        return new YmirServiceExportProcessor(serviceRegister, nettyServer, proxyFactory, zkClient);
     }
 
     /**

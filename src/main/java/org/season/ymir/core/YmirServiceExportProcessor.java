@@ -46,12 +46,14 @@ public class YmirServiceExportProcessor implements ApplicationListener<ContextRe
     private ServiceRegister serviceRegister;
     private YmirNettyServer nettyServer;
     private YmirClientProxyFactory proxyFactory;
+    private CuratorFramework zkClient;
 
-    public YmirServiceExportProcessor(ServiceRegister serviceRegister, YmirNettyServer nettyServer, YmirClientProxyFactory proxyFactory) {
+    public YmirServiceExportProcessor(ServiceRegister serviceRegister, YmirNettyServer nettyServer, YmirClientProxyFactory proxyFactory, CuratorFramework zkClient) {
         this.executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(), new YmirThreadFactory("service-export-"));
         this.serviceRegister = serviceRegister;
         this.nettyServer = nettyServer;
         this.proxyFactory = proxyFactory;
+        this.zkClient = zkClient;
     }
 
     @Override
@@ -138,7 +140,6 @@ public class YmirServiceExportProcessor implements ApplicationListener<ContextRe
         // 注册子节点监听
         if (proxyFactory.getServiceDiscovery() instanceof ZookeeperYmirServiceDiscovery) {
             ZookeeperYmirServiceDiscovery serverDiscovery = (ZookeeperYmirServiceDiscovery) proxyFactory.getServiceDiscovery();
-            CuratorFramework zkClient = serverDiscovery.getZkClient();
             serviceList.forEach(name -> {
                 try {
                     // 节点监听

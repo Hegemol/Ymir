@@ -51,8 +51,4 @@ public class ZookeeperYmirServiceDiscovery extends DefaultAbstractYmirServiceDis
             return GsonUtils.getInstance().fromJson(serviceBeanUri, ServiceBean.class);
         }).collect(Collectors.toList());
     }
-
-    public CuratorFramework getZkClient() {
-        return zkClient;
-    }
 }
