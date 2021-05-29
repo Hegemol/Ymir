@@ -70,9 +70,9 @@ public class ServiceBean extends ServiceBeanCache {
         this.version = version;
     }
 
-    public ServiceBean(String name, Class<?> clazz, Object bean, Integer weight, String group, String version, String protocol) {
+    public ServiceBean(String name, Class<?> clazz, Object bean, Integer weight, String group, String version, String protocol, String address) {
         super(name, clazz, bean);
-        this.address = "";
+        this.address = address;
         this.protocol = protocol;
         this.weight = weight;
         this.group = group;

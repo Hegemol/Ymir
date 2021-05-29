@@ -2,6 +2,7 @@ package org.season.ymir.core.handler;
 
 import org.season.ymir.common.base.ServiceStatusEnum;
 import org.season.ymir.common.entity.ServiceBeanCache;
+import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.model.YmirRequest;
 import org.season.ymir.common.model.YmirResponse;
 import org.season.ymir.common.register.ServiceRegister;
@@ -39,6 +40,9 @@ public class RequestHandler {
 
         // 2.查找服务对应
         ServiceBeanCache bean = serviceRegister.getBean(req.getServiceName());
+        if (Objects.isNull(bean)){
+            throw new RpcException("No provider for service "+ req.getServiceName());
+        }
 
         YmirResponse response = null;
 

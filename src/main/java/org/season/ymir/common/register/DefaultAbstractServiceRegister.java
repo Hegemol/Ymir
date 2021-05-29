@@ -10,7 +10,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.entity.ServiceBeanCache;
 
-import java.net.InetAddress;
 import java.util.Objects;
 
 /**
@@ -49,9 +48,6 @@ public abstract class DefaultAbstractServiceRegister implements ServiceRegister 
     @Override
     public void registerBean(final ServiceBean serviceBean) throws Exception {
         if (Objects.isNull(serviceBean)) throw new IllegalArgumentException("parameter can not be empty.");
-        String host = InetAddress.getLocalHost().getHostAddress();
-        String address = host + ":" + port;
-        serviceBean.setAddress(address);
         serviceBean.setProtocol(StringUtils.isBlank(serviceBean.getProtocol()) ? protocol : serviceBean.getProtocol());
         service.put(serviceBean.getName(), new ServiceBeanCache(serviceBean.getName(), serviceBean.getClazz(), serviceBean.getBean()));
     }
