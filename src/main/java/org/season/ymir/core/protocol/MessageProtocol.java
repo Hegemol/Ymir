@@ -2,13 +2,14 @@ package org.season.ymir.core.protocol;
 
 import org.season.ymir.common.model.YmirRequest;
 import org.season.ymir.common.model.YmirResponse;
+import org.season.ymir.spi.annodation.SPI;
 
 /**
  * 消息协议
  *
  * @author KevinClair
  */
-//@SPI("java")
+@SPI("java")
 public interface MessageProtocol {
     /**
      * 编组请求
