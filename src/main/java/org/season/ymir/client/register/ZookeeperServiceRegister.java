@@ -1,6 +1,7 @@
 package org.season.ymir.client.register;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.CreateMode;
 import org.season.ymir.common.constant.CommonConstant;
@@ -16,9 +17,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.util.CollectionUtils;
 
-import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * zookeeper服务注册
@@ -40,8 +43,22 @@ public class ZookeeperServiceRegister extends DefaultAbstractServiceRegister imp
 
     @Override
     public ServiceBeanCache getBean(String name) throws Exception {
-        // TODO 先从内部缓存中读取数据信息，如果缓存中没有，从zookeeper中读取数据信息
-        return super.getBean(name);
+        return Optional.ofNullable(super.getBean(name)).orElseGet(() -> {
+            try {
+                String zNodePath = ZkPathUtils.buildPath(CommonConstant.ZK_SERVICE_PROVIDER_PATH, name);
+                List<String> childrenNodePath = zkClient.getChildren().forPath(zNodePath);
+                // 不存在子节点，异常上报
+                if (CollectionUtils.isEmpty(childrenNodePath)){
+                    return null;
+                }
+                ServiceBean serviceBean = GsonUtils.getInstance().fromJson(new String(zkClient.getData().forPath(childrenNodePath.get(0)), CommonConstant.UTF_8), ServiceBean.class);
+                return new ServiceBeanCache(serviceBean.getName(), serviceBean.getClazz(), serviceBean.getBean());
+            } catch (Exception e) {
+                logger.error("Get service error, error:{}", ExceptionUtils.getStackTrace(e));
+                return null;
+            }
+        });
+
     }
 
     @Override
@@ -79,7 +96,7 @@ public class ZookeeperServiceRegister extends DefaultAbstractServiceRegister imp
         exportEventModel.setPath(zNodePath);
         String registerZNodePath = ZkPathUtils.buildUriPath(zNodePath, model.getAddress());
         // 创建一个临时节点，会话失效即被清理，此处节点数据存储Json数据
-        zkClient.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(registerZNodePath, GsonUtils.getInstance().toJson(model).getBytes(StandardCharsets.UTF_8));
+        zkClient.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(registerZNodePath, GsonUtils.getInstance().toJson(model).getBytes(CommonConstant.UTF_8));
         exportEventModel.setUrl(uri);
         logger.info("Service export to zookeeper success, register url:{}", uri);
     }
