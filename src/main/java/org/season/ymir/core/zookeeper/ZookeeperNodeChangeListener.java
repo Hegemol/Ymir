@@ -32,12 +32,11 @@ public class ZookeeperNodeChangeListener implements PathChildrenCacheListener {
 
     @Override
     public void childEvent(CuratorFramework curatorFramework, PathChildrenCacheEvent pathChildrenCacheEvent) throws Exception {
-        // TODO 根据不同的节点变更类型，更新本地缓存和远程zookeeper节点数据
         if (Objects.isNull(pathChildrenCacheEvent.getData())){
             return;
         }
         logger.debug("Ymir service listener change,event type:{}, path:{}, data:{}",pathChildrenCacheEvent.getType().name(), pathChildrenCacheEvent.getData().getPath(), new String(pathChildrenCacheEvent.getData().getData(), CommonConstant.UTF_8));
-        String uri = new String(pathChildrenCacheEvent.getData().getData(), "utf-8");
+        String uri = new String(pathChildrenCacheEvent.getData().getData(), CommonConstant.UTF_8);
         ServiceBean serviceBean = GsonUtils.getInstance().fromJson(uri, ServiceBean.class);
         switch (pathChildrenCacheEvent.getType()){
             case CHILD_ADDED:
