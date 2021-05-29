@@ -4,16 +4,19 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
-import org.season.ymir.core.annotation.YmirReference;
-import org.season.ymir.core.annotation.YmirService;
+import org.apache.zookeeper.CreateMode;
 import org.season.ymir.client.proxy.YmirClientProxyFactory;
 import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.register.ServiceRegister;
 import org.season.ymir.common.utils.YmirThreadFactory;
-import org.season.ymir.server.discovery.ZookeeperYmirServiceDiscovery;
+import org.season.ymir.common.utils.ZkPathUtils;
+import org.season.ymir.core.annotation.YmirReference;
+import org.season.ymir.core.annotation.YmirService;
+import org.season.ymir.core.property.YmirConfigurationProperty;
 import org.season.ymir.core.zookeeper.ZookeeperNodeChangeListener;
 import org.season.ymir.server.YmirNettyServer;
+import org.season.ymir.server.discovery.ZookeeperYmirServiceDiscovery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -21,6 +24,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 
 import java.lang.reflect.Field;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -47,13 +51,15 @@ public class YmirServiceExportProcessor implements ApplicationListener<ContextRe
     private YmirNettyServer nettyServer;
     private YmirClientProxyFactory proxyFactory;
     private CuratorFramework zkClient;
+    private YmirConfigurationProperty property;
 
-    public YmirServiceExportProcessor(ServiceRegister serviceRegister, YmirNettyServer nettyServer, YmirClientProxyFactory proxyFactory, CuratorFramework zkClient) {
+    public YmirServiceExportProcessor(ServiceRegister serviceRegister, YmirNettyServer nettyServer, YmirClientProxyFactory proxyFactory, CuratorFramework zkClient, YmirConfigurationProperty property) {
         this.executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(), new YmirThreadFactory("service-export-"));
         this.serviceRegister = serviceRegister;
         this.nettyServer = nettyServer;
         this.proxyFactory = proxyFactory;
         this.zkClient = zkClient;
+        this.property = property;
     }
 
     @Override
@@ -67,14 +73,22 @@ public class YmirServiceExportProcessor implements ApplicationListener<ContextRe
     }
 
     private void handler(ApplicationContext applicationContext) {
-        // 上传注册信息
-        registerService(applicationContext);
-        // 注入服务信息
-        referenceService(applicationContext);
+        try {
+            // 解析地址信息
+            String host = InetAddress.getLocalHost().getHostAddress();
+            String address = host + ":" + property.getPort();
+            // 注册服务
+            registerService(applicationContext, address);
+            // 引用服务
+            referenceService(applicationContext, address);
+        } catch (Exception e) {
+            logger.error("Ymir deploy error, error message:{}", ExceptionUtils.getStackTrace(e));
+        }
     }
 
-    private void registerService(ApplicationContext context) {
+    private void registerService(ApplicationContext context, String address) {
         Map<String, Object> beans = context.getBeansWithAnnotation(YmirService.class);
+
         if (beans.size() > 0) {
             for (Object obj : beans.values()) {
                 try {
@@ -86,7 +100,7 @@ public class YmirServiceExportProcessor implements ApplicationListener<ContextRe
                         continue;
                     }
                     if (StringUtils.isNotBlank(service.value())) {
-                        serviceBean = new ServiceBean(service.value(), clazz, obj, service.weight(), service.group(), service.version(), service.protocol());
+                        serviceBean = new ServiceBean(service.value(), clazz, obj, service.weight(), service.group(), service.version(), service.protocol(), address);
                     } else {
                         Class<?>[] interfaces = clazz.getInterfaces();
                         if (interfaces.length > 1) {
@@ -94,7 +108,7 @@ public class YmirServiceExportProcessor implements ApplicationListener<ContextRe
                             continue;
                         }
                         Class<?> superInterface = interfaces[0];
-                        serviceBean = new ServiceBean(superInterface.getName(), clazz, obj, service.weight(), service.group(), service.version(), service.protocol());
+                        serviceBean = new ServiceBean(superInterface.getName(), clazz, obj, service.weight(), service.group(), service.version(), service.protocol(), address);
                     }
                     // register bean;
                     serviceRegister.registerBean(serviceBean);
@@ -109,7 +123,7 @@ public class YmirServiceExportProcessor implements ApplicationListener<ContextRe
 
     }
 
-    private void referenceService(ApplicationContext context) {
+    private void referenceService(ApplicationContext context, String address) {
         String[] names = context.getBeanDefinitionNames();
         List<String> serviceList = new ArrayList<>();
         for (String name : names) {
@@ -148,7 +162,11 @@ public class YmirServiceExportProcessor implements ApplicationListener<ContextRe
                     childrenCache.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
                     childrenCache.getListenable().addListener(new ZookeeperNodeChangeListener(serverDiscovery));
 
-                    // TODO 写入consumer节点数据
+                    String consumerNode = CommonConstant.PATH_DELIMITER + name +CommonConstant.PATH_DELIMITER + CommonConstant.ZK_SERVICE_PROVIDER_PATH;
+                    String registerZNodePath = ZkPathUtils.buildUriPath(consumerNode, address);
+                    // 写入consumer节点
+                    zkClient.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(registerZNodePath);
+
                 } catch (Exception e) {
                     logger.error("Zookeeper node add  listener error, message:{}", ExceptionUtils.getStackTrace(e));
                 }
