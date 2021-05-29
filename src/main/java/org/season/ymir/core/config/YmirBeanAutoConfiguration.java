@@ -7,7 +7,6 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.season.ymir.client.YmirNettyClient;
 import org.season.ymir.client.proxy.YmirClientProxyFactory;
 import org.season.ymir.client.register.ZookeeperServiceRegister;
-import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.register.ServiceRegister;
 import org.season.ymir.core.YmirServiceExportProcessor;
 import org.season.ymir.core.handler.RequestHandler;
@@ -18,13 +17,10 @@ import org.season.ymir.server.YmirNettyServer;
 import org.season.ymir.server.discovery.YmirServiceDiscovery;
 import org.season.ymir.server.discovery.ZookeeperYmirServiceDiscovery;
 import org.season.ymir.server.handler.NettyServerHandler;
-import org.season.ymir.spi.annodation.SPI;
+import org.season.ymir.spi.loader.ExtensionLoader;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-
-import java.util.Iterator;
-import java.util.ServiceLoader;
 
 /**
  * 客户端Bean注入
@@ -76,7 +72,7 @@ public class YmirBeanAutoConfiguration {
      */
     @Bean
     public RequestHandler requestHandler(ServiceRegister serviceRegister, YmirConfigurationProperty clientProperty){
-        return new RequestHandler(getMessageProtocol(clientProperty.getProtocol()), serviceRegister);
+        return new RequestHandler(ExtensionLoader.getExtensionLoader(MessageProtocol.class).getLoader(clientProperty.getProtocol()), serviceRegister);
     }
 
     /**
@@ -133,7 +129,7 @@ public class YmirBeanAutoConfiguration {
      */
     @Bean
     public YmirClientProxyFactory ymirClientProxyFactory(YmirServiceDiscovery serviceDiscovery, YmirNettyClient netClient, YmirConfigurationProperty property){
-        return new YmirClientProxyFactory(serviceDiscovery, netClient, getMessageProtocol(property.getProtocol()));
+        return new YmirClientProxyFactory(serviceDiscovery, netClient, ExtensionLoader.getExtensionLoader(MessageProtocol.class).getLoader(property.getProtocol()));
     }
 
     /**
@@ -144,27 +140,7 @@ public class YmirBeanAutoConfiguration {
      * @return {@link YmirServiceExportProcessor}
      */
     @Bean
-    public YmirServiceExportProcessor defaultServiceExportProcessor(ServiceRegister serviceRegister, YmirNettyServer nettyServer, YmirClientProxyFactory proxyFactory, CuratorFramework zkClient){
-        return new YmirServiceExportProcessor(serviceRegister, nettyServer, proxyFactory, zkClient);
-    }
-
-    /**
-     * 获取消息序列化，此处通过模拟Dubbo的SPI机制进行获取对应的实现；
-     *
-     * @param name 序列化协议名
-     * @return {@link MessageProtocol}
-     */
-    private MessageProtocol getMessageProtocol(String name) {
-        // TODO 此处SPI数据改造
-        ServiceLoader<MessageProtocol> loader = ServiceLoader.load(MessageProtocol.class);
-        Iterator<MessageProtocol> iterator = loader.iterator();
-        while (iterator.hasNext()) {
-            MessageProtocol messageProtocol = iterator.next();
-            SPI spi = messageProtocol.getClass().getAnnotation(SPI.class);
-            if (name.equals(spi.value())) {
-                return messageProtocol;
-            }
-        }
-        throw new RpcException("invalid message protocol config!");
+    public YmirServiceExportProcessor defaultServiceExportProcessor(ServiceRegister serviceRegister, YmirNettyServer nettyServer, YmirClientProxyFactory proxyFactory, CuratorFramework zkClient, YmirConfigurationProperty property){
+        return new YmirServiceExportProcessor(serviceRegister, nettyServer, proxyFactory, zkClient, property);
     }
 }
