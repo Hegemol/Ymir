@@ -19,14 +19,14 @@ Ymir，出自动漫[进击的巨人](https://baike.baidu.com/item/%E8%BF%9B%E5%8
 感谢以下的项目，在个人学习过程中，给我起到了很大的帮助
 
 * [Dubbo](http://dubbo.apache.org/zh-cn/)
-* [shenyu](https://github.com/dromara/shenyu)
+* [shenyu](https://github.com/apache/incubator-shenyu)
 
 ## 关于作者
 94年萌新一枚，目前还是在持续学习阶段，欢迎大佬们多多指教。
 
 ## 最近计划
 最近准备开始着手做一次项目的重构和升级，调整一下项目的模块以及工程架构；
-* 多序列化实现接入(Json等)；
+* 多序列化实现接入(Kryo,Json等)；
 * Netty优化，粘包拆包；
 * 取消SpringBoot父框架；
 * YmirService属性扩展，增加register,group等属性；
