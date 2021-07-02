@@ -1,10 +1,7 @@
 package org.season.ymir.server.discovery;
 
-import com.github.benmanes.caffeine.cache.CacheLoader;
+import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.season.ymir.common.entity.ServiceBean;
 import org.springframework.util.CollectionUtils;
 
@@ -18,16 +15,10 @@ import java.util.List;
 public abstract class DefaultAbstractYmirServiceDiscovery implements YmirServiceDiscovery {
 
     // 本地缓存
-    private static final LoadingCache<String, List<ServiceBean>> SERVER_MAP = Caffeine.newBuilder()
+    private static final Cache<String, List<ServiceBean>> SERVER_MAP = Caffeine.newBuilder()
             .initialCapacity(10)
             .maximumSize(50000)
-            .build(new CacheLoader<String, List<ServiceBean>>() {
-                @Nullable
-                @Override
-                public List<ServiceBean> load(@NonNull String s) throws Exception {
-                    return null;
-                }
-            });
+            .build();
 
     @Override
     public void remove(String serviceName) {
@@ -36,12 +27,12 @@ public abstract class DefaultAbstractYmirServiceDiscovery implements YmirService
 
     @Override
     public boolean isEmpty(String serviceName) {
-        return CollectionUtils.isEmpty(SERVER_MAP.get(serviceName));
+        return CollectionUtils.isEmpty(SERVER_MAP.getIfPresent(serviceName));
     }
 
     @Override
     public List<ServiceBean> get(String serviceName) {
-        return SERVER_MAP.get(serviceName);
+        return SERVER_MAP.getIfPresent(serviceName);
     }
 
     @Override
@@ -51,6 +42,6 @@ public abstract class DefaultAbstractYmirServiceDiscovery implements YmirService
 
     @Override
     public List<ServiceBean> findServiceList(String name) throws Exception {
-        return SERVER_MAP.get(name);
+        return SERVER_MAP.getIfPresent(name);
     }
 }
