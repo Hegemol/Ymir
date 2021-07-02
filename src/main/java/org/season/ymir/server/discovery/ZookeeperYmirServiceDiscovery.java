@@ -41,7 +41,7 @@ public class ZookeeperYmirServiceDiscovery extends DefaultAbstractYmirServiceDis
         if (CollectionUtils.isEmpty(children)){
             throw new RpcException(String.format("No provider available for service %s from registry address %s",name, zkClient.getZookeeperClient().getCurrentConnectionString()));
         }
-        return Optional.ofNullable(children).orElse(new ArrayList<>()).stream().map(path -> {
+        serviceList = Optional.ofNullable(children).orElse(new ArrayList<>()).stream().map(path -> {
             String serviceBeanUri = null;
             try {
                 serviceBeanUri = new String(zkClient.getData().forPath(String.join(CommonConstant.PATH_DELIMITER, servicePath, path)), CommonConstant.UTF_8);
@@ -50,5 +50,7 @@ public class ZookeeperYmirServiceDiscovery extends DefaultAbstractYmirServiceDis
             }
             return GsonUtils.getInstance().fromJson(serviceBeanUri, ServiceBean.class);
         }).collect(Collectors.toList());
+        super.put(name, serviceList);
+        return serviceList;
     }
 }
