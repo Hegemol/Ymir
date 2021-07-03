@@ -55,7 +55,7 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
      */
     private volatile Channel channel;
 
-    private static Map<String, YmirFuture<YmirResponse>> requestMap = new ConcurrentHashMap<>();
+    private static Map<String, YmirFuture<YmirResponse>> requestMap = new ConcurrentHashMap<String, YmirFuture<YmirResponse>>();
 
     private CountDownLatch latch = new CountDownLatch(1);
 
@@ -114,7 +114,7 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
 
     public YmirResponse sendRequest(YmirRequest request) {
         YmirResponse response;
-        YmirFuture<YmirResponse> future = new YmirFuture<>();
+        YmirFuture<YmirResponse> future = new YmirFuture<YmirResponse>();
         requestMap.put(request.getRequestId(), future);
         try {
             byte[] data = messageProtocol.marshallingRequest(request);
