@@ -18,7 +18,7 @@ public class YmirConfigurationProperty {
     /**
      * 服务协议
      */
-    private String protocol = "java";
+    private String protocol = "protoBuf";
 
     /**
      * 权重
