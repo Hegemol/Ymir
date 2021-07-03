@@ -100,7 +100,7 @@ public class YmirServiceExportProcessor implements ApplicationListener<ContextRe
                         continue;
                     }
                     if (StringUtils.isNotBlank(service.value())) {
-                        serviceBean = new ServiceBean(service.value(), clazz, obj, service.weight(), service.group(), service.version(), service.protocol(), address);
+                        serviceBean = new ServiceBean(service.value(), clazz.getName(), service.protocol(), address, service.weight(), service.group(), service.version());
                     } else {
                         Class<?>[] interfaces = clazz.getInterfaces();
                         if (interfaces.length > 1) {
@@ -108,7 +108,7 @@ public class YmirServiceExportProcessor implements ApplicationListener<ContextRe
                             continue;
                         }
                         Class<?> superInterface = interfaces[0];
-                        serviceBean = new ServiceBean(superInterface.getName(), clazz, obj, service.weight(), service.group(), service.version(), service.protocol(), address);
+                        serviceBean = new ServiceBean(superInterface.getName(), clazz.getName(), service.protocol(), address, service.weight(), service.group(), service.version());
                     }
                     // register bean;
                     serviceRegister.registerBean(serviceBean);
