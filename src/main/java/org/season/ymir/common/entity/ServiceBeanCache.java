@@ -12,7 +12,7 @@ public class ServiceBeanCache {
     private String name;
 
     /**
-     * 类示例
+     * 类实例
      */
     private Class<?> clazz;
 

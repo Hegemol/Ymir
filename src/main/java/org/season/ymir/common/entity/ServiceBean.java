@@ -5,7 +5,17 @@ package org.season.ymir.common.entity;
  *
  * @author KevinClair
  */
-public class ServiceBean extends ServiceBeanCache {
+public class ServiceBean {
+
+    /**
+     *
+     */
+    private String name;
+
+    /**
+     *
+     */
+    private String clazz;
 
     /**
      * 服务协议
@@ -70,19 +80,32 @@ public class ServiceBean extends ServiceBeanCache {
         this.version = version;
     }
 
-    public ServiceBean(String name, Class<?> clazz, Object bean, Integer weight, String group, String version, String protocol, String address) {
-        super(name, clazz, bean);
-        this.address = address;
-        this.protocol = protocol;
-        this.weight = weight;
-        this.group = group;
-        this.version = version;
+    public String getName() {
+        return name;
     }
 
-    public ServiceBean(String name, Class<?> clazz, Object bean) {
-        super(name, clazz, bean);
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getClazz() {
+        return clazz;
+    }
+
+    public void setClazz(String clazz) {
+        this.clazz = clazz;
     }
 
     public ServiceBean() {
+    }
+
+    public ServiceBean(String name, String clazz, String protocol, String address, Integer weight, String group, String version) {
+        this.name = name;
+        this.clazz = clazz;
+        this.protocol = protocol;
+        this.address = address;
+        this.weight = weight;
+        this.group = group;
+        this.version = version;
     }
 }
