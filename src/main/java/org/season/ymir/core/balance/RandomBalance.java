@@ -1,7 +1,6 @@
 package org.season.ymir.core.balance;
 
 import org.season.ymir.common.entity.ServiceBean;
-import org.season.ymir.spi.annodation.SPI;
 
 import java.util.HashSet;
 import java.util.List;
@@ -11,7 +10,6 @@ import java.util.stream.Collectors;
 /**
  * 随机算法
  */
-@SPI("random")
 public class RandomBalance extends AbstractLoadBalance {
 
     private static final Random random = new Random();
