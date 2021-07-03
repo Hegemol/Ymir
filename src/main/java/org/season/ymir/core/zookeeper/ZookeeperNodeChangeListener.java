@@ -35,13 +35,15 @@ public class ZookeeperNodeChangeListener implements PathChildrenCacheListener {
         if (Objects.isNull(pathChildrenCacheEvent.getData())){
             return;
         }
-        logger.debug("Ymir service listener change,event type:{}, path:{}, data:{}",pathChildrenCacheEvent.getType().name(), pathChildrenCacheEvent.getData().getPath(), new String(pathChildrenCacheEvent.getData().getData(), CommonConstant.UTF_8));
+        if (logger.isDebugEnabled()){
+            logger.debug("Ymir service listener change,event type:{}, path:{}", pathChildrenCacheEvent.getType().name(), pathChildrenCacheEvent.getData().getPath());
+        }
         String uri = new String(pathChildrenCacheEvent.getData().getData(), CommonConstant.UTF_8);
         ServiceBean serviceBean = GsonUtils.getInstance().fromJson(uri, ServiceBean.class);
         switch (pathChildrenCacheEvent.getType()){
             case CHILD_ADDED:
             case CHILD_UPDATED:
-                List list = CollectionUtils.isEmpty(serviceDiscovery.get(serviceBean.getName())) ? new ArrayList() : serviceDiscovery.get("org.season.ymir.example.server.TestServiceImpl");
+                List list = CollectionUtils.isEmpty(serviceDiscovery.get(serviceBean.getName())) ? new ArrayList() : serviceDiscovery.get(serviceBean.getName());
                 list.add(serviceBean);
                 serviceDiscovery.put(pathChildrenCacheEvent.getData().getPath(), list);
                 break;
