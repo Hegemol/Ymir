@@ -2,6 +2,13 @@ package org.season.ymir.common.utils;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.TypeAdapter;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
+import com.google.gson.stream.JsonWriter;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.IOException;
 
 /**
  * Gson utils
@@ -10,9 +17,12 @@ import com.google.gson.GsonBuilder;
  */
 public class GsonUtils {
 
+    private static final String EMPTY = "";
+
     private static final GsonUtils INSTANCE = new GsonUtils();
 
-    private static final Gson GSON = new GsonBuilder().create();
+    private static final Gson GSON = new GsonBuilder().registerTypeAdapter(String.class, new StringTypeAdapter())
+            .create();
 
     /**
      * Gets instance.
@@ -43,5 +53,25 @@ public class GsonUtils {
      */
     public <T> T fromJson(final String json, final Class<T> tClass) {
         return GSON.fromJson(json, tClass);
+    }
+
+    private static class StringTypeAdapter extends TypeAdapter<String> {
+        @Override
+        public void write(final JsonWriter out, final String value) throws IOException {
+            if (StringUtils.isBlank(value)) {
+                out.nullValue();
+                return;
+            }
+            out.value(value);
+        }
+
+        @Override
+        public String read(final JsonReader reader) throws IOException {
+            if (reader.peek() == JsonToken.NULL) {
+                reader.nextNull();
+                return EMPTY;
+            }
+            return reader.nextString();
+        }
     }
 }
