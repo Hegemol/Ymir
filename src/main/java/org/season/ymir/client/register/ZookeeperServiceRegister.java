@@ -52,7 +52,8 @@ public class ZookeeperServiceRegister extends DefaultAbstractServiceRegister imp
                     return null;
                 }
                 ServiceBean serviceBean = GsonUtils.getInstance().fromJson(new String(zkClient.getData().forPath(childrenNodePath.get(0)), CommonConstant.UTF_8), ServiceBean.class);
-                return new ServiceBeanCache(serviceBean.getName(), serviceBean.getClazz(), serviceBean.getBean());
+                super.registerBean(serviceBean);
+                return super.getBean(serviceBean.getName());
             } catch (Exception e) {
                 logger.error("Get service error, error:{}", ExceptionUtils.getStackTrace(e));
                 return null;

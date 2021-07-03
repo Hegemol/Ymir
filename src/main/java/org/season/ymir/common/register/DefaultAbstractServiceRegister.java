@@ -49,7 +49,11 @@ public abstract class DefaultAbstractServiceRegister implements ServiceRegister 
     public void registerBean(final ServiceBean serviceBean) throws Exception {
         if (Objects.isNull(serviceBean)) throw new IllegalArgumentException("parameter can not be empty.");
         serviceBean.setProtocol(StringUtils.isBlank(serviceBean.getProtocol()) ? protocol : serviceBean.getProtocol());
-        service.put(serviceBean.getName(), new ServiceBeanCache(serviceBean.getName(), serviceBean.getClazz(), serviceBean.getBean()));
+        // 实例化对象
+        Class<?> aClass = ClassLoader.getSystemClassLoader().loadClass(serviceBean.getClazz());
+        Class<?> aClass1 = Class.forName(serviceBean.getClazz());
+        ServiceBeanCache serviceBeanCache = new ServiceBeanCache(serviceBean.getName(), aClass, aClass.newInstance());
+        service.put(serviceBean.getName(), serviceBeanCache);
     }
 }
 
