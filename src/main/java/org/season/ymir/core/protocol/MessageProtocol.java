@@ -9,7 +9,7 @@ import org.season.ymir.spi.annodation.SPI;
  *
  * @author KevinClair
  */
-@SPI("java")
+@SPI("protoBuf")
 public interface MessageProtocol {
     /**
      * 编组请求
