@@ -18,7 +18,7 @@ import java.util.concurrent.*;
  * @author KevinClair
  **/
 @ChannelHandler.Sharable
-public class NettyServerHandler extends ChannelInboundHandlerAdapter {
+public class NettyServerHandler extends  ChannelInboundHandlerAdapter {
 
     private Logger logger = LoggerFactory.getLogger(getClass());
 

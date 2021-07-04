@@ -102,6 +102,7 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         super.channelInactive(ctx);
+        // TODO 发起重连
         logger.error("channel inactive with remoteAddress:[{}]",remoteAddress);
         YmirNettyClient.connectedServerNodes.remove(remoteAddress);
 
@@ -109,6 +110,7 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+        // TODO 空闲时，向服务端发起一次心跳
         super.userEventTriggered(ctx, evt);
     }
 

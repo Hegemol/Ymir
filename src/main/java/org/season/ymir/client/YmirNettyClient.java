@@ -1,22 +1,31 @@
 package org.season.ymir.client;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.handler.timeout.ReadTimeoutHandler;
+import org.season.ymir.client.handler.NettyClientHandler;
 import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.model.YmirRequest;
 import org.season.ymir.common.model.YmirResponse;
 import org.season.ymir.common.utils.YmirThreadFactory;
-import org.season.ymir.client.handler.NettyClientHandler;
 import org.season.ymir.core.protocol.MessageProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Netty客户端
@@ -51,6 +60,7 @@ public class YmirNettyClient {
             final String serverAddress = addrInfo[0];
             final String serverPort = addrInfo[1];
             final NettyClientHandler handler = new NettyClientHandler(messageProtocol, address);
+            // 异步建立客户端
             threadPool.submit(() -> {
                         // 配置客户端
                         Bootstrap bootstrap = new Bootstrap();
@@ -71,17 +81,13 @@ public class YmirNettyClient {
                                     }
                                 });
                         // 启用客户端连接
-                        ChannelFuture channelFuture = bootstrap.connect();
-                        channelFuture.addListener(new ChannelFutureListener() {
-                            @Override
-                            public void operationComplete(ChannelFuture channelFuture) throws Exception {
-                                if (!channelFuture.isSuccess()) {
-                                    // TODO 重新连接
-                                    logger.error("Netty client connect error,address:{}", address);
-                                    return;
-                                }
-                                connectedServerNodes.put(address, handler);
+                        bootstrap.connect().addListener((ChannelFutureListener) channelFuture -> {
+                            if (!channelFuture.isSuccess()) {
+                                // TODO 重新连接
+                                logger.error("Netty client connect error,address:{}", address);
+                                return;
                             }
+                            connectedServerNodes.put(address, handler);
                         });
                     }
             );
