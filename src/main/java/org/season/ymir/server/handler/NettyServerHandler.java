@@ -34,7 +34,7 @@ public class NettyServerHandler extends  ChannelInboundHandlerAdapter {
     }
 
     /**
-     * Channel 映射
+     * Channel 映射，存储Channel信息
      */
     private ConcurrentMap<ChannelId, Channel> channels = new ConcurrentHashMap<>();
 
@@ -63,7 +63,9 @@ public class NettyServerHandler extends  ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         executorService.submit(() -> {
             try {
-                logger.debug("the server receives message :{}", msg);
+                if (logger.isDebugEnabled()){
+                    logger.debug("the server receives message :{}", msg);
+                }
                 ByteBuf byteBuf = (ByteBuf) msg;
                 // 消息写入reqData
                 byte[] reqData = new byte[byteBuf.readableBytes()];
@@ -73,7 +75,9 @@ public class NettyServerHandler extends  ChannelInboundHandlerAdapter {
                 byte[] respData = requestHandler.handleRequest(reqData);
                 ByteBuf respBuf = Unpooled.buffer(respData.length);
                 respBuf.writeBytes(respData);
-                logger.debug("Send response:{}", respBuf);
+                if (logger.isDebugEnabled()){
+                    logger.debug("Send response:{}", respBuf);
+                }
                 ctx.writeAndFlush(respBuf);
             } catch (Exception e) {
                 logger.error("server read exception:{}", ExceptionUtils.getStackTrace(e));
@@ -85,4 +89,6 @@ public class NettyServerHandler extends  ChannelInboundHandlerAdapter {
     public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
         ctx.flush();
     }
+
+
 }
