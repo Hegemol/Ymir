@@ -89,9 +89,8 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        cause.printStackTrace();
         logger.error("Exception occurred:{}", cause.getMessage());
-        ctx.close();
+        ctx.channel().close();
     }
 
     @Override
@@ -105,7 +104,6 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
         // TODO 发起重连
         logger.error("channel inactive with remoteAddress:[{}]",remoteAddress);
         YmirNettyClient.connectedServerNodes.remove(remoteAddress);
-
     }
 
     @Override
@@ -122,6 +120,7 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
             byte[] data = messageProtocol.marshallingRequest(request);
             ByteBuf reqBuf = Unpooled.buffer(data.length);
             reqBuf.writeBytes(data);
+            ReferenceCountUtil.release(reqBuf);
             if (latch.await(CHANNEL_WAIT_TIME, TimeUnit.SECONDS)){
                 channel.writeAndFlush(reqBuf);
                 // 等待响应
