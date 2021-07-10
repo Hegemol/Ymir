@@ -34,6 +34,11 @@ import java.util.concurrent.TimeUnit;
  **/
 public class YmirNettyClient {
 
+    /**
+     * 重连频率，单位：秒
+     */
+    private static final Integer RECONNECT_SECONDS = 20;
+
     private static Logger logger = LoggerFactory.getLogger(YmirNettyClient.class);
 
     private static ExecutorService threadPool = new ThreadPoolExecutor(4, 10, 200,
@@ -62,36 +67,56 @@ public class YmirNettyClient {
             final NettyClientHandler handler = new NettyClientHandler(messageProtocol, address);
             // 异步建立客户端
             threadPool.submit(() -> {
-                        // 配置客户端
-                        Bootstrap bootstrap = new Bootstrap();
-                        bootstrap.group(loopGroup)
-                                .channel(NioSocketChannel.class)
-                                .remoteAddress(serverAddress, Integer.parseInt(serverPort))
-                                .option(ChannelOption.SO_KEEPALIVE, true)
-                                .option(ChannelOption.TCP_NODELAY, true)
-                                .handler(new ChannelInitializer<Channel>() {
-                                    @Override
-                                    protected void initChannel(Channel channel) throws Exception {
-                                        ChannelPipeline pipeline = channel.pipeline();
-                                        pipeline
-                                                // 空闲检测
-                                                .addLast(new IdleStateHandler(60, 0, 0))
-                                                .addLast(new ReadTimeoutHandler(3 * 60))
-                                                .addLast(handler);
-                                    }
-                                });
-                        // 启用客户端连接
-                        bootstrap.connect().addListener((ChannelFutureListener) channelFuture -> {
-                            if (!channelFuture.isSuccess()) {
-                                // TODO 重新连接
-                                logger.error("Netty client connect error,address:{}", address);
-                                return;
-                            }
-                            connectedServerNodes.put(address, handler);
-                        });
+                        startClient(address, serverAddress, serverPort, handler);
                     }
             );
             return handler.sendRequest(rpcRequest);
         }
+    }
+
+    private void startClient(String address, String serverAddress, String serverPort, NettyClientHandler handler) {
+        // 配置客户端
+        Bootstrap bootstrap = new Bootstrap();
+        bootstrap.group(loopGroup)
+                .channel(NioSocketChannel.class)
+                .remoteAddress(serverAddress, Integer.parseInt(serverPort))
+                .option(ChannelOption.SO_KEEPALIVE, true)
+                .option(ChannelOption.TCP_NODELAY, true)
+                .handler(new ChannelInitializer<Channel>() {
+                    @Override
+                    protected void initChannel(Channel channel) throws Exception {
+                        ChannelPipeline pipeline = channel.pipeline();
+                        pipeline
+                                // 空闲检测
+                                .addLast(new IdleStateHandler(60, 0, 0))
+                                .addLast(new ReadTimeoutHandler(3 * 60))
+                                .addLast(handler);
+                    }
+                });
+        // 启用客户端连接
+        bootstrap.connect().addListener((ChannelFutureListener) channelFuture -> {
+            if (!channelFuture.isSuccess()) {
+                reconnect(address, serverAddress, serverPort, handler);
+                return;
+            }
+            connectedServerNodes.put(address, handler);
+        });
+    }
+
+    /**
+     * TODO 重新链接服务端
+     *
+     * @param address
+     * @param serverAddress
+     * @param serverPort
+     * @param handler
+     */
+    public void reconnect(String address, String serverAddress, String serverPort, NettyClientHandler handler) {
+        loopGroup.schedule(() -> {
+            if (logger.isDebugEnabled()){
+                logger.info("Netty client start reconnect, address:{}", address);
+            }
+            startClient(address, serverAddress, serverPort, handler);
+        }, RECONNECT_SECONDS, TimeUnit.SECONDS);
     }
 }
