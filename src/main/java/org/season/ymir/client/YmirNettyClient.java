@@ -39,6 +39,11 @@ public class YmirNettyClient {
      */
     private static final Integer RECONNECT_SECONDS = 20;
 
+    /**
+     * 心跳超时时间
+     */
+    private static final Integer READ_TIMEOUT_SECONDS = 60;
+
     private static Logger logger = LoggerFactory.getLogger(YmirNettyClient.class);
 
     private static ExecutorService threadPool = new ThreadPoolExecutor(4, 10, 200,
@@ -88,8 +93,8 @@ public class YmirNettyClient {
                         ChannelPipeline pipeline = channel.pipeline();
                         pipeline
                                 // 空闲检测
-                                .addLast(new IdleStateHandler(60, 0, 0))
-                                .addLast(new ReadTimeoutHandler(3 * 60))
+                                .addLast(new IdleStateHandler(READ_TIMEOUT_SECONDS, 0, 0))
+                                .addLast(new ReadTimeoutHandler(3 * READ_TIMEOUT_SECONDS))
                                 .addLast(handler);
                     }
                 });
