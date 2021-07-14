@@ -41,4 +41,14 @@ public class CommonConstant {
      * 心跳超时时间
      */
     public static final Integer READ_TIMEOUT_SECONDS = 60;
+
+    /**
+     * 心跳请求
+     */
+    public static final String HEART_BEAT_REQUEST = "HEART_BEAT_REQUEST";
+
+    /**
+     * 心跳响应
+     */
+    public static final String HEART_BEAT_RESPONSE = "HEART_BEAT_RESPONSE";
 }

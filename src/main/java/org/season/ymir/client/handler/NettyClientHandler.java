@@ -3,11 +3,14 @@ package org.season.ymir.client.handler;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.ReferenceCountUtil;
 import org.season.ymir.client.YmirNettyClient;
+import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.model.YmirFuture;
 import org.season.ymir.common.model.YmirRequest;
@@ -109,6 +112,15 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         // TODO 空闲时，向服务端发起一次心跳
+        if (evt instanceof IdleStateEvent){
+            if (logger.isDebugEnabled()){
+                logger.debug("Client send heart beat");
+            }
+            YmirRequest request = new YmirRequest();
+            request.setRequestId(CommonConstant.HEART_BEAT_REQUEST);
+            ctx.writeAndFlush(request).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+            return;
+        }
         super.userEventTriggered(ctx, evt);
     }
 
