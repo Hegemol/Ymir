@@ -31,4 +31,14 @@ public class CommonConstant {
      * 路径分隔符
      */
     public static final String PATH_DELIMITER = "/";
+
+    /**
+     * 重连频率，单位：秒
+     */
+    public static final Integer RECONNECT_SECONDS = 20;
+
+    /**
+     * 心跳超时时间
+     */
+    public static final Integer READ_TIMEOUT_SECONDS = 60;
 }

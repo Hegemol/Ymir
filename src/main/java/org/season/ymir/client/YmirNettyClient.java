@@ -12,6 +12,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import org.season.ymir.client.handler.NettyClientHandler;
+import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.model.YmirRequest;
 import org.season.ymir.common.model.YmirResponse;
@@ -33,16 +34,6 @@ import java.util.concurrent.TimeUnit;
  * @author KevinClair
  **/
 public class YmirNettyClient {
-
-    /**
-     * 重连频率，单位：秒
-     */
-    private static final Integer RECONNECT_SECONDS = 20;
-
-    /**
-     * 心跳超时时间
-     */
-    private static final Integer READ_TIMEOUT_SECONDS = 60;
 
     private static Logger logger = LoggerFactory.getLogger(YmirNettyClient.class);
 
@@ -93,8 +84,8 @@ public class YmirNettyClient {
                         ChannelPipeline pipeline = channel.pipeline();
                         pipeline
                                 // 空闲检测
-                                .addLast(new IdleStateHandler(READ_TIMEOUT_SECONDS, 0, 0))
-                                .addLast(new ReadTimeoutHandler(3 * READ_TIMEOUT_SECONDS))
+                                .addLast(new IdleStateHandler(CommonConstant.READ_TIMEOUT_SECONDS, 0, 0))
+                                .addLast(new ReadTimeoutHandler(3 * CommonConstant.READ_TIMEOUT_SECONDS))
                                 .addLast(handler);
                     }
                 });
@@ -122,6 +113,6 @@ public class YmirNettyClient {
                 logger.info("Netty client start reconnect, address:{}", address);
             }
             startClient(address, serverAddress, serverPort, handler);
-        }, RECONNECT_SECONDS, TimeUnit.SECONDS);
+        }, CommonConstant.RECONNECT_SECONDS, TimeUnit.SECONDS);
     }
 }
