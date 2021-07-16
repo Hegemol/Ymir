@@ -17,6 +17,8 @@ import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.model.YmirRequest;
 import org.season.ymir.common.model.YmirResponse;
 import org.season.ymir.common.utils.YmirThreadFactory;
+import org.season.ymir.core.codec.MessageEncoder;
+import org.season.ymir.core.codec.MessageResponseDecoder;
 import org.season.ymir.core.protocol.MessageProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +50,7 @@ public class YmirNettyClient {
      */
     public static Map<String, NettyClientHandler> connectedServerNodes = new ConcurrentHashMap<>();
 
-    public YmirResponse sendRequest(YmirRequest rpcRequest, ServiceBean service, MessageProtocol messageProtocol) {
+    public YmirResponse sendRequest(YmirRequest rpcRequest, ServiceBean service, MessageProtocol protocol) {
 
         String address = service.getAddress();
         synchronized (address) {
@@ -60,17 +62,17 @@ public class YmirNettyClient {
             String[] addrInfo = address.split(":");
             final String serverAddress = addrInfo[0];
             final String serverPort = addrInfo[1];
-            final NettyClientHandler handler = new NettyClientHandler(messageProtocol, address);
+            final NettyClientHandler handler = new NettyClientHandler(protocol, address);
             // 异步建立客户端
             threadPool.submit(() -> {
-                        startClient(address, serverAddress, serverPort, handler);
+                        startClient(address, serverAddress, serverPort, handler, protocol);
                     }
             );
             return handler.sendRequest(rpcRequest);
         }
     }
 
-    private void startClient(String address, String serverAddress, String serverPort, NettyClientHandler handler) {
+    private void startClient(String address, String serverAddress, String serverPort, NettyClientHandler handler, MessageProtocol protocol) {
         // 配置客户端
         Bootstrap bootstrap = new Bootstrap();
         bootstrap.group(loopGroup)
@@ -86,13 +88,17 @@ public class YmirNettyClient {
                                 // 空闲检测
                                 .addLast(new IdleStateHandler(CommonConstant.READ_TIMEOUT_SECONDS, 0, 0))
                                 .addLast(new ReadTimeoutHandler(3 * CommonConstant.READ_TIMEOUT_SECONDS))
+                                // 解码器
+                                .addLast(new MessageResponseDecoder(protocol))
+                                // 编码器
+                                .addLast(new MessageEncoder(protocol))
                                 .addLast(handler);
                     }
                 });
         // 启用客户端连接
         bootstrap.connect().addListener((ChannelFutureListener) channelFuture -> {
             if (!channelFuture.isSuccess()) {
-                reconnect(address, serverAddress, serverPort, handler);
+                reconnect(address, serverAddress, serverPort, handler, protocol);
                 return;
             }
             connectedServerNodes.put(address, handler);
@@ -107,12 +113,12 @@ public class YmirNettyClient {
      * @param serverPort
      * @param handler
      */
-    public void reconnect(String address, String serverAddress, String serverPort, NettyClientHandler handler) {
+    public void reconnect(String address, String serverAddress, String serverPort, NettyClientHandler handler, MessageProtocol protocol) {
         loopGroup.schedule(() -> {
             if (logger.isDebugEnabled()){
                 logger.info("Netty client start reconnect, address:{}", address);
             }
-            startClient(address, serverAddress, serverPort, handler);
+            startClient(address, serverAddress, serverPort, handler, protocol);
         }, CommonConstant.RECONNECT_SECONDS, TimeUnit.SECONDS);
     }
 }

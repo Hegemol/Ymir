@@ -1,13 +1,22 @@
 package org.season.ymir.server;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.season.ymir.core.codec.MessageEncoder;
+import org.season.ymir.core.codec.MessageRequestDecoder;
 import org.season.ymir.core.property.YmirConfigurationProperty;
+import org.season.ymir.core.protocol.MessageProtocol;
 import org.season.ymir.server.handler.NettyServerHandler;
+import org.season.ymir.spi.loader.ExtensionLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -58,6 +67,10 @@ public class YmirNettyServer implements DisposableBean {
                             channelPipeline
                                     // 空闲检测
                                     .addLast(new ReadTimeoutHandler(READ_TIMEOUT_SECONDS, TimeUnit.SECONDS))
+                                    // 解码器
+                                    .addLast(new MessageRequestDecoder(ExtensionLoader.getExtensionLoader(MessageProtocol.class).getLoader(property.getProtocol()), property.getMaxSize()))
+                                    // 编码器
+                                    .addLast(new MessageEncoder(ExtensionLoader.getExtensionLoader(MessageProtocol.class).getLoader(property.getProtocol())))
                                     // 服务端处理器
                                     .addLast(nettyServerHandler);
                         }
