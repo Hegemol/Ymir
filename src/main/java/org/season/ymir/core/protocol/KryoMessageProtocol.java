@@ -40,11 +40,11 @@ public class KryoMessageProtocol implements MessageProtocol {
     }
 
     @Override
-    public byte[] marshallingRequest(YmirRequest request) throws Exception {
+    public byte[] marshalling(Object object) throws Exception {
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
         Output output = new Output(bout);
         Kryo kryo = getInstance();
-        kryo.writeClassAndObject(output, request);
+        kryo.writeClassAndObject(output, object);
         byte[] bytes = output.toBytes();
         output.flush();
         return bytes;
@@ -58,17 +58,6 @@ public class KryoMessageProtocol implements MessageProtocol {
         YmirRequest request = (YmirRequest) kryo.readClassAndObject(input);
         input.close();
         return request;
-    }
-
-    @Override
-    public byte[] marshallingResponse(YmirResponse response) throws Exception {
-        ByteArrayOutputStream bout = new ByteArrayOutputStream();
-        Output output = new Output(bout);
-        Kryo kryo = getInstance();
-        kryo.writeClassAndObject(output, response);
-        byte[] bytes = output.toBytes();
-        output.flush();
-        return bytes;
     }
 
     @Override

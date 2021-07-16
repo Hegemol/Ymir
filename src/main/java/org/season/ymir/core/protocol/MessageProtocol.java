@@ -13,11 +13,11 @@ import org.season.ymir.spi.annodation.SPI;
 public interface MessageProtocol {
     /**
      * 编组请求
-     * @param request 请求信息
+     * @param object 请求信息
      * @return 请求字节数组
      * @throws Exception
      */
-    byte[] marshallingRequest(YmirRequest request) throws Exception;
+    byte[] marshalling(Object object) throws Exception;
 
     /**
      * 解组请求
@@ -26,13 +26,6 @@ public interface MessageProtocol {
      * @throws Exception
      */
     YmirRequest unmarshallingRequest(byte[] data) throws Exception;
-
-    /**
-     * 编组响应
-     * @param response
-     * @return
-     */
-    byte[] marshallingResponse(YmirResponse response) throws Exception;
 
     /**
      * 解组响应

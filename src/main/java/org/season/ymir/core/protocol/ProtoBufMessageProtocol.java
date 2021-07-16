@@ -13,18 +13,13 @@ import org.season.ymir.common.utils.SerializingUtil;
 public class ProtoBufMessageProtocol implements MessageProtocol{
 
     @Override
-    public byte[] marshallingRequest(YmirRequest request) throws Exception {
-        return SerializingUtil.serialize(request);
+    public byte[] marshalling(Object object) throws Exception {
+        return SerializingUtil.serialize(object);
     }
 
     @Override
     public YmirRequest unmarshallingRequest(byte[] data) throws Exception {
         return SerializingUtil.deserialize(data,YmirRequest.class);
-    }
-
-    @Override
-    public byte[] marshallingResponse(YmirResponse response) throws Exception {
-        return SerializingUtil.serialize(response);
     }
 
     @Override

@@ -15,18 +15,13 @@ import java.nio.charset.StandardCharsets;
 public class GsonMessageProtocol implements MessageProtocol {
 
     @Override
-    public byte[] marshallingRequest(YmirRequest request) throws Exception {
-        return GsonUtils.getInstance().toJson(request).getBytes(StandardCharsets.UTF_8);
+    public byte[] marshalling(Object object) throws Exception {
+        return GsonUtils.getInstance().toJson(object).getBytes(StandardCharsets.UTF_8);
     }
 
     @Override
     public YmirRequest unmarshallingRequest(byte[] data) throws Exception {
         return GsonUtils.getInstance().fromJson(new String(data, Charset.forName("utf-8")), YmirRequest.class);
-    }
-
-    @Override
-    public byte[] marshallingResponse(YmirResponse response) throws Exception {
-        return GsonUtils.getInstance().toJson(response).getBytes(StandardCharsets.UTF_8);
     }
 
     @Override
