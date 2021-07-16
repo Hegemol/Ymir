@@ -26,7 +26,7 @@ public class YmirClientProxyFactory {
 
     private YmirNettyClient netClient;
 
-    private MessageProtocol messageProtocol;
+    private MessageProtocol protocol;
 
     private Map<Class<?>, Object> objectCache = new HashMap<>();
 
@@ -68,7 +68,7 @@ public class YmirClientProxyFactory {
             request.setParameters(args);
             request.setParameterTypes(method.getParameterTypes());
             // 3.发送请求
-            YmirResponse response = netClient.sendRequest(request, service, messageProtocol);
+            YmirResponse response = netClient.sendRequest(request, service, protocol);
             if (Objects.isNull(response)){
                 throw new RpcException("the response is null");
             }
@@ -106,10 +106,10 @@ public class YmirClientProxyFactory {
         return serviceDiscovery;
     }
 
-    public YmirClientProxyFactory(YmirServiceDiscovery serviceDiscovery, YmirNettyClient netClient, MessageProtocol messageProtocol) {
+    public YmirClientProxyFactory(YmirServiceDiscovery serviceDiscovery, YmirNettyClient netClient, MessageProtocol protocol) {
         this.serviceDiscovery = serviceDiscovery;
         this.netClient = netClient;
-        this.messageProtocol = messageProtocol;
+        this.protocol = protocol;
     }
 
     public YmirClientProxyFactory() {

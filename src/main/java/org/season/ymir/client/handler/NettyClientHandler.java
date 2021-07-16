@@ -129,7 +129,7 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
         YmirFuture<YmirResponse> future = new YmirFuture<YmirResponse>();
         requestMap.put(request.getRequestId(), future);
         try {
-            byte[] data = messageProtocol.marshallingRequest(request);
+            byte[] data = messageProtocol.marshalling(request);
             ByteBuf reqBuf = Unpooled.buffer(data.length);
             reqBuf.writeBytes(data);
             ReferenceCountUtil.release(reqBuf);
