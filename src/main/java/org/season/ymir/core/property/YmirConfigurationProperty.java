@@ -21,6 +21,11 @@ public class YmirConfigurationProperty {
     private String protocol = "protoBuf";
 
     /**
+     * 消息体的最大
+     */
+    private int maxSize = 1024;
+
+    /**
      * 权重
      */
     private Integer weight = 1;
@@ -39,5 +44,13 @@ public class YmirConfigurationProperty {
 
     public void setProtocol(String protocol) {
         this.protocol = protocol;
+    }
+
+    public int getMaxSize() {
+        return maxSize;
+    }
+
+    public void setMaxSize(int maxSize) {
+        this.maxSize = maxSize;
     }
 }
