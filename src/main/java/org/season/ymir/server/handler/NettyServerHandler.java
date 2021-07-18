@@ -1,16 +1,25 @@
 package org.season.ymir.server.handler;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import io.netty.channel.*;
-import io.netty.util.ReferenceCountUtil;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelId;
+import io.netty.channel.SimpleChannelInboundHandler;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.season.ymir.common.model.YmirRequest;
+import org.season.ymir.common.model.YmirResponse;
+import org.season.ymir.common.utils.GsonUtils;
 import org.season.ymir.common.utils.YmirThreadFactory;
 import org.season.ymir.core.handler.RequestHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Netty服务端处理器
@@ -18,7 +27,7 @@ import java.util.concurrent.*;
  * @author KevinClair
  **/
 @ChannelHandler.Sharable
-public class NettyServerHandler extends  ChannelInboundHandlerAdapter {
+public class NettyServerHandler extends SimpleChannelInboundHandler<YmirRequest> {
 
     private Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -59,36 +68,22 @@ public class NettyServerHandler extends  ChannelInboundHandlerAdapter {
         logger.error("Netty server, one channel caught error, channel info:{}, exception:{}", ctx.channel(), ExceptionUtils.getStackTrace(cause));
     }
 
+
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, YmirRequest msg) throws Exception {
         executorService.submit(() -> {
             try {
                 if (logger.isDebugEnabled()){
-                    logger.debug("the server receives message :{}", msg);
+                    logger.debug("Server receives message :{}", msg);
                 }
-                ByteBuf byteBuf = (ByteBuf) msg;
-                // 消息写入reqData
-                byte[] reqData = new byte[byteBuf.readableBytes()];
-                byteBuf.readBytes(reqData);
-                // 手动回收
-                ReferenceCountUtil.release(byteBuf);
-                byte[] respData = requestHandler.handleRequest(reqData);
-                ByteBuf respBuf = Unpooled.buffer(respData.length);
-                respBuf.writeBytes(respData);
+                YmirResponse response = requestHandler.handleRequest(msg);
                 if (logger.isDebugEnabled()){
-                    logger.debug("Send response:{}", respBuf);
+                    logger.debug("Server return response:{}", GsonUtils.getInstance().toJson(response));
                 }
-                ctx.writeAndFlush(respBuf);
+                ctx.writeAndFlush(response);
             } catch (Exception e) {
-                logger.error("server read exception:{}", ExceptionUtils.getStackTrace(e));
+                logger.error("Server read exception:{}", ExceptionUtils.getStackTrace(e));
             }
         });
     }
-
-    @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-        ctx.flush();
-    }
-
-
 }
