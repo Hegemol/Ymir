@@ -72,7 +72,7 @@ public class YmirBeanAutoConfiguration {
      */
     @Bean
     public RequestHandler requestHandler(ServiceRegister serviceRegister, YmirConfigurationProperty clientProperty){
-        return new RequestHandler(ExtensionLoader.getExtensionLoader(MessageProtocol.class).getLoader(clientProperty.getProtocol()), serviceRegister);
+        return new RequestHandler(serviceRegister);
     }
 
     /**
