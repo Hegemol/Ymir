@@ -6,7 +6,6 @@ import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.model.YmirRequest;
 import org.season.ymir.common.model.YmirResponse;
 import org.season.ymir.common.register.ServiceRegister;
-import org.season.ymir.core.protocol.MessageProtocol;
 
 import java.lang.reflect.Method;
 import java.util.Objects;
@@ -18,51 +17,40 @@ import java.util.Objects;
  */
 public class RequestHandler {
 
-    private MessageProtocol protocol;
-
     private ServiceRegister serviceRegister;
 
-    public RequestHandler(MessageProtocol protocol, ServiceRegister serviceRegister) {
-        this.protocol = protocol;
+    public RequestHandler(ServiceRegister serviceRegister) {
         this.serviceRegister = serviceRegister;
     }
 
     /**
      * 请求处理
      *
-     * @param data
+     * @param data 请求data
      * @return
      * @throws Exception
      */
-    public byte[] handleRequest(byte[] data) throws Exception {
-        // 1.解组消息
-        YmirRequest req = this.protocol.unmarshallingRequest(data);
-
-        // 2.查找服务对应
-        ServiceBeanCache bean = serviceRegister.getBean(req.getServiceName());
-        if (Objects.isNull(bean)){
-            throw new RpcException("No provider for service "+ req.getServiceName());
+    public YmirResponse handleRequest(YmirRequest data) throws Exception {
+        // 1.查找服务对应
+        ServiceBeanCache bean = serviceRegister.getBean(data.getServiceName());
+        if (Objects.isNull(bean)) {
+            throw new RpcException("No provider for service " + data.getServiceName());
         }
 
         YmirResponse response = null;
-
-        if (Objects.isNull(bean)) {
-            response = new YmirResponse(ServiceStatusEnum.NOT_FOUND);
-        } else {
-            try {
-                // 3.反射调用对应的方法过程
-                Method method = bean.getClazz().getMethod(req.getMethod(), req.getParameterTypes());
-                Object returnValue = method.invoke(bean.getBean(), req.getParameters());
-                response = new YmirResponse(ServiceStatusEnum.SUCCESS);
-                response.setReturnValue(returnValue);
-            } catch (Exception e) {
-                response = new YmirResponse(ServiceStatusEnum.ERROR);
-                response.setException(e);
-            }
+        try {
+            // 2.反射调用对应的方法过程
+            Method method = bean.getClazz().getMethod(data.getMethod(), data.getParameterTypes());
+            Object returnValue = method.invoke(bean.getBean(), data.getParameters());
+            response = new YmirResponse(ServiceStatusEnum.SUCCESS);
+            response.setReturnValue(returnValue);
+        } catch (Exception e) {
+            response = new YmirResponse(ServiceStatusEnum.ERROR);
+            response.setException(e);
         }
-        // 编组响应消息
-        response.setRequestId(req.getRequestId());
-        return this.protocol.marshallingResponse(response);
+        // 3.编组响应消息
+        response.setRequestId(data.getRequestId());
+        return response;
     }
 
 }
