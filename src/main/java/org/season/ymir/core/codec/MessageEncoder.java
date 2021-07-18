@@ -1,7 +1,6 @@
 package org.season.ymir.core.codec;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 import org.season.ymir.common.utils.GsonUtils;
@@ -14,7 +13,6 @@ import org.slf4j.LoggerFactory;
  *
  * @author KevinClair
  **/
-@ChannelHandler.Sharable
 public class MessageEncoder extends MessageToByteEncoder<Object> {
 
     private static final Logger logger = LoggerFactory.getLogger(MessageEncoder.class);

@@ -1,7 +1,6 @@
 package org.season.ymir.core.codec;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.TooLongFrameException;
@@ -18,7 +17,6 @@ import java.util.List;
  *
  * @author KevinClair
  **/
-@ChannelHandler.Sharable
 public class MessageRequestDecoder extends ByteToMessageDecoder {
 
     private static final Logger logger = LoggerFactory.getLogger(MessageRequestDecoder.class);
