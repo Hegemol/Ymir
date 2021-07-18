@@ -1,20 +1,18 @@
 package org.season.ymir.client.handler;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleStateEvent;
-import io.netty.util.ReferenceCountUtil;
 import org.season.ymir.client.YmirNettyClient;
 import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.model.YmirFuture;
 import org.season.ymir.common.model.YmirRequest;
 import org.season.ymir.common.model.YmirResponse;
+import org.season.ymir.common.utils.GsonUtils;
 import org.season.ymir.core.protocol.MessageProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +28,7 @@ import java.util.concurrent.TimeUnit;
  * @author KevinClair
  **/
 @ChannelHandler.Sharable
-public class NettyClientHandler extends ChannelInboundHandlerAdapter {
+public class NettyClientHandler extends SimpleChannelInboundHandler<YmirResponse> {
 
     private static Logger logger = LoggerFactory.getLogger(NettyClientHandler.class);
 
@@ -78,27 +76,16 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        logger.debug("Client reads message:{}", msg);
-        ByteBuf byteBuf = (ByteBuf) msg;
-        byte[] resp = new byte[byteBuf.readableBytes()];
-        byteBuf.readBytes(resp);
-        // 手动回收
-        ReferenceCountUtil.release(byteBuf);
-        YmirResponse response = messageProtocol.unmarshallingResponse(resp);
-        YmirFuture<YmirResponse> future = requestMap.get(response.getRequestId());
-        future.setResponse(response);
+    protected void channelRead0(ChannelHandlerContext channelHandlerContext, YmirResponse data) throws Exception {
+        logger.debug("Client reads message:{}", GsonUtils.getInstance().toJson(data));
+        YmirFuture<YmirResponse> future = requestMap.get(data.getRequestId());
+        future.setResponse(data);
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         logger.error("Exception occurred:{}", cause.getMessage());
         ctx.channel().close();
-    }
-
-    @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-        ctx.flush();
     }
 
     @Override
@@ -129,16 +116,12 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
         YmirFuture<YmirResponse> future = new YmirFuture<YmirResponse>();
         requestMap.put(request.getRequestId(), future);
         try {
-            byte[] data = messageProtocol.marshalling(request);
-            ByteBuf reqBuf = Unpooled.buffer(data.length);
-            reqBuf.writeBytes(data);
-            ReferenceCountUtil.release(reqBuf);
             if (latch.await(CHANNEL_WAIT_TIME, TimeUnit.SECONDS)){
-                channel.writeAndFlush(reqBuf);
+                channel.writeAndFlush(request);
                 // 等待响应
                 response = future.get(RESPONSE_WAIT_TIME, TimeUnit.SECONDS);
             }else {
-                throw new RpcException("establish channel time out");
+                throw new RpcException("Establish channel time out");
             }
         } catch (Exception e) {
             throw new RpcException(e.getMessage());
