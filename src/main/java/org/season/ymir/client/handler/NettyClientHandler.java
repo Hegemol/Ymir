@@ -6,6 +6,7 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleStateEvent;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.season.ymir.client.YmirNettyClient;
 import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.exception.RpcException;
@@ -84,7 +85,7 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<YmirResponse
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        logger.error("Exception occurred:{}", cause.getMessage());
+        logger.error("Exception occurred:{}", ExceptionUtils.getStackTrace(cause));
         ctx.channel().close();
     }
 
