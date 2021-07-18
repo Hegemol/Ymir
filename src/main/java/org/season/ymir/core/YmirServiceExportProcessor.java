@@ -162,7 +162,7 @@ public class YmirServiceExportProcessor implements ApplicationListener<ContextRe
                     childrenCache.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
                     childrenCache.getListenable().addListener(new ZookeeperNodeChangeListener(serverDiscovery));
 
-                    String consumerNode = CommonConstant.PATH_DELIMITER + name +CommonConstant.PATH_DELIMITER + CommonConstant.ZK_SERVICE_PROVIDER_PATH;
+                    String consumerNode = CommonConstant.PATH_DELIMITER + name +CommonConstant.PATH_DELIMITER + CommonConstant.ZK_SERVICE_SERVER_PATH;
                     String registerZNodePath = ZkPathUtils.buildUriPath(consumerNode, address);
                     // 写入consumer节点
                     zkClient.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(registerZNodePath);
