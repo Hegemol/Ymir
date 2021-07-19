@@ -33,3 +33,4 @@ Ymir，出自动漫[进击的巨人](https://baike.baidu.com/item/%E8%BF%9B%E5%8
 * YmirReference属性扩展，增加group，loadbalance等属性；
 * 项目结构优化，包路径重构；
 * 第二次测试；
+* 首次调用时，请求超时；
