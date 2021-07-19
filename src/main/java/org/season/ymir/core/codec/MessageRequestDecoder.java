@@ -47,7 +47,7 @@ public class MessageRequestDecoder extends ByteToMessageDecoder {
             logger.info("Server heart beat request:{}", GsonUtils.getInstance().toJson(ymirRequest));
             YmirResponse response = new YmirResponse(ServiceStatusEnum.SUCCESS);
             response.setRequestId(CommonConstant.HEART_BEAT_RESPONSE);
-            channelHandlerContext.writeAndFlush(response);
+            channelHandlerContext.channel().writeAndFlush(response);
             return;
         }
         list.add(ymirRequest);
