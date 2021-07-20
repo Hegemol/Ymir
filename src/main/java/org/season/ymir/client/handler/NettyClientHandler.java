@@ -14,7 +14,6 @@ import org.season.ymir.common.model.YmirFuture;
 import org.season.ymir.common.model.YmirRequest;
 import org.season.ymir.common.model.YmirResponse;
 import org.season.ymir.common.utils.GsonUtils;
-import org.season.ymir.core.protocol.MessageProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,11 +33,6 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<YmirResponse
     private static Logger logger = LoggerFactory.getLogger(NettyClientHandler.class);
 
     /**
-     * 编码器
-     */
-    private MessageProtocol messageProtocol;
-
-    /**
      * 远程请求地址
      */
     private String remoteAddress;
@@ -47,10 +41,6 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<YmirResponse
      * 等待通道建立最大时间
      */
     static final int CHANNEL_WAIT_TIME = 4;
-    /**
-     * 等待响应最大时间
-     */
-    static final int RESPONSE_WAIT_TIME = 8;
 
     /**
      * 通道
@@ -61,8 +51,7 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<YmirResponse
 
     private CountDownLatch latch = new CountDownLatch(1);
 
-    public NettyClientHandler(MessageProtocol messageProtocol, String remoteAddress) {
-        this.messageProtocol = messageProtocol;
+    public NettyClientHandler(String remoteAddress) {
         this.remoteAddress = remoteAddress;
     }
     @Override
@@ -73,12 +62,16 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<YmirResponse
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        logger.debug("Connect to server successfully:{}", ctx);
+        if (logger.isDebugEnabled()){
+            logger.debug("Connect to server successfully:{}", ctx);
+        }
     }
 
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, YmirResponse data) throws Exception {
-        logger.debug("Client reads message:{}", GsonUtils.getInstance().toJson(data));
+        if (logger.isDebugEnabled()){
+            logger.debug("Client reads message:{}", GsonUtils.getInstance().toJson(data));
+        }
         YmirFuture<YmirResponse> future = requestMap.get(data.getRequestId());
         future.setResponse(data);
     }
@@ -120,7 +113,7 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<YmirResponse
             if (latch.await(CHANNEL_WAIT_TIME, TimeUnit.SECONDS)){
                 channel.writeAndFlush(request);
                 // 等待响应
-                response = future.get(RESPONSE_WAIT_TIME, TimeUnit.SECONDS);
+                response = future.get(request.getTimeout(), TimeUnit.MILLISECONDS);
             }else {
                 throw new RpcException("Establish channel time out");
             }

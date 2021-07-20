@@ -6,6 +6,7 @@ import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.model.YmirRequest;
 import org.season.ymir.common.model.YmirResponse;
 import org.season.ymir.common.utils.LoadBalanceUtils;
+import org.season.ymir.core.property.YmirConfigurationProperty;
 import org.season.ymir.core.protocol.MessageProtocol;
 import org.season.ymir.server.discovery.YmirServiceDiscovery;
 import org.springframework.util.CollectionUtils;
@@ -27,6 +28,8 @@ public class YmirClientProxyFactory {
     private YmirNettyClient netClient;
 
     private MessageProtocol protocol;
+
+    private YmirConfigurationProperty property;
 
     private Map<Class<?>, Object> objectCache = new HashMap<>();
 
@@ -67,6 +70,7 @@ public class YmirClientProxyFactory {
             request.setMethod(method.getName());
             request.setParameters(args);
             request.setParameterTypes(method.getParameterTypes());
+            request.setTimeout(property.getTimeout());
             // 3.发送请求
             YmirResponse response = netClient.sendRequest(request, service, protocol);
             if (Objects.isNull(response)){
@@ -102,10 +106,11 @@ public class YmirClientProxyFactory {
         return serviceDiscovery;
     }
 
-    public YmirClientProxyFactory(YmirServiceDiscovery serviceDiscovery, YmirNettyClient netClient, MessageProtocol protocol) {
+    public YmirClientProxyFactory(YmirServiceDiscovery serviceDiscovery, YmirNettyClient netClient, MessageProtocol protocol, YmirConfigurationProperty property) {
         this.serviceDiscovery = serviceDiscovery;
         this.netClient = netClient;
         this.protocol = protocol;
+        this.property = property;
     }
 
     public YmirClientProxyFactory() {

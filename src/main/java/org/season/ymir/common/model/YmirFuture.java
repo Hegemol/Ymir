@@ -63,8 +63,4 @@ public class YmirFuture<T> implements Future<T> {
         this.response = response;
         countDownLatch.countDown();
     }
-
-    public long getBeginTime() {
-        return beginTime;
-    }
 }

@@ -27,6 +27,8 @@ public class YmirRequest implements Serializable {
 
     private Object[] parameters;
 
+    private int timeout;
+
     public String getRequestId() {
         return requestId;
     }
@@ -73,5 +75,13 @@ public class YmirRequest implements Serializable {
 
     public void setParameters(Object[] parameters) {
         this.parameters = parameters;
+    }
+
+    public int getTimeout() {
+        return timeout;
+    }
+
+    public void setTimeout(int timeout) {
+        this.timeout = timeout;
     }
 }

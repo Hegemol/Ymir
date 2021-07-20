@@ -129,7 +129,7 @@ public class YmirBeanAutoConfiguration {
      */
     @Bean
     public YmirClientProxyFactory ymirClientProxyFactory(YmirServiceDiscovery serviceDiscovery, YmirNettyClient netClient, YmirConfigurationProperty property){
-        return new YmirClientProxyFactory(serviceDiscovery, netClient, ExtensionLoader.getExtensionLoader(MessageProtocol.class).getLoader(property.getProtocol()));
+        return new YmirClientProxyFactory(serviceDiscovery, netClient, ExtensionLoader.getExtensionLoader(MessageProtocol.class).getLoader(property.getProtocol()), property);
     }
 
     /**
