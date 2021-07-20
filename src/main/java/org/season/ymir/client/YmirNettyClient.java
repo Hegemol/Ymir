@@ -62,7 +62,7 @@ public class YmirNettyClient {
             String[] addrInfo = address.split(":");
             final String serverAddress = addrInfo[0];
             final String serverPort = addrInfo[1];
-            final NettyClientHandler handler = new NettyClientHandler(protocol, address);
+            final NettyClientHandler handler = new NettyClientHandler(address);
             // 异步建立客户端
             threadPool.submit(() -> {
                         startClient(address, serverAddress, serverPort, handler, protocol);
@@ -121,4 +121,6 @@ public class YmirNettyClient {
             startClient(address, serverAddress, serverPort, handler, protocol);
         }, CommonConstant.RECONNECT_SECONDS, TimeUnit.SECONDS);
     }
+
+
 }
