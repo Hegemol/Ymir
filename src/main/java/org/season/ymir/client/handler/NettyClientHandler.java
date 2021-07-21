@@ -10,6 +10,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.season.ymir.client.YmirNettyClient;
 import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.exception.RpcException;
+import org.season.ymir.common.exception.RpcTimeoutException;
 import org.season.ymir.common.model.YmirFuture;
 import org.season.ymir.common.model.YmirRequest;
 import org.season.ymir.common.model.YmirResponse;
@@ -21,6 +22,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * 客户端客户端请求处理器
@@ -85,14 +87,12 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<YmirResponse
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         super.channelInactive(ctx);
-        // TODO 发起重连
-        logger.error("channel inactive with remoteAddress:[{}]",remoteAddress);
+        logger.error("Channel inactive with remoteAddress:{}",remoteAddress);
         YmirNettyClient.connectedServerNodes.remove(remoteAddress);
     }
 
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-        // TODO 空闲时，向服务端发起一次心跳
         if (evt instanceof IdleStateEvent){
             if (logger.isDebugEnabled()){
                 logger.debug("Client send heart beat");
@@ -114,9 +114,11 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<YmirResponse
                 channel.writeAndFlush(request);
                 // 等待响应
                 response = future.get(request.getTimeout(), TimeUnit.MILLISECONDS);
-            }else {
+            } else {
                 throw new RpcException("Establish channel time out");
             }
+        } catch (TimeoutException exception){
+            throw new RpcTimeoutException(String.format("Invoke remote method time out with %s ms", request.getTimeout()));
         } catch (Exception e) {
             throw new RpcException(e.getMessage());
         } finally {
