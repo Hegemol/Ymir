@@ -106,12 +106,13 @@ public class YmirNettyClient {
     }
 
     /**
-     * TODO 重新链接服务端
+     * 重新链接服务端
      *
-     * @param address
-     * @param serverAddress
-     * @param serverPort
-     * @param handler
+     * @param address       客户端地址
+     * @param serverAddress 服务端地址
+     * @param serverPort    服务端端口
+     * @param handler       处理器
+     * @param protocol      序列化协议
      */
     public void reconnect(String address, String serverAddress, String serverPort, NettyClientHandler handler, MessageProtocol protocol) {
         loopGroup.schedule(() -> {
