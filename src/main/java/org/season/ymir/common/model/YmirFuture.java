@@ -53,10 +53,10 @@ public class YmirFuture<T> implements Future<T> {
 
     @Override
     public T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        if (countDownLatch.await(timeout,unit)){
-            return response;
+        if (!countDownLatch.await(timeout,unit)){
+            throw new TimeoutException();
         }
-        return null;
+        return response;
     }
 
     public void setResponse(T response) {

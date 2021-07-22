@@ -64,9 +64,7 @@ public class YmirNettyClient {
             final String serverPort = addrInfo[1];
             final NettyClientHandler handler = new NettyClientHandler(address);
             // 异步建立客户端
-            threadPool.submit(() -> {
-                        startClient(address, serverAddress, serverPort, handler, protocol);
-                    }
+            threadPool.submit(() -> startClient(address, serverAddress, serverPort, handler, protocol)
             );
             return handler.sendRequest(rpcRequest);
         }

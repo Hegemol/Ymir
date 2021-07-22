@@ -15,6 +15,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 客户端代理
@@ -31,7 +32,7 @@ public class YmirClientProxyFactory {
 
     private YmirConfigurationProperty property;
 
-    private Map<Class<?>, Object> objectCache = new HashMap<>();
+    private Map<Class<?>, Object> objectCache = new ConcurrentHashMap<>();
 
     /**
      * 通过Java动态代理获取服务代理类

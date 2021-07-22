@@ -40,22 +40,24 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<YmirResponse
     private String remoteAddress;
 
     /**
-     * 等待通道建立最大时间
-     */
-    static final int CHANNEL_WAIT_TIME = 4;
-
-    /**
      * 通道
      */
     private volatile Channel channel;
 
-    private static Map<String, YmirFuture<YmirResponse>> requestMap = new ConcurrentHashMap<String, YmirFuture<YmirResponse>>();
+    /**
+     * 存储request的返回信息，key为每次请求{@link YmirRequest}的requestId，value为{@link YmirFuture<YmirResponse>}
+     */
+    private static Map<String, YmirFuture<YmirResponse>> requestMap = new ConcurrentHashMap<>();
 
+    /**
+     * {@link CountDownLatch}锁，等待连接注册
+     */
     private CountDownLatch latch = new CountDownLatch(1);
 
     public NettyClientHandler(String remoteAddress) {
         this.remoteAddress = remoteAddress;
     }
+
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
         this.channel = ctx.channel();
@@ -64,14 +66,14 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<YmirResponse
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        if (logger.isDebugEnabled()){
+        if (logger.isDebugEnabled()) {
             logger.debug("Connect to server successfully:{}", ctx);
         }
     }
 
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, YmirResponse data) throws Exception {
-        if (logger.isDebugEnabled()){
+        if (logger.isDebugEnabled()) {
             logger.debug("Client reads message:{}", GsonUtils.getInstance().toJson(data));
         }
         YmirFuture<YmirResponse> future = requestMap.get(data.getRequestId());
@@ -86,15 +88,16 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<YmirResponse
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        // TODO 发起一次重连
         super.channelInactive(ctx);
-        logger.error("Channel inactive with remoteAddress:{}",remoteAddress);
+        logger.error("Channel inactive with remoteAddress:{}", remoteAddress);
         YmirNettyClient.connectedServerNodes.remove(remoteAddress);
     }
 
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-        if (evt instanceof IdleStateEvent){
-            if (logger.isDebugEnabled()){
+        if (evt instanceof IdleStateEvent) {
+            if (logger.isDebugEnabled()) {
                 logger.debug("Client send heart beat");
             }
             YmirRequest request = new YmirRequest();
@@ -107,18 +110,18 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<YmirResponse
 
     public YmirResponse sendRequest(YmirRequest request) {
         YmirResponse response;
-        YmirFuture<YmirResponse> future = new YmirFuture<YmirResponse>();
+        YmirFuture<YmirResponse> future = new YmirFuture<>();
         requestMap.put(request.getRequestId(), future);
         try {
-            if (latch.await(CHANNEL_WAIT_TIME, TimeUnit.SECONDS)){
+            if (latch.await(request.getTimeout(), TimeUnit.SECONDS)){
                 channel.writeAndFlush(request);
                 // 等待响应
                 response = future.get(request.getTimeout(), TimeUnit.MILLISECONDS);
             } else {
-                throw new RpcException("Establish channel time out");
+                throw new RpcException(String.format("Establish channel time out, address of server is %s", remoteAddress));
             }
         } catch (TimeoutException exception){
-            throw new RpcTimeoutException(String.format("Invoke remote method time out with %s ms", request.getTimeout()));
+            throw new RpcTimeoutException(String.format("Invoke remote method %s timeout with %s ms", String.join("#", request.getServiceName(), request.getMethod()), request.getTimeout()));
         } catch (Exception e) {
             throw new RpcException(e.getMessage());
         } finally {
