@@ -19,14 +19,6 @@ import java.lang.annotation.Target;
 @Documented
 public @interface YmirService {
 
-
-    /**
-     * value
-     *
-     * @return
-     */
-    String value() default "";
-
     /**
      * 权重
      *

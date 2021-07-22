@@ -1,6 +1,5 @@
 package org.season.ymir.core;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
@@ -96,20 +95,16 @@ public class YmirServiceExportProcessor implements ApplicationListener<ContextRe
                     ServiceBean serviceBean;
                     YmirService service = clazz.getAnnotation(YmirService.class);
                     // 如果不需要注册，跳过
-                    if (!service.register()){
+                    if (!service.register()) {
                         continue;
                     }
-                    if (StringUtils.isNotBlank(service.value())) {
-                        serviceBean = new ServiceBean(service.value(), clazz.getName(), service.protocol(), address, service.weight(), service.group(), service.version());
-                    } else {
-                        Class<?>[] interfaces = clazz.getInterfaces();
-                        if (interfaces.length > 1) {
-                            logger.error("Only one interface class can be inherited, class {} is illegal!", obj.getClass().getName());
-                            continue;
-                        }
-                        Class<?> superInterface = interfaces[0];
-                        serviceBean = new ServiceBean(superInterface.getName(), clazz.getName(), service.protocol(), address, service.weight(), service.group(), service.version());
+                    Class<?>[] interfaces = clazz.getInterfaces();
+                    if (interfaces.length > 1) {
+                        logger.error("Only one interface class can be inherited, class {} is illegal!", obj.getClass().getName());
+                        continue;
                     }
+                    Class<?> superInterface = interfaces[0];
+                    serviceBean = new ServiceBean(superInterface.getName(), clazz.getName(), service.protocol(), address, service.weight(), service.group(), service.version());
                     // register bean;
                     serviceRegister.registerBean(serviceBean);
                     logger.info("Service {} register success", obj.getClass().getName());
@@ -157,12 +152,12 @@ public class YmirServiceExportProcessor implements ApplicationListener<ContextRe
             serviceList.forEach(name -> {
                 try {
                     // 节点监听
-                    String servicePath = CommonConstant.PATH_DELIMITER + name +CommonConstant.PATH_DELIMITER + CommonConstant.ZK_SERVICE_PROVIDER_PATH;
+                    String servicePath = CommonConstant.PATH_DELIMITER + name + CommonConstant.PATH_DELIMITER + CommonConstant.ZK_SERVICE_PROVIDER_PATH;
                     final PathChildrenCache childrenCache = new PathChildrenCache(zkClient, servicePath, true);
                     childrenCache.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
                     childrenCache.getListenable().addListener(new ZookeeperNodeChangeListener(serverDiscovery));
 
-                    String consumerNode = CommonConstant.PATH_DELIMITER + name +CommonConstant.PATH_DELIMITER + CommonConstant.ZK_SERVICE_SERVER_PATH;
+                    String consumerNode = CommonConstant.PATH_DELIMITER + name + CommonConstant.PATH_DELIMITER + CommonConstant.ZK_SERVICE_SERVER_PATH;
                     String registerZNodePath = ZkPathUtils.buildUriPath(consumerNode, address);
                     // 写入consumer节点
                     zkClient.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(registerZNodePath);
