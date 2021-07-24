@@ -46,11 +46,4 @@ public @interface YmirService {
      * @return
      */
     String version() default "";
-
-    /**
-     * 序列化方式
-     *
-     * @return
-     */
-    String protocol() default "";
 }

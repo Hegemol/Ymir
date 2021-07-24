@@ -21,13 +21,30 @@ public class YmirRequest implements Serializable {
      */
     private String method;
 
+    /**
+     * 请求头
+     */
     private Map<String,String> headers = new HashMap<>();
 
+    /**
+     * 参数类型
+     */
     private Class<?>[] parameterTypes;
 
+    /**
+     * 参数
+     */
     private Object[] parameters;
 
+    /**
+     * 超时时间
+     */
     private int timeout;
+
+    /**
+     * 重试次数
+     */
+    private int retries;
 
     public String getRequestId() {
         return requestId;
@@ -83,5 +100,13 @@ public class YmirRequest implements Serializable {
 
     public void setTimeout(int timeout) {
         this.timeout = timeout;
+    }
+
+    public int getRetries() {
+        return retries;
+    }
+
+    public void setRetries(int retries) {
+        this.retries = retries;
     }
 }
