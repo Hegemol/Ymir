@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -77,6 +78,10 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<YmirResponse
             logger.debug("Client reads message:{}", GsonUtils.getInstance().toJson(data));
         }
         YmirFuture<YmirResponse> future = requestMap.get(data.getRequestId());
+        // 如果超时导致requestMap中没有保存值，此处会返回null的future，直接操作会导致NullPointException.
+        if (Objects.isNull(future)){
+            return;
+        }
         future.setResponse(data);
     }
 
