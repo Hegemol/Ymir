@@ -38,9 +38,9 @@ public class CommonConstant {
     public static final Integer RECONNECT_SECONDS = 20;
 
     /**
-     * 心跳超时时间
+     * 读写超时时间
      */
-    public static final Integer READ_TIMEOUT_SECONDS = 60;
+    public static final Integer TIMEOUT_SECONDS = 60;
 
     /**
      * 心跳请求
