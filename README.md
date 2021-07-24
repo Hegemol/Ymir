@@ -28,8 +28,7 @@ Ymir，出自动漫[进击的巨人](https://baike.baidu.com/item/%E8%BF%9B%E5%8
 最近准备开始着手做一次项目的重构和升级，调整一下项目的模块以及工程架构；
 * Netty优化，粘包拆包；
 * 取消SpringBoot父框架；
-* YmirService属性扩展，增加register,group等属性；
+* YmirService属性扩展，增加group等属性；
 * YmirReference属性扩展，增加group，loadbalance等属性；
 * 项目结构优化，包路径重构；
 * 第二次测试；
-* 首次调用时，请求超时；
