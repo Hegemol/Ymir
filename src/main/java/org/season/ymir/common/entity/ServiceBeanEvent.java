@@ -7,9 +7,10 @@ package org.season.ymir.common.entity;
  */
 public class ServiceBeanEvent extends ServiceBean {
 
+    /**
+     * 路径
+     */
     private String path;
-
-    private String url;
 
     public String getPath() {
         return path;
@@ -19,11 +20,4 @@ public class ServiceBeanEvent extends ServiceBean {
         this.path = path;
     }
 
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
-    }
 }

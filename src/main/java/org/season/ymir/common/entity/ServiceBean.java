@@ -99,10 +99,9 @@ public class ServiceBean {
     public ServiceBean() {
     }
 
-    public ServiceBean(String name, String clazz, String protocol, String address, Integer weight, String group, String version) {
+    public ServiceBean(String name, String clazz, String address, Integer weight, String group, String version) {
         this.name = name;
         this.clazz = clazz;
-        this.protocol = protocol;
         this.address = address;
         this.weight = weight;
         this.group = group;

@@ -115,8 +115,8 @@ public class YmirBeanAutoConfiguration {
      * @return {@link YmirNettyClient}
      */
     @Bean
-    public YmirNettyClient nettyNetClient(){
-        return new YmirNettyClient();
+    public YmirNettyClient nettyNetClient(YmirConfigurationProperty property){
+        return new YmirNettyClient(ExtensionLoader.getExtensionLoader(MessageProtocol.class).getLoader(property.getProtocol()));
     }
 
     /**
@@ -124,12 +124,11 @@ public class YmirBeanAutoConfiguration {
      *
      * @param serviceDiscovery 服务发现
      * @param netClient        Netty客户端
-     * @param property         配置信息
      * @return {@link YmirClientProxyFactory}
      */
     @Bean
-    public YmirClientProxyFactory ymirClientProxyFactory(YmirServiceDiscovery serviceDiscovery, YmirNettyClient netClient, YmirConfigurationProperty property){
-        return new YmirClientProxyFactory(serviceDiscovery, netClient, ExtensionLoader.getExtensionLoader(MessageProtocol.class).getLoader(property.getProtocol()), property);
+    public YmirClientProxyFactory ymirClientProxyFactory(YmirServiceDiscovery serviceDiscovery, YmirNettyClient netClient){
+        return new YmirClientProxyFactory(serviceDiscovery, netClient);
     }
 
     /**
@@ -140,7 +139,7 @@ public class YmirBeanAutoConfiguration {
      * @return {@link YmirServiceExportProcessor}
      */
     @Bean
-    public YmirServiceExportProcessor defaultServiceExportProcessor(ServiceRegister serviceRegister, YmirNettyServer nettyServer, YmirClientProxyFactory proxyFactory, CuratorFramework zkClient, YmirConfigurationProperty property){
-        return new YmirServiceExportProcessor(serviceRegister, nettyServer, proxyFactory, zkClient, property);
+    public YmirServiceExportProcessor defaultServiceExportProcessor(ServiceRegister serviceRegister, YmirNettyServer nettyServer, YmirClientProxyFactory proxyFactory, CuratorFramework zkClient, YmirConfigurationProperty property, YmirServiceDiscovery serviceDiscovery){
+        return new YmirServiceExportProcessor(serviceRegister, nettyServer, proxyFactory, zkClient, property, serviceDiscovery);
     }
 }

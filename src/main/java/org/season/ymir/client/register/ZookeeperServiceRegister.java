@@ -1,6 +1,5 @@
 package org.season.ymir.client.register;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.CreateMode;
@@ -9,7 +8,6 @@ import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.entity.ServiceBeanCache;
 import org.season.ymir.common.entity.ServiceBeanEvent;
 import org.season.ymir.common.register.DefaultAbstractServiceRegister;
-import org.season.ymir.common.utils.ExportServiceBeanUriUtils;
 import org.season.ymir.common.utils.GsonUtils;
 import org.season.ymir.common.utils.ZkPathUtils;
 import org.season.ymir.core.event.ServiceBeanExportEvent;
@@ -67,7 +65,7 @@ public class ZookeeperServiceRegister extends DefaultAbstractServiceRegister imp
         super.registerBean(serviceBean);
         ServiceBeanEvent exportEventModel = new ServiceBeanEvent();
         exportEventModel.setName(serviceBean.getName());
-        exportEventModel.setProtocol(StringUtils.isBlank(serviceBean.getProtocol()) ? protocol : serviceBean.getProtocol());
+        exportEventModel.setProtocol(protocol);
         exportEventModel.setAddress(serviceBean.getAddress());
         exportEventModel.setWeight(serviceBean.getWeight());
         exportEventModel.setGroup(serviceBean.getGroup());
@@ -88,7 +86,6 @@ public class ZookeeperServiceRegister extends DefaultAbstractServiceRegister imp
      */
     private void exportService(final ServiceBean model, final ServiceBeanEvent exportEventModel) throws Exception {
         String serviceName = model.getName();
-        String uri = ExportServiceBeanUriUtils.buildUri(model);
         String zNodePath = ZkPathUtils.buildPath(CommonConstant.ZK_SERVICE_PROVIDER_PATH, serviceName);
         if (Objects.isNull(zkClient.checkExists().forPath(zNodePath))) {
             // 创建节点
@@ -98,8 +95,7 @@ public class ZookeeperServiceRegister extends DefaultAbstractServiceRegister imp
         String registerZNodePath = ZkPathUtils.buildUriPath(zNodePath, model.getAddress());
         // 创建一个临时节点，会话失效即被清理，此处节点数据存储Json数据
         zkClient.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(registerZNodePath, GsonUtils.getInstance().toJson(model).getBytes(CommonConstant.UTF_8));
-        exportEventModel.setUrl(uri);
-        logger.info("Service export to zookeeper success, register url:{}", uri);
+        logger.info("Service export to zookeeper success, register url:{}", GsonUtils.getInstance().toJson(model));
     }
 
     @Override

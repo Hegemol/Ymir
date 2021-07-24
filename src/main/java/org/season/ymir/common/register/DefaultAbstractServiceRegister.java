@@ -4,7 +4,6 @@ package org.season.ymir.common.register;
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
-import org.apache.commons.lang3.StringUtils;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.season.ymir.common.entity.ServiceBean;
@@ -48,7 +47,7 @@ public abstract class DefaultAbstractServiceRegister implements ServiceRegister 
     @Override
     public void registerBean(final ServiceBean serviceBean) throws Exception {
         if (Objects.isNull(serviceBean)) throw new IllegalArgumentException("parameter can not be empty.");
-        serviceBean.setProtocol(StringUtils.isBlank(serviceBean.getProtocol()) ? protocol : serviceBean.getProtocol());
+        serviceBean.setProtocol(protocol);
         // 实例化对象
         Class<?> classObject = Class.forName(serviceBean.getClazz());
         ServiceBeanCache serviceBeanCache = new ServiceBeanCache(serviceBean.getName(), classObject, classObject.newInstance());

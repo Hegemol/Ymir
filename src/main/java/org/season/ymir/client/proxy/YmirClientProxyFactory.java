@@ -6,15 +6,16 @@ import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.model.YmirRequest;
 import org.season.ymir.common.model.YmirResponse;
 import org.season.ymir.common.utils.LoadBalanceUtils;
-import org.season.ymir.core.property.YmirConfigurationProperty;
-import org.season.ymir.core.protocol.MessageProtocol;
+import org.season.ymir.core.annotation.YmirReference;
 import org.season.ymir.server.discovery.YmirServiceDiscovery;
-import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -28,10 +29,6 @@ public class YmirClientProxyFactory {
 
     private YmirNettyClient netClient;
 
-    private MessageProtocol protocol;
-
-    private YmirConfigurationProperty property;
-
     private Map<Class<?>, Object> objectCache = new ConcurrentHashMap<>();
 
     /**
@@ -41,9 +38,9 @@ public class YmirClientProxyFactory {
      * @param <T>
      * @return
      */
-    public <T> T getProxy(Class<T> clazz) {
+    public <T> T getProxy(Class<T> clazz, YmirReference reference) {
         return (T) objectCache.computeIfAbsent(clazz, clz ->
-                Proxy.newProxyInstance(clz.getClassLoader(), new Class[]{clz}, new ClientInvocationHandler(clz))
+                Proxy.newProxyInstance(clz.getClassLoader(), new Class[]{clz}, new ClientInvocationHandler(clz, reference))
         );
     }
 
@@ -52,18 +49,20 @@ public class YmirClientProxyFactory {
 
         private Class<?> clazz;
 
-        public ClientInvocationHandler(Class<?> clazz) {
-            this.clazz = clazz;
-        }
+        private YmirReference reference;
 
+        public ClientInvocationHandler(Class<?> clazz, YmirReference reference) {
+            this.clazz = clazz;
+            this.reference = reference;
+        }
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
             // 1.获得服务信息
             String serviceName = clazz.getName();
-            List<ServiceBean> services = getServiceList(serviceName);
+            List<ServiceBean> services = serviceDiscovery.findServiceList(serviceName);
             // TODO 此处address地址
-            ServiceBean service = LoadBalanceUtils.selector(services, "", "");
+            ServiceBean service = LoadBalanceUtils.selector(services, reference.loadBalance(), "");
             // 2.构造request对象
             YmirRequest request = new YmirRequest();
             request.setRequestId(UUID.randomUUID().toString());
@@ -71,9 +70,10 @@ public class YmirClientProxyFactory {
             request.setMethod(method.getName());
             request.setParameters(args);
             request.setParameterTypes(method.getParameterTypes());
-            request.setTimeout(property.getTimeout());
+            request.setTimeout(reference.timeout());
+            request.setRetries(reference.retries());
             // 3.发送请求
-            YmirResponse response = netClient.sendRequest(request, service, protocol);
+            YmirResponse response = netClient.sendRequest(request, service);
             if (Objects.isNull(response)){
                 throw new RpcException("the response is null");
             }
@@ -82,36 +82,9 @@ public class YmirClientProxyFactory {
         }
     }
 
-    /**
-     * 根据服务名获取可用的服务地址列表
-     * @param serviceName
-     * @return
-     */
-    private List<ServiceBean> getServiceList(String serviceName) throws Exception {
-        List<ServiceBean> services;
-        synchronized (serviceName){
-            if (serviceDiscovery.isEmpty(serviceName)) {
-                services = serviceDiscovery.findServiceList(serviceName);
-                if (CollectionUtils.isEmpty(services)) {
-                    throw new RpcException("No provider available for service "+ serviceName);
-                }
-                serviceDiscovery.put(serviceName, services);
-            } else {
-                services = serviceDiscovery.get(serviceName);
-            }
-        }
-        return services;
-    }
-
-    public YmirServiceDiscovery getServiceDiscovery() {
-        return serviceDiscovery;
-    }
-
-    public YmirClientProxyFactory(YmirServiceDiscovery serviceDiscovery, YmirNettyClient netClient, MessageProtocol protocol, YmirConfigurationProperty property) {
+    public YmirClientProxyFactory(YmirServiceDiscovery serviceDiscovery, YmirNettyClient netClient) {
         this.serviceDiscovery = serviceDiscovery;
         this.netClient = netClient;
-        this.protocol = protocol;
-        this.property = property;
     }
 
     public YmirClientProxyFactory() {

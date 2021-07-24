@@ -16,16 +16,29 @@ import java.lang.annotation.*;
 public @interface YmirReference {
 
     /**
-     * value
-     *
-     * @return
-     */
-    String value() default "";
-
-    /**
      * 检查服务状态
      *
      * @return
      */
     boolean check() default false;
+
+    /**
+     * 负载均衡
+     */
+    String loadBalance() default "random";
+
+    /**
+     * 超时时间
+     */
+    int timeout() default 3000;
+
+    /**
+     * 重试次数
+     */
+    int retries() default 2;
+
+    /**
+     * 服务直连url
+     */
+    String url() default "";
 }

@@ -25,16 +25,6 @@ public class YmirConfigurationProperty {
      */
     private int maxSize = 1024;
 
-    /**
-     * 权重
-     */
-    private Integer weight = 1;
-
-    /**
-     * 超时时间
-     */
-    private int timeout = 3000;
-
     public Integer getPort() {
         return port;
     }
@@ -57,13 +47,5 @@ public class YmirConfigurationProperty {
 
     public void setMaxSize(int maxSize) {
         this.maxSize = maxSize;
-    }
-
-    public int getTimeout() {
-        return timeout;
-    }
-
-    public void setTimeout(int timeout) {
-        this.timeout = timeout;
     }
 }
