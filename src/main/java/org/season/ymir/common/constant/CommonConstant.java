@@ -51,4 +51,12 @@ public class CommonConstant {
      * 心跳响应
      */
     public static final String HEART_BEAT_RESPONSE = "HEART_BEAT_RESPONSE";
+
+    public static final String DOT = ".";
+
+    public static final String E = "e";
+
+    public static final String LEFT_ANGLE_BRACKETS = "{";
+
+    public static final String RIGHT_ANGLE_BRACKETS = "}";
 }
