@@ -10,7 +10,6 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
-import io.netty.handler.timeout.ReadTimeoutHandler;
 import org.season.ymir.client.handler.NettyClientHandler;
 import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.entity.ServiceBean;
@@ -91,8 +90,7 @@ public class YmirNettyClient {
                         ChannelPipeline pipeline = channel.pipeline();
                         pipeline
                                 // 空闲检测
-                                .addLast(new IdleStateHandler(CommonConstant.READ_TIMEOUT_SECONDS, 0, 0))
-                                .addLast(new ReadTimeoutHandler(3 * CommonConstant.READ_TIMEOUT_SECONDS))
+                                .addLast(new IdleStateHandler(CommonConstant.TIMEOUT_SECONDS, CommonConstant.TIMEOUT_SECONDS, CommonConstant.TIMEOUT_SECONDS))
                                 // 解码器
                                 .addLast(new MessageResponseDecoder(protocol))
                                 // 编码器

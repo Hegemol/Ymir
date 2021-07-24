@@ -9,8 +9,9 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.timeout.ReadTimeoutHandler;
+import io.netty.handler.timeout.IdleStateHandler;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.core.codec.MessageEncoder;
 import org.season.ymir.core.codec.MessageRequestDecoder;
 import org.season.ymir.core.property.YmirConfigurationProperty;
@@ -22,7 +23,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 
 import java.net.InetSocketAddress;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Netty服务端
@@ -66,7 +66,7 @@ public class YmirNettyServer implements DisposableBean {
                             // 添加一堆 NettyServerHandler 到 ChannelPipeline 中
                             channelPipeline
                                     // 空闲检测
-                                    .addLast(new ReadTimeoutHandler(READ_TIMEOUT_SECONDS, TimeUnit.SECONDS))
+                                    .addLast(new IdleStateHandler(CommonConstant.TIMEOUT_SECONDS, CommonConstant.TIMEOUT_SECONDS, CommonConstant.TIMEOUT_SECONDS))
                                     // 解码器
                                     .addLast(new MessageRequestDecoder(ExtensionLoader.getExtensionLoader(MessageProtocol.class).getLoader(property.getProtocol()), property.getMaxSize()))
                                     // 编码器
