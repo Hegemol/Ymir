@@ -14,6 +14,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.core.codec.MessageEncoder;
 import org.season.ymir.core.codec.MessageRequestDecoder;
+import org.season.ymir.core.heartbeat.HeartBeatRequestHandler;
 import org.season.ymir.core.property.YmirConfigurationProperty;
 import org.season.ymir.core.protocol.MessageProtocol;
 import org.season.ymir.server.handler.NettyServerHandler;
@@ -71,6 +72,8 @@ public class YmirNettyServer implements DisposableBean {
                                     .addLast(new MessageRequestDecoder(ExtensionLoader.getExtensionLoader(MessageProtocol.class).getLoader(property.getProtocol()), property.getMaxSize()))
                                     // 编码器
                                     .addLast(new MessageEncoder(ExtensionLoader.getExtensionLoader(MessageProtocol.class).getLoader(property.getProtocol())))
+                                    // 心跳处理器
+                                    .addLast(new HeartBeatRequestHandler())
                                     // 服务端处理器
                                     .addLast(nettyServerHandler);
                         }
