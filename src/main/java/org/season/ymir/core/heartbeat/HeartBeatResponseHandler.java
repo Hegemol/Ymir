@@ -26,8 +26,8 @@ public class HeartBeatResponseHandler extends ChannelInboundHandlerAdapter {
         YmirResponse response = (YmirResponse) msg;
         if (response.getRequestId().equals(CommonConstant.HEART_BEAT_RESPONSE)){
             if (logger.isDebugEnabled()){
+                logger.debug("Client receive heart beat response:{}", GsonUtils.getInstance().toJson(msg));
             }
-            logger.info("Client receive heart beat response:{}", GsonUtils.getInstance().toJson(msg));
             ReferenceCountUtil.release(msg);
         } else {
             ctx.fireChannelRead(msg);
