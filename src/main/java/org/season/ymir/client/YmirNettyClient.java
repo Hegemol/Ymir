@@ -123,7 +123,7 @@ public class YmirNettyClient {
     public void reconnect(String address, String serverAddress, String serverPort, NettyClientHandler handler) {
         loopGroup.schedule(() -> {
             if (logger.isDebugEnabled()){
-                logger.info("Netty client start reconnect, address:{}", address);
+                logger.debug("Netty client start reconnect, address:{}", address);
             }
             startClient(address, serverAddress, serverPort, handler);
         }, CommonConstant.RECONNECT_SECONDS, TimeUnit.SECONDS);
