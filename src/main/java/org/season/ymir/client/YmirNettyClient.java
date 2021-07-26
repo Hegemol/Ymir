@@ -18,6 +18,7 @@ import org.season.ymir.common.model.YmirResponse;
 import org.season.ymir.common.utils.YmirThreadFactory;
 import org.season.ymir.core.codec.MessageEncoder;
 import org.season.ymir.core.codec.MessageResponseDecoder;
+import org.season.ymir.core.heartbeat.HeartBeatResponseHandler;
 import org.season.ymir.core.protocol.MessageProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,6 +96,9 @@ public class YmirNettyClient {
                                 .addLast(new MessageResponseDecoder(protocol))
                                 // 编码器
                                 .addLast(new MessageEncoder(protocol))
+                                // 心跳检测
+                                .addLast(new HeartBeatResponseHandler())
+                                // 客户端业务处理器
                                 .addLast(handler);
                     }
                 });
