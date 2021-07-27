@@ -8,12 +8,12 @@ package org.season.ymir.common.entity;
 public class ServiceBean {
 
     /**
-     *
+     * 服务名，一般为服务的接口名
      */
     private String name;
 
     /**
-     *
+     * 类对象名称
      */
     private String clazz;
 
