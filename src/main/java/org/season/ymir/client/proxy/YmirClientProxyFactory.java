@@ -62,7 +62,7 @@ public class YmirClientProxyFactory {
             String serviceName = clazz.getName();
             List<ServiceBean> services = serviceDiscovery.findServiceList(serviceName);
             // TODO 此处address地址
-            ServiceBean service = LoadBalanceUtils.selector(services, reference.loadBalance(), "");
+            ServiceBean service = LoadBalanceUtils.selector(services, reference.loadBalance(), reference.url(), "");
             // 2.构造request对象
             YmirRequest request = new YmirRequest();
             request.setRequestId(UUID.randomUUID().toString());
