@@ -45,7 +45,7 @@ public class ZookeeperNodeChangeListener implements PathChildrenCacheListener {
             case CHILD_UPDATED:
                 List list = CollectionUtils.isEmpty(serviceDiscovery.get(serviceBean.getName())) ? new ArrayList() : serviceDiscovery.get(serviceBean.getName());
                 list.add(serviceBean);
-                serviceDiscovery.put(pathChildrenCacheEvent.getData().getPath(), list);
+                serviceDiscovery.put(serviceBean.getName(), list);
                 break;
             case CHILD_REMOVED:
                 serviceDiscovery.remove(serviceBean.getName());
