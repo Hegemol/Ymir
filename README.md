@@ -319,7 +319,6 @@ public class SpiTest {
 * YmirService属性扩展，增加group等属性；
 * YmirReference属性扩展，增加group等属性；
 * Filter过滤器；
-* Protostuff解析优化；
 * 负载均衡算法优化；
 * 项目结构优化，包路径重构；
 * 集群模式下服务提供者的本地缓存更新；
