@@ -27,10 +27,10 @@ public class RequestHandler {
      * 请求处理
      *
      * @param data 请求data
-     * @return
+     * @return {@link YmirResponse}
      * @throws Exception
      */
-    public YmirResponse handleRequest(YmirRequest data) throws Exception {
+    public YmirResponse handleRequest(YmirRequest data) throws RpcException {
         // 1.查找服务对应
         ServiceBeanCache bean = serviceRegister.getBean(data.getServiceName());
         if (Objects.isNull(bean)) {

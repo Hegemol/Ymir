@@ -8,6 +8,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.entity.ServiceBeanCache;
+import org.season.ymir.common.exception.RpcException;
 
 import java.util.Objects;
 
@@ -40,18 +41,22 @@ public abstract class DefaultAbstractServiceRegister implements ServiceRegister 
             });
 
     @Override
-    public ServiceBeanCache getBean(final String name) throws Exception {
+    public ServiceBeanCache getBean(final String name) throws RpcException {
         return service.get(name);
     }
 
     @Override
-    public void registerBean(final ServiceBean serviceBean) throws Exception {
-        if (Objects.isNull(serviceBean)) throw new IllegalArgumentException("parameter can not be empty.");
+    public void registerBean(final ServiceBean serviceBean) throws RpcException {
+        if (Objects.isNull(serviceBean)) throw new RpcException("parameter can not be empty.");
         serviceBean.setProtocol(protocol);
-        // 实例化对象
-        Class<?> classObject = Class.forName(serviceBean.getClazz());
-        ServiceBeanCache serviceBeanCache = new ServiceBeanCache(serviceBean.getName(), classObject, classObject.newInstance());
-        service.put(serviceBean.getName(), serviceBeanCache);
+        try {
+            // 实例化对象
+            Class<?> classObject = Class.forName(serviceBean.getClazz());
+            ServiceBeanCache serviceBeanCache = new ServiceBeanCache(serviceBean.getName(), classObject, classObject.newInstance());
+            service.put(serviceBean.getName(), serviceBeanCache);
+        } catch (Exception e) {
+            throw new RpcException(String.format("Register bean %s error, please check it.", serviceBean.getName()));
+        }
     }
 }
 

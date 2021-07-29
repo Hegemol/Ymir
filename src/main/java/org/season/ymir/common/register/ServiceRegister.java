@@ -2,6 +2,7 @@ package org.season.ymir.common.register;
 
 import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.entity.ServiceBeanCache;
+import org.season.ymir.common.exception.RpcException;
 
 /**
  * 服务注册接口
@@ -16,7 +17,7 @@ public interface ServiceRegister {
      * @param serviceBean
      * @throws Exception
      */
-    void registerBean(final ServiceBean serviceBean) throws Exception;
+    void registerBean(final ServiceBean serviceBean) throws RpcException;
 
     /**
      * 获取实例
@@ -25,5 +26,5 @@ public interface ServiceRegister {
      * @return
      * @throws Exception
      */
-    ServiceBeanCache getBean(final String name) throws Exception;
+    ServiceBeanCache getBean(final String name) throws RpcException;
 }

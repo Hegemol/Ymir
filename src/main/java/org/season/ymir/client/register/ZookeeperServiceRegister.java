@@ -7,6 +7,7 @@ import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.entity.ServiceBeanCache;
 import org.season.ymir.common.entity.ServiceBeanEvent;
+import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.register.DefaultAbstractServiceRegister;
 import org.season.ymir.common.utils.GsonUtils;
 import org.season.ymir.common.utils.ZkPathUtils;
@@ -40,7 +41,7 @@ public class ZookeeperServiceRegister extends DefaultAbstractServiceRegister imp
     }
 
     @Override
-    public ServiceBeanCache getBean(String name) throws Exception {
+    public ServiceBeanCache getBean(String name) throws RpcException {
         return Optional.ofNullable(super.getBean(name)).orElseGet(() -> {
             try {
                 String zNodePath = ZkPathUtils.buildPath(CommonConstant.ZK_SERVICE_PROVIDER_PATH, name);
@@ -61,7 +62,7 @@ public class ZookeeperServiceRegister extends DefaultAbstractServiceRegister imp
     }
 
     @Override
-    public void registerBean(ServiceBean serviceBean) throws Exception {
+    public void registerBean(ServiceBean serviceBean) throws RpcException {
         super.registerBean(serviceBean);
         ServiceBeanEvent exportEventModel = new ServiceBeanEvent();
         exportEventModel.setName(serviceBean.getName());
@@ -71,8 +72,13 @@ public class ZookeeperServiceRegister extends DefaultAbstractServiceRegister imp
         exportEventModel.setGroup(serviceBean.getGroup());
         exportEventModel.setVersion(serviceBean.getVersion());
 
-        // 服务发布至注册中心
-        exportService(serviceBean, exportEventModel);
+        try {
+            // 服务发布至注册中心
+            exportService(serviceBean, exportEventModel);
+        } catch (Exception e) {
+            logger.error("Export service to register center error, error message:{}", ExceptionUtils.getStackTrace(e));
+            throw new RpcException(String.format("Export service %s to register center error", serviceBean.getName()));
+        }
 
         // 发布事件
         applicationEventPublisher.publishEvent(new ServiceBeanExportEvent(exportEventModel));

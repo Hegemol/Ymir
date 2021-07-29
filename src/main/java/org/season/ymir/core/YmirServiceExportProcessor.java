@@ -162,7 +162,7 @@ public class YmirServiceExportProcessor implements ApplicationListener<ContextRe
                 // 写入consumer节点
                 zkClient.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(registerZNodePath);
             } catch (Exception e) {
-                logger.error("Zookeeper node add  listener error, message:{}", ExceptionUtils.getStackTrace(e));
+                logger.error("Zookeeper node add listener error, message:{}", ExceptionUtils.getStackTrace(e));
             }
         });
         logger.info("Subscribe service zk node successfully");
