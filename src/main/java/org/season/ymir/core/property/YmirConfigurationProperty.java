@@ -18,7 +18,7 @@ public class YmirConfigurationProperty {
     /**
      * 服务协议
      */
-    private String protocol = "protoBuf";
+    private String protocol = "proto";
 
     /**
      * 消息体的最大
