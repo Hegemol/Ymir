@@ -21,29 +21,21 @@ public @interface YmirService {
 
     /**
      * 权重
-     *
-     * @return
      */
-    int weight() default 0;
+    int weight() default 50;
 
     /**
      * 是否需要注册
-     *
-     * @return
      */
     boolean register() default true;
 
     /**
      * 分组
-     *
-     * @return
      */
     String group() default "";
 
     /**
      * 版本
-     *
-     * @return
      */
     String version() default "";
 }
