@@ -37,6 +37,7 @@ public abstract class DefaultAbstractYmirServiceDiscovery implements YmirService
 
     @Override
     public void put(String serviceName, List<ServiceBean> serviceList) {
+        handleClient(serviceList);
         SERVER_MAP.put(serviceName, serviceList);
     }
 
@@ -44,4 +45,11 @@ public abstract class DefaultAbstractYmirServiceDiscovery implements YmirService
     public List<ServiceBean> findServiceList(String name) throws Exception {
         return SERVER_MAP.getIfPresent(name);
     }
+
+    /**
+     * 客户端处理方法，当初始化客户端或者服务端重启时，调用此方法；
+     *
+     * @param serviceList 服务列表
+     */
+    protected abstract void handleClient(List<ServiceBean> serviceList);
 }

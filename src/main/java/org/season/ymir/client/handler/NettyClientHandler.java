@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -50,11 +49,6 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<YmirResponse
      */
     private static Map<String, YmirFuture<YmirResponse>> requestMap = new ConcurrentHashMap<>();
 
-    /**
-     * {@link CountDownLatch}锁，等待连接注册
-     */
-    private CountDownLatch latch = new CountDownLatch(1);
-
     public NettyClientHandler(String remoteAddress) {
         this.remoteAddress = remoteAddress;
     }
@@ -62,7 +56,6 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<YmirResponse
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
         this.channel = ctx.channel();
-        latch.countDown();
     }
 
     @Override
@@ -79,7 +72,7 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<YmirResponse
         }
         YmirFuture<YmirResponse> future = requestMap.get(data.getRequestId());
         // 如果超时导致requestMap中没有保存值，此处会返回null的future，直接操作会导致NullPointException.
-        if (Objects.isNull(future)){
+        if (Objects.isNull(future)) {
             return;
         }
         future.setResponse(data);
@@ -118,14 +111,10 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<YmirResponse
         YmirFuture<YmirResponse> future = new YmirFuture<>();
         requestMap.put(request.getRequestId(), future);
         try {
-            if (latch.await(request.getTimeout(), TimeUnit.SECONDS)){
-                channel.writeAndFlush(request);
-                // 等待响应
-                response = future.get(request.getTimeout(), TimeUnit.MILLISECONDS);
-            } else {
-                throw new RpcException(String.format("Establish channel time out, address of server is %s", remoteAddress));
-            }
-        } catch (TimeoutException exception){
+            channel.writeAndFlush(request);
+            // 等待响应
+            response = future.get(request.getTimeout(), TimeUnit.MILLISECONDS);
+        } catch (TimeoutException exception) {
             throw new RpcTimeoutException(String.format("Invoke remote method %s timeout with %s ms", String.join("#", request.getServiceName(), request.getMethod()), request.getTimeout()));
         } catch (Exception e) {
             throw new RpcException(e.getMessage());

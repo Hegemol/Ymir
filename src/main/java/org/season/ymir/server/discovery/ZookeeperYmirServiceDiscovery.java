@@ -2,6 +2,7 @@ package org.season.ymir.server.discovery;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.curator.framework.CuratorFramework;
+import org.season.ymir.client.YmirNettyClient;
 import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.exception.RpcException;
@@ -25,9 +26,21 @@ public class ZookeeperYmirServiceDiscovery extends DefaultAbstractYmirServiceDis
     private static final Logger logger = LoggerFactory.getLogger(ZookeeperYmirServiceDiscovery.class);
 
     private CuratorFramework zkClient;
+    private YmirNettyClient nettyClient;
 
-    public ZookeeperYmirServiceDiscovery(CuratorFramework zkClient) {
+    public ZookeeperYmirServiceDiscovery(CuratorFramework zkClient, YmirNettyClient nettyClient) {
         this.zkClient = zkClient;
+        this.nettyClient = nettyClient;
+    }
+
+    @Override
+    protected void handleClient(List<ServiceBean> serviceList) {
+        for (ServiceBean each : serviceList) {
+            boolean clientIsExisted = YmirNettyClient.connectedServerNodes.containsKey(each.getAddress());
+            if (!clientIsExisted){
+                nettyClient.initClient(each.getAddress());
+            }
+        }
     }
 
     @Override

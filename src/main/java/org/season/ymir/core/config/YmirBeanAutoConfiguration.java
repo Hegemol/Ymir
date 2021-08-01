@@ -105,8 +105,8 @@ public class YmirBeanAutoConfiguration {
      * @return {@link YmirServiceDiscovery}
      */
     @Bean
-    public YmirServiceDiscovery ymirServiceDiscovery(CuratorFramework zkClient){
-        return new ZookeeperYmirServiceDiscovery(zkClient);
+    public YmirServiceDiscovery ymirServiceDiscovery(CuratorFramework zkClient, YmirNettyClient client){
+        return new ZookeeperYmirServiceDiscovery(zkClient, client);
     }
 
     /**
