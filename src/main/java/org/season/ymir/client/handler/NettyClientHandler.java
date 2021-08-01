@@ -7,7 +7,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleStateEvent;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.season.ymir.client.YmirNettyClient;
+import org.season.ymir.client.YmirClientCacheManager;
 import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.exception.RpcTimeoutException;
@@ -61,7 +61,7 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<YmirResponse
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         if (logger.isDebugEnabled()) {
-            logger.debug("Connect to server successfully:{}", ctx);
+            logger.debug("Connect to server successfully:{}", GsonUtils.getInstance().toJson(ctx));
         }
     }
 
@@ -86,10 +86,8 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<YmirResponse
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        // TODO 发起一次重连
-        super.channelInactive(ctx);
+        YmirClientCacheManager.remove(remoteAddress);
         logger.error("Channel inactive with remoteAddress:{}", remoteAddress);
-        YmirNettyClient.connectedServerNodes.remove(remoteAddress);
     }
 
     @Override

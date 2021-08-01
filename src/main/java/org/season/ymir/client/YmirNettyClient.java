@@ -15,7 +15,6 @@ import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.model.YmirRequest;
 import org.season.ymir.common.model.YmirResponse;
-import org.season.ymir.common.utils.YmirThreadFactory;
 import org.season.ymir.core.codec.MessageEncoder;
 import org.season.ymir.core.codec.MessageResponseDecoder;
 import org.season.ymir.core.heartbeat.HeartBeatResponseHandler;
@@ -23,11 +22,6 @@ import org.season.ymir.core.protocol.MessageProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -45,17 +39,9 @@ public class YmirNettyClient {
 
     private static Logger logger = LoggerFactory.getLogger(YmirNettyClient.class);
 
-    private static ExecutorService threadPool = new ThreadPoolExecutor(4, 10, 200,
-            TimeUnit.SECONDS, new LinkedBlockingQueue<>(1000), new YmirThreadFactory("netty-client"));
-
     // TODO 可配置化
     private EventLoopGroup loopGroup = new NioEventLoopGroup(4);
 
-    /**
-     * 已连接的服务缓存
-     * key: 服务地址，格式：ip:port
-     */
-    public static Map<String, NettyClientHandler> connectedServerNodes = new ConcurrentHashMap<>();
 
     /**
      * 发送请求
@@ -68,8 +54,8 @@ public class YmirNettyClient {
 
         String address = service.getAddress();
         synchronized (address) {
-            if (connectedServerNodes.containsKey(address)) {
-                NettyClientHandler handler = connectedServerNodes.get(address);
+            if (YmirClientCacheManager.contains(address)) {
+                NettyClientHandler handler = YmirClientCacheManager.get(address);
                 return handler.sendRequest(rpcRequest);
             }
             final NettyClientHandler handler = new NettyClientHandler(address);
@@ -123,15 +109,15 @@ public class YmirNettyClient {
                 reconnect(address, handler);
                 return;
             }
-            connectedServerNodes.put(address, handler);
+            YmirClientCacheManager.put(address, handler);
         });
     }
 
     /**
      * 重新链接服务端
      *
-     * @param address       客户端地址
-     * @param handler       处理器
+     * @param address 客户端地址
+     * @param handler 处理器
      */
     public void reconnect(String address, NettyClientHandler handler) {
         loopGroup.schedule(() -> {
