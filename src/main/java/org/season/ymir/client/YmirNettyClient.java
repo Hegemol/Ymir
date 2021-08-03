@@ -105,11 +105,9 @@ public class YmirNettyClient {
                 });
         // 启用客户端连接
         bootstrap.connect().addListener((ChannelFutureListener) channelFuture -> {
-            if (!channelFuture.isSuccess()) {
-                reconnect(address, handler);
-                return;
+            if (channelFuture.isSuccess()) {
+                YmirClientCacheManager.put(address, handler);
             }
-            YmirClientCacheManager.put(address, handler);
         });
     }
 
