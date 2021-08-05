@@ -320,5 +320,3 @@ public class SpiTest {
 * YmirReference属性扩展，增加group等属性；
 * Filter过滤器；
 * 负载均衡算法优化；
-* 项目结构优化，包路径重构；
-* 第二次测试；
