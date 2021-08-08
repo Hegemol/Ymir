@@ -4,7 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.TooLongFrameException;
-import org.season.ymir.common.model.YmirRequest;
+import org.season.ymir.common.model.InvocationMessage;
 import org.season.ymir.common.utils.GsonUtils;
 import org.season.ymir.core.protocol.MessageProtocol;
 import org.slf4j.Logger;
@@ -39,7 +39,7 @@ public class MessageRequestDecoder extends ByteToMessageDecoder {
         }
         byte[] bytes = new byte[bytesSize];
         byteBuf.readBytes(bytes);
-        YmirRequest ymirRequest = protocol.unmarshallingRequest(bytes);
+        InvocationMessage ymirRequest = protocol.unmarshalling(bytes);
         list.add(ymirRequest);
         if (logger.isDebugEnabled()){
             logger.debug("Channel {} decoder message success, message content:{}", channelHandlerContext.channel().id(), GsonUtils.getInstance().toJson(ymirRequest));
