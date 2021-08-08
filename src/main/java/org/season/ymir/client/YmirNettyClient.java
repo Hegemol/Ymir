@@ -107,6 +107,7 @@ public class YmirNettyClient {
         // 启用客户端连接
         bootstrap.connect().addListener((ChannelFutureListener) channelFuture -> {
             if (channelFuture.isSuccess()) {
+                logger.info("Server address:{} connect successfully.", address);
                 YmirClientCacheManager.put(address, handler);
             }
         });
