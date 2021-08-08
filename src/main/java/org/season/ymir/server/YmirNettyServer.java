@@ -67,7 +67,7 @@ public class YmirNettyServer implements DisposableBean {
                             // 添加一堆 NettyServerHandler 到 ChannelPipeline 中
                             channelPipeline
                                     // 空闲检测
-                                    .addLast(new IdleStateHandler(CommonConstant.TIMEOUT_SECONDS, CommonConstant.TIMEOUT_SECONDS, CommonConstant.TIMEOUT_SECONDS))
+                                    .addLast(new IdleStateHandler(CommonConstant.TIMEOUT_SECONDS, 0, 0))
                                     // 解码器
                                     .addLast(new MessageRequestDecoder(ExtensionLoader.getExtensionLoader(MessageProtocol.class).getLoader(property.getProtocol()), property.getMaxSize()))
                                     // 编码器

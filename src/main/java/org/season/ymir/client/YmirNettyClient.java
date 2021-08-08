@@ -93,7 +93,7 @@ public class YmirNettyClient {
                         ChannelPipeline pipeline = channel.pipeline();
                         pipeline
                                 // 空闲检测
-                                .addLast(new IdleStateHandler(CommonConstant.TIMEOUT_SECONDS, CommonConstant.TIMEOUT_SECONDS, CommonConstant.TIMEOUT_SECONDS))
+                                .addLast(new IdleStateHandler(CommonConstant.TIMEOUT_SECONDS, 0, 0))
                                 // 解码器
                                 .addLast(new MessageResponseDecoder(protocol))
                                 // 编码器
