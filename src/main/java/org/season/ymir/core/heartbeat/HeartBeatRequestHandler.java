@@ -4,10 +4,9 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
-import org.season.ymir.common.base.ServiceStatusEnum;
-import org.season.ymir.common.constant.CommonConstant;
+import org.season.ymir.common.base.InvocationType;
+import org.season.ymir.common.model.InvocationMessage;
 import org.season.ymir.common.model.YmirRequest;
-import org.season.ymir.common.model.YmirResponse;
 import org.season.ymir.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,14 +23,14 @@ public class HeartBeatRequestHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        YmirRequest request = (YmirRequest) msg;
-        if (request.getRequestId().equals(CommonConstant.HEART_BEAT_REQUEST)){
+        InvocationMessage<YmirRequest> request = (InvocationMessage<YmirRequest>) msg;
+        if (request.getType().equals(InvocationType.HEART_BEAT_RQEUEST)){
             if (logger.isDebugEnabled()){
                 logger.debug("Server heart beat request:{}", GsonUtils.getInstance().toJson(request));
             }
-            YmirResponse response = new YmirResponse(ServiceStatusEnum.SUCCESS);
-            response.setRequestId(CommonConstant.HEART_BEAT_RESPONSE);
-            ctx.channel().writeAndFlush(response);
+            InvocationMessage responseInvocationMessage = new InvocationMessage();
+            responseInvocationMessage.setType(InvocationType.HEART_BEAT_RESPONSE);
+            ctx.channel().writeAndFlush(responseInvocationMessage);
             ReferenceCountUtil.release(msg);
         } else {
             ctx.fireChannelRead(msg);
