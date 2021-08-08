@@ -5,8 +5,7 @@ import com.dyuproject.protostuff.LinkedBuffer;
 import com.dyuproject.protostuff.ProtostuffIOUtil;
 import com.dyuproject.protostuff.Schema;
 import com.dyuproject.protostuff.runtime.RuntimeSchema;
-import org.season.ymir.common.model.YmirRequest;
-import org.season.ymir.common.model.YmirResponse;
+import org.season.ymir.common.model.InvocationMessage;
 
 /**
  * 消息协议
@@ -21,13 +20,8 @@ public class ProtostuffMessageProtocol implements MessageProtocol{
     }
 
     @Override
-    public YmirRequest unmarshallingRequest(byte[] data) throws Exception {
-        return deserialize(data,YmirRequest.class);
-    }
-
-    @Override
-    public YmirResponse unmarshallingResponse(byte[] data) throws Exception {
-        return deserialize(data,YmirResponse.class);
+    public InvocationMessage unmarshalling(final byte[] data) throws Exception {
+        return deserialize(data,InvocationMessage.class);
     }
 
     /**

@@ -4,6 +4,7 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import org.objenesis.strategy.StdInstantiatorStrategy;
+import org.season.ymir.common.model.InvocationMessage;
 import org.season.ymir.common.model.YmirRequest;
 import org.season.ymir.common.model.YmirResponse;
 
@@ -51,21 +52,11 @@ public class KryoMessageProtocol implements MessageProtocol {
     }
 
     @Override
-    public YmirRequest unmarshallingRequest(byte[] data) throws Exception {
+    public InvocationMessage unmarshalling(final byte[] data) throws Exception {
         ByteArrayInputStream bin = new ByteArrayInputStream(data);
         Input input = new Input(bin);
         Kryo kryo = getInstance();
-        YmirRequest request = (YmirRequest) kryo.readClassAndObject(input);
-        input.close();
-        return request;
-    }
-
-    @Override
-    public YmirResponse unmarshallingResponse(byte[] data) throws Exception {
-        ByteArrayInputStream bin = new ByteArrayInputStream(data);
-        Input input = new Input(bin);
-        Kryo kryo = getInstance();
-        YmirResponse response = (YmirResponse) kryo.readClassAndObject(input);
+        InvocationMessage response = (InvocationMessage) kryo.readClassAndObject(input);
         input.close();
         return response;
     }
