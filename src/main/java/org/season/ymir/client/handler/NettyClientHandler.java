@@ -8,9 +8,10 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleStateEvent;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.season.ymir.client.YmirClientCacheManager;
-import org.season.ymir.common.constant.CommonConstant;
+import org.season.ymir.common.base.InvocationType;
 import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.exception.RpcTimeoutException;
+import org.season.ymir.common.model.InvocationMessage;
 import org.season.ymir.common.model.YmirFuture;
 import org.season.ymir.common.model.YmirRequest;
 import org.season.ymir.common.model.YmirResponse;
@@ -30,7 +31,7 @@ import java.util.concurrent.TimeoutException;
  * @author KevinClair
  **/
 @ChannelHandler.Sharable
-public class NettyClientHandler extends SimpleChannelInboundHandler<YmirResponse> {
+public class NettyClientHandler extends SimpleChannelInboundHandler<InvocationMessage<YmirResponse>> {
 
     private static Logger logger = LoggerFactory.getLogger(NettyClientHandler.class);
 
@@ -47,7 +48,7 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<YmirResponse
     /**
      * 存储request的返回信息，key为每次请求{@link YmirRequest}的requestId，value为{@link YmirFuture<YmirResponse>}
      */
-    private static Map<String, YmirFuture<YmirResponse>> requestMap = new ConcurrentHashMap<>();
+    private static Map<String, YmirFuture<InvocationMessage<YmirResponse>>> requestMap = new ConcurrentHashMap<>();
 
     public NettyClientHandler(String remoteAddress) {
         this.remoteAddress = remoteAddress;
@@ -66,16 +67,16 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<YmirResponse
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext channelHandlerContext, YmirResponse data) throws Exception {
+    protected void channelRead0(ChannelHandlerContext channelHandlerContext, InvocationMessage<YmirResponse> data) throws Exception {
         if (logger.isDebugEnabled()) {
             logger.debug("Client reads message:{}", GsonUtils.getInstance().toJson(data));
         }
-        YmirFuture<YmirResponse> future = requestMap.get(data.getRequestId());
+        YmirFuture<InvocationMessage<YmirResponse>> responseFuture = requestMap.get(data.getRequestId());
         // 如果超时导致requestMap中没有保存值，此处会返回null的future，直接操作会导致NullPointException.
-        if (Objects.isNull(future)) {
+        if (Objects.isNull(responseFuture)) {
             return;
         }
-        future.setResponse(data);
+        responseFuture.setResponse(data);
     }
 
     @Override
@@ -96,29 +97,29 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<YmirResponse
             if (logger.isDebugEnabled()) {
                 logger.debug("Client send heart beat");
             }
-            YmirRequest request = new YmirRequest();
-            request.setRequestId(CommonConstant.HEART_BEAT_REQUEST);
-            ctx.writeAndFlush(request).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+            InvocationMessage heartBeatInvocationMessage = new InvocationMessage();
+            heartBeatInvocationMessage.setType(InvocationType.HEART_BEAT_RQEUEST);
+            ctx.writeAndFlush(heartBeatInvocationMessage).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
             return;
         }
         super.userEventTriggered(ctx, evt);
     }
 
-    public YmirResponse sendRequest(YmirRequest request) {
-        YmirResponse response;
-        YmirFuture<YmirResponse> future = new YmirFuture<>();
+    public YmirResponse sendRequest(InvocationMessage<YmirRequest> request) {
+        InvocationMessage<YmirResponse> response;
+        YmirFuture<InvocationMessage<YmirResponse>> future = new YmirFuture<>();
         requestMap.put(request.getRequestId(), future);
         try {
             channel.writeAndFlush(request);
             // 等待响应
             response = future.get(request.getTimeout(), TimeUnit.MILLISECONDS);
         } catch (TimeoutException exception) {
-            throw new RpcTimeoutException(String.format("Invoke remote method %s timeout with %s ms", String.join("#", request.getServiceName(), request.getMethod()), request.getTimeout()));
+            throw new RpcTimeoutException(String.format("Invoke remote method %s timeout with %s ms", String.join("#", request.getBody().getServiceName(), request.getBody().getMethod()), request.getTimeout()));
         } catch (Exception e) {
             throw new RpcException(e.getMessage());
         } finally {
             requestMap.remove(request.getRequestId());
         }
-        return response;
+        return response.getBody();
     }
 }
