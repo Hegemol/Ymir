@@ -14,7 +14,7 @@ public class YmirResponse implements Serializable {
     /**
      * 返回结果
      */
-    private Object returnValue;
+    private Object result;
 
     /**
      * 异常信息
@@ -26,31 +26,70 @@ public class YmirResponse implements Serializable {
      */
     private ServiceStatusEnum statusEnum;
 
-    public Object getReturnValue() {
-        return returnValue;
+    public YmirResponse() {
     }
 
-    public void setReturnValue(Object returnValue) {
-        this.returnValue = returnValue;
+    public YmirResponse(final ServiceStatusEnum statusEnum) {
+        this.statusEnum = statusEnum;
     }
 
+    public YmirResponse(final Object result, final Exception exception, final ServiceStatusEnum statusEnum) {
+        this.result = result;
+        this.exception = exception;
+        this.statusEnum = statusEnum;
+    }
+
+    /**
+     * Gets the value of result.
+     *
+     * @return the value of result
+     */
+    public Object getResult() {
+        return result;
+    }
+
+    /**
+     * Sets the result.
+     *
+     * @param result result
+     */
+    public void setResult(final Object result) {
+        this.result = result;
+    }
+
+    /**
+     * Gets the value of exception.
+     *
+     * @return the value of exception
+     */
     public Exception getException() {
         return exception;
     }
 
-    public void setException(Exception exception) {
+    /**
+     * Sets the exception.
+     *
+     * @param exception exception
+     */
+    public void setException(final Exception exception) {
         this.exception = exception;
     }
 
+    /**
+     * Gets the value of statusEnum.
+     *
+     * @return the value of statusEnum
+     */
     public ServiceStatusEnum getStatusEnum() {
         return statusEnum;
     }
 
-    public void setStatusEnum(ServiceStatusEnum statusEnum) {
-        this.statusEnum = statusEnum;
-    }
-
-    public YmirResponse(ServiceStatusEnum statusEnum) {
+    /**
+     * Sets the statusEnum.
+     *
+     * @param statusEnum statusEnum
+     */
+    public void setStatusEnum(final ServiceStatusEnum statusEnum) {
         this.statusEnum = statusEnum;
     }
 }

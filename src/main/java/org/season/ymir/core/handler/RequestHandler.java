@@ -47,7 +47,7 @@ public class RequestHandler {
             Method method = bean.getClazz().getMethod(data.getMethod(), data.getParameterTypes());
             Object returnValue = method.invoke(bean.getBean(), data.getParameters());
             result = new YmirResponse(ServiceStatusEnum.SUCCESS);
-            result.setReturnValue(returnValue);
+            result.setResult(returnValue);
         } catch (Exception e) {
             result = new YmirResponse(ServiceStatusEnum.ERROR);
             result.setException(e);
