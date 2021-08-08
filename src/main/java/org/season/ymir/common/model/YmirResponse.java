@@ -3,8 +3,6 @@ package org.season.ymir.common.model;
 import org.season.ymir.common.base.ServiceStatusEnum;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * 返回参数
@@ -14,8 +12,6 @@ import java.util.Map;
 public class YmirResponse implements Serializable {
 
     private String requestId;
-
-    private Map<String, String> headers = new HashMap<>();
 
     private Object returnValue;
 
@@ -29,14 +25,6 @@ public class YmirResponse implements Serializable {
 
     public void setRequestId(String requestId) {
         this.requestId = requestId;
-    }
-
-    public Map<String, String> getHeaders() {
-        return headers;
-    }
-
-    public void setHeaders(Map<String, String> headers) {
-        this.headers = headers;
     }
 
     public Object getReturnValue() {
