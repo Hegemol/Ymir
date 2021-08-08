@@ -13,6 +13,7 @@ import io.netty.handler.timeout.IdleStateHandler;
 import org.season.ymir.client.handler.NettyClientHandler;
 import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.entity.ServiceBean;
+import org.season.ymir.common.model.InvocationMessage;
 import org.season.ymir.common.model.YmirRequest;
 import org.season.ymir.common.model.YmirResponse;
 import org.season.ymir.core.codec.MessageEncoder;
@@ -50,7 +51,7 @@ public class YmirNettyClient {
      * @param service    服务信息
      * @return {@link YmirResponse}
      */
-    public YmirResponse sendRequest(YmirRequest rpcRequest, ServiceBean service) {
+    public YmirResponse sendRequest(InvocationMessage<YmirRequest> rpcRequest, ServiceBean service) {
 
         String address = service.getAddress();
         synchronized (address) {

@@ -1,8 +1,10 @@
 package org.season.ymir.client.proxy;
 
 import org.season.ymir.client.YmirNettyClient;
+import org.season.ymir.common.base.InvocationType;
 import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.exception.RpcException;
+import org.season.ymir.common.model.InvocationMessage;
 import org.season.ymir.common.model.YmirRequest;
 import org.season.ymir.common.model.YmirResponse;
 import org.season.ymir.common.utils.LoadBalanceUtils;
@@ -64,16 +66,19 @@ public class YmirClientProxyFactory {
             // TODO 此处address地址
             ServiceBean service = LoadBalanceUtils.selector(services, reference.loadBalance(), reference.url(), "");
             // 2.构造request对象
+            InvocationMessage<YmirRequest> requestInvocationMessage = new InvocationMessage<>();
+            requestInvocationMessage.setRequestId(UUID.randomUUID().toString());
+            requestInvocationMessage.setType(InvocationType.SERVICE_REQUEST);
+            requestInvocationMessage.setRetries(reference.retries());
+            requestInvocationMessage.setTimeout(reference.timeout());
             YmirRequest request = new YmirRequest();
-            request.setRequestId(UUID.randomUUID().toString());
             request.setServiceName(service.getName());
             request.setMethod(method.getName());
             request.setParameters(args);
             request.setParameterTypes(method.getParameterTypes());
-            request.setTimeout(reference.timeout());
-            request.setRetries(reference.retries());
+            requestInvocationMessage.setBody(request);
             // 3.发送请求
-            YmirResponse response = netClient.sendRequest(request, service);
+            YmirResponse response = netClient.sendRequest(requestInvocationMessage, service);
             if (Objects.isNull(response)){
                 throw new RpcException("the response is null");
             }
