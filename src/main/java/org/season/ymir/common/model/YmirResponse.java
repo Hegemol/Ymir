@@ -11,21 +11,20 @@ import java.io.Serializable;
  */
 public class YmirResponse implements Serializable {
 
-    private String requestId;
-
+    /**
+     * 返回结果
+     */
     private Object returnValue;
 
+    /**
+     * 异常信息
+     */
     private Exception exception;
 
+    /**
+     * 服务状态
+     */
     private ServiceStatusEnum statusEnum;
-
-    public String getRequestId() {
-        return requestId;
-    }
-
-    public void setRequestId(String requestId) {
-        this.requestId = requestId;
-    }
 
     public Object getReturnValue() {
         return returnValue;
