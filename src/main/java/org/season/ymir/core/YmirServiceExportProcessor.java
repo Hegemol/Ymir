@@ -140,13 +140,14 @@ public class YmirServiceExportProcessor implements ApplicationListener<ContextRe
                 // 服务检测
                 if(reference.check()){
                     try {
-                        String servicePath = CommonConstant.PATH_DELIMITER + name + CommonConstant.PATH_DELIMITER + CommonConstant.ZK_SERVICE_PROVIDER_PATH;
+                        String servicePath = CommonConstant.PATH_DELIMITER + fieldClass.getName() + CommonConstant.PATH_DELIMITER + CommonConstant.ZK_SERVICE_PROVIDER_PATH;
                         byte[] bytes = zkClient.getData().forPath(servicePath);
                         if (Objects.isNull(bytes) || bytes.length == 0){
                             throw new RpcException(String.format("No provider available for service %s from path %s", fieldClass.getName(), servicePath));
                         }
                     } catch (Exception e) {
-                        throw new RpcException(e.getMessage());
+                        logger.error("Check service error:{}", ExceptionUtils.getStackTrace(e));
+                        throw new RpcException(e);
                     }
                 }
                 Object object = context.getBean(name);
@@ -156,6 +157,7 @@ public class YmirServiceExportProcessor implements ApplicationListener<ContextRe
                     field.set(object, proxyFactory.getProxy(fieldClass, reference));
                 } catch (IllegalAccessException e) {
                     logger.error("Service reference error, exception:{}", ExceptionUtils.getStackTrace(e));
+                    throw new RpcException(e);
                 }
                 serviceList.add(fieldClass.getName());
             }
@@ -175,7 +177,7 @@ public class YmirServiceExportProcessor implements ApplicationListener<ContextRe
                 zkClient.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(registerZNodePath);
             } catch (Exception e) {
                 logger.error("Zookeeper node add listener error, message:{}", ExceptionUtils.getStackTrace(e));
-                throw new RpcException(e.getMessage());
+                throw new RpcException(e);
             }
         });
         logger.info("Subscribe service zk node successfully");
