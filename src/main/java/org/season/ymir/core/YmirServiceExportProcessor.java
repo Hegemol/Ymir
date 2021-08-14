@@ -7,6 +7,7 @@ import org.apache.zookeeper.CreateMode;
 import org.season.ymir.client.proxy.YmirClientProxyFactory;
 import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.entity.ServiceBean;
+import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.register.ServiceRegister;
 import org.season.ymir.common.utils.YmirThreadFactory;
 import org.season.ymir.common.utils.ZkPathUtils;
@@ -135,8 +136,19 @@ public class YmirServiceExportProcessor implements ApplicationListener<ContextRe
                 if (Objects.isNull(reference)) {
                     continue;
                 }
-
                 Class<?> fieldClass = field.getType();
+                // 服务检测
+                if(reference.check()){
+                    try {
+                        String servicePath = CommonConstant.PATH_DELIMITER + name + CommonConstant.PATH_DELIMITER + CommonConstant.ZK_SERVICE_PROVIDER_PATH;
+                        byte[] bytes = zkClient.getData().forPath(servicePath);
+                        if (Objects.isNull(bytes) || bytes.length == 0){
+                            throw new RpcException(String.format("No provider available for service %s from path %s", fieldClass.getName(), servicePath));
+                        }
+                    } catch (Exception e) {
+                        throw new RpcException(e.getMessage());
+                    }
+                }
                 Object object = context.getBean(name);
                 field.setAccessible(true);
                 try {
@@ -163,6 +175,7 @@ public class YmirServiceExportProcessor implements ApplicationListener<ContextRe
                 zkClient.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(registerZNodePath);
             } catch (Exception e) {
                 logger.error("Zookeeper node add listener error, message:{}", ExceptionUtils.getStackTrace(e));
+                throw new RpcException(e.getMessage());
             }
         });
         logger.info("Subscribe service zk node successfully");
