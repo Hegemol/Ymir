@@ -38,7 +38,7 @@ public class RequestHandler {
         // 1.查找服务对应
         ServiceBeanCache bean = serviceRegister.getBean(data.getServiceName());
         if (Objects.isNull(bean)) {
-            throw new RpcException("No provider for service " + data.getServiceName());
+            throw new RpcException("No provider available for service " + data.getServiceName());
         }
 
         YmirResponse result = null;
