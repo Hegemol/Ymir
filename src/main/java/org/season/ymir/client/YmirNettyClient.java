@@ -71,7 +71,7 @@ public class YmirNettyClient {
      *
      * @param address 服务端地址
      */
-    public void initClient(String address){
+    public void initClient(String address) {
         final NettyClientHandler handler = new NettyClientHandler(address);
         startClient(address, handler);
     }
@@ -106,10 +106,12 @@ public class YmirNettyClient {
                 });
         // 启用客户端连接
         bootstrap.connect().addListener((ChannelFutureListener) channelFuture -> {
-            if (channelFuture.isSuccess()) {
-                logger.info("Server address:{} connect successfully.", address);
-                YmirClientCacheManager.put(address, handler);
+            if (!channelFuture.isSuccess()) {
+                reconnect(address, handler);
+                return;
             }
+            logger.info("Server address:{} connect successfully.", address);
+            YmirClientCacheManager.put(address, handler);
         });
     }
 
@@ -121,7 +123,7 @@ public class YmirNettyClient {
      */
     public void reconnect(String address, NettyClientHandler handler) {
         loopGroup.schedule(() -> {
-            if (logger.isDebugEnabled()){
+            if (logger.isDebugEnabled()) {
                 logger.debug("Netty client start reconnect, address:{}", address);
             }
             startClient(address, handler);
