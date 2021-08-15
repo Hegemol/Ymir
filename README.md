@@ -318,6 +318,5 @@ public class SpiTest {
 * 取消SpringBoot父框架；
 * YmirService属性扩展，增加多版本，分组等属性；
 * YmirReference属性扩展，增加服务检测，多版本，分组等；
-* 服务端心跳检测，心跳检测超过一定次数后，删除服务端/客户端数据；
 * Filter过滤器；
 * 负载均衡算法优化；
