@@ -19,7 +19,7 @@ public class MessageEncoder extends MessageToByteEncoder<Object> {
 
     private MessageProtocol protocol;
 
-    public MessageEncoder(MessageProtocol protocol) {
+    public MessageEncoder(final MessageProtocol protocol)    {
         this.protocol = protocol;
     }
 
