@@ -45,6 +45,8 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<InvocationMe
      */
     private volatile Channel channel;
 
+    private CountDownLatch countDownLatch = new CountDownLatch(1);
+
     /**
      * 存储request的返回信息，key为每次请求{@link YmirRequest}的requestId，value为{@link YmirFuture<YmirResponse>}
      */
@@ -57,6 +59,7 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<InvocationMe
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
         this.channel = ctx.channel();
+        countDownLatch.countDown();
     }
 
     @Override
@@ -110,9 +113,13 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<InvocationMe
         YmirFuture<InvocationMessage<YmirResponse>> future = new YmirFuture<>();
         requestMap.put(request.getRequestId(), future);
         try {
-            channel.writeAndFlush(request);
-            // 等待响应
-            response = future.get(request.getTimeout(), TimeUnit.MILLISECONDS);
+            if (countDownLatch.await(request.getTimeout(), TimeUnit.MILLISECONDS)){
+                channel.writeAndFlush(request);
+                // 等待响应
+                response = future.get(request.getTimeout(), TimeUnit.MILLISECONDS);
+            } else {
+                throw new TimeoutException();
+            }
         } catch (TimeoutException exception) {
             throw new RpcTimeoutException(String.format("Invoke remote method %s timeout with %s ms", String.join("#", request.getBody().getServiceName(), request.getBody().getMethod()), request.getTimeout()));
         } catch (Exception e) {
