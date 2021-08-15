@@ -141,8 +141,8 @@ public class YmirServiceExportProcessor implements ApplicationListener<ContextRe
                 if(reference.check()){
                     try {
                         String servicePath = CommonConstant.PATH_DELIMITER + fieldClass.getName() + CommonConstant.PATH_DELIMITER + CommonConstant.ZK_SERVICE_PROVIDER_PATH;
-                        byte[] bytes = zkClient.getData().forPath(servicePath);
-                        if (Objects.isNull(bytes) || bytes.length == 0){
+                        List<String> childrenList = zkClient.getChildren().forPath(servicePath);
+                        if (Objects.isNull(childrenList) || childrenList.size() == 0){
                             throw new RpcException(String.format("No provider available for service %s from path %s", fieldClass.getName(), servicePath));
                         }
                     } catch (Exception e) {
