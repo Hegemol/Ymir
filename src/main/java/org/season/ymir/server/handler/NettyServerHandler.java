@@ -65,7 +65,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<InvocationMe
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         // 断开连接
-        ctx.channel().close();
+        ctx.close();
         logger.error("Netty server, one channel caught error, channel info:{}, exception:{}", ctx.channel(), ExceptionUtils.getStackTrace(cause));
     }
 
