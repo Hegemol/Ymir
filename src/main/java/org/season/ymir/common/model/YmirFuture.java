@@ -14,10 +14,6 @@ public class YmirFuture<T> implements Future<T> {
      * 因为请求和响应是一一对应的，所以这里是1
      */
     private CountDownLatch countDownLatch = new CountDownLatch(1);
-    /**
-     * Future的请求时间，用于计算Future是否超时
-     */
-    private long beginTime = System.currentTimeMillis();
 
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
