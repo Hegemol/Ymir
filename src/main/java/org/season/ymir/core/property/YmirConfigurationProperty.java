@@ -20,11 +20,6 @@ public class YmirConfigurationProperty {
      */
     private String protocol = "proto";
 
-    /**
-     * 消息体的最大
-     */
-    private int maxSize = 1024;
-
     public Integer getPort() {
         return port;
     }
@@ -39,13 +34,5 @@ public class YmirConfigurationProperty {
 
     public void setProtocol(String protocol) {
         this.protocol = protocol;
-    }
-
-    public int getMaxSize() {
-        return maxSize;
-    }
-
-    public void setMaxSize(int maxSize) {
-        this.maxSize = maxSize;
     }
 }
