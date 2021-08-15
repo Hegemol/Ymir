@@ -9,6 +9,7 @@ import io.netty.handler.timeout.IdleStateEvent;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.season.ymir.client.YmirClientCacheManager;
 import org.season.ymir.common.base.InvocationType;
+import org.season.ymir.common.base.ServiceStatusEnum;
 import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.exception.RpcTimeoutException;
 import org.season.ymir.common.model.InvocationMessage;
@@ -22,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -85,7 +87,8 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<InvocationMe
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         logger.error("Exception occurred:{}", ExceptionUtils.getStackTrace(cause));
-        ctx.channel().close();
+        YmirClientCacheManager.remove(remoteAddress);
+        ctx.close();
     }
 
     @Override
@@ -121,9 +124,13 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<InvocationMe
                 throw new TimeoutException();
             }
         } catch (TimeoutException exception) {
-            throw new RpcTimeoutException(String.format("Invoke remote method %s timeout with %s ms", String.join("#", request.getBody().getServiceName(), request.getBody().getMethod()), request.getTimeout()));
+            YmirResponse timeoutExceptionResponse = new YmirResponse(ServiceStatusEnum.ERROR);
+            timeoutExceptionResponse.setException(new RpcTimeoutException(String.format("Invoke remote method %s timeout with %s ms", String.join("#", request.getBody().getServiceName(), request.getBody().getMethod()), request.getTimeout())));
+            return timeoutExceptionResponse;
         } catch (Exception e) {
-            throw new RpcException(e.getMessage());
+            YmirResponse exceptionResponse = new YmirResponse(ServiceStatusEnum.ERROR);
+            exceptionResponse.setException(new RpcException(e));
+            return exceptionResponse;
         } finally {
             requestMap.remove(request.getRequestId());
         }
