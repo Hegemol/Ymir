@@ -82,8 +82,11 @@ public class YmirClientProxyFactory {
             if (Objects.isNull(response)){
                 throw new RpcException("the response is null");
             }
+            if (Objects.nonNull(response.getException())){
+                throw response.getException();
+            }
             // 4.结果处理
-            return !Objects.isNull(response.getException())?response.getException():response.getResult();
+            return response.getResult();
         }
     }
 
