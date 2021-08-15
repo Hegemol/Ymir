@@ -49,7 +49,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<InvocationMe
     private ConcurrentMap<ChannelId, Channel> channels = new ConcurrentHashMap<>();
 
     @Override
-    public void channelActive(ChannelHandlerContext ctx) {
+    public void channelRegistered(ChannelHandlerContext ctx) {
         // 从管理器中添加
         channels.put(ctx.channel().id(), ctx.channel());
         logger.info("Netty server, one active channel add, channel info:{}", ctx.channel());

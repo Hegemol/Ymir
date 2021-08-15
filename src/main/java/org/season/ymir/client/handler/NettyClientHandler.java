@@ -65,10 +65,9 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<InvocationMe
     }
 
     @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        if (logger.isDebugEnabled()) {
-            logger.debug("Connect to server successfully:{}", GsonUtils.getInstance().toJson(ctx));
-        }
+    public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
+        YmirClientCacheManager.remove(remoteAddress);
+        logger.error("Channel unregistered with remoteAddress:{}", remoteAddress);
     }
 
     @Override
@@ -89,12 +88,6 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<InvocationMe
         logger.error("Exception occurred:{}", ExceptionUtils.getStackTrace(cause));
         YmirClientCacheManager.remove(remoteAddress);
         ctx.close();
-    }
-
-    @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        YmirClientCacheManager.remove(remoteAddress);
-        logger.error("Channel inactive with remoteAddress:{}", remoteAddress);
     }
 
     @Override
