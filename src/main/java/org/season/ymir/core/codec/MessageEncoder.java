@@ -11,6 +11,17 @@ import org.slf4j.LoggerFactory;
 /**
  * 消息相应编码器
  *
+ *   0     1     2     3     4
+ *   +-----+-----+-----+-----+
+ *   |      full length      |
+ *   +-----------------------+
+ *   |                       |
+ *   |        body           |
+ *   |                       |
+ *   |      ... ...          |
+ *   +-----------------------+
+ * 4B full length（消息长度，不是消息总长度） body（object类型数据）
+ *
  * @author KevinClair
  **/
 public class MessageEncoder extends MessageToByteEncoder<Object> {
