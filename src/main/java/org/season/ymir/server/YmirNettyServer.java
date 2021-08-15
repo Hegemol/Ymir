@@ -9,6 +9,10 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+import io.netty.handler.codec.LengthFieldPrepender;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.season.ymir.common.constant.CommonConstant;
@@ -66,6 +70,14 @@ public class YmirNettyServer implements DisposableBean {
                             ChannelPipeline channelPipeline = channel.pipeline();
                             // 添加一堆 NettyServerHandler 到 ChannelPipeline 中
                             channelPipeline
+                                    /*Netty提供的日志打印Handler，可以展示发送接收出去的字节*/
+                                    .addLast(new LoggingHandler(LogLevel.INFO))
+                                    /*剥离接收到的消息的长度字段，拿到实际的消息报文的字节数组*/
+                                    .addLast(new LengthFieldBasedFrameDecoder(65535,
+                                                    0, 2, 0,
+                                                    2))
+                                    /*给发送出去的消息增加长度字段*/
+                                    .addLast(new LengthFieldPrepender(2))
                                     // 空闲检测
                                     .addLast(new IdleStateHandler(CommonConstant.TIMEOUT_SECONDS, 0, 0))
                                     // 解码器
@@ -81,7 +93,7 @@ public class YmirNettyServer implements DisposableBean {
 
             // 启动服务
             ChannelFuture future = bootstrap.bind().sync();
-            if (future.isSuccess()){
+            if (future.isSuccess()) {
                 logger.debug("Netty Server started successfully.");
                 channel = future.channel();
             }
