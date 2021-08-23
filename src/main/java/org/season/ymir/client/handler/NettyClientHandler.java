@@ -47,6 +47,9 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<InvocationMe
      */
     private volatile Channel channel;
 
+    /**
+     * latch lock
+     */
     private CountDownLatch countDownLatch = new CountDownLatch(1);
 
     /**
