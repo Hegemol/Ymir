@@ -10,8 +10,6 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import org.season.ymir.client.handler.NettyClientHandler;
 import org.season.ymir.common.constant.CommonConstant;
@@ -96,7 +94,7 @@ public class YmirNettyClient {
                         ChannelPipeline pipeline = channel.pipeline();
                         pipeline
                                 /*Netty提供的日志打印Handler，可以展示发送接收出去的字节*/
-                                .addLast(new LoggingHandler(LogLevel.INFO))
+//                                .addLast(new LoggingHandler(LogLevel.INFO))
                                 /*剥离接收到的消息的长度字段，拿到实际的消息报文的字节数组*/
                                 .addLast(new LengthFieldBasedFrameDecoder(65535,
                                         0, 4, 0,
