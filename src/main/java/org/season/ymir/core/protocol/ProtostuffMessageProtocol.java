@@ -34,13 +34,11 @@ public class ProtostuffMessageProtocol implements MessageProtocol{
     private <T> byte[] serialize(T source) {
         Schema<T> schema = RuntimeSchema.getSchema((Class<T>) source.getClass());
         LinkedBuffer buffer = LinkedBuffer.allocate(LinkedBuffer.DEFAULT_BUFFER_SIZE);
-        final byte[] result;
         try {
-            result = ProtostuffIOUtil.toByteArray(source, schema, buffer);
+            return ProtostuffIOUtil.toByteArray(source, schema, buffer);
         } finally {
             buffer.clear();
         }
-        return result;
     }
 
     /**

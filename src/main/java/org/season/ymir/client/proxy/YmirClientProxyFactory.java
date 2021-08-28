@@ -1,5 +1,6 @@
 package org.season.ymir.client.proxy;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.season.ymir.client.YmirNettyClient;
 import org.season.ymir.common.base.InvocationType;
 import org.season.ymir.common.entity.ServiceBean;
@@ -10,6 +11,8 @@ import org.season.ymir.common.model.YmirResponse;
 import org.season.ymir.common.utils.LoadBalanceUtils;
 import org.season.ymir.core.annotation.YmirReference;
 import org.season.ymir.server.discovery.YmirServiceDiscovery;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -49,6 +52,8 @@ public class YmirClientProxyFactory {
 
     private class ClientInvocationHandler implements InvocationHandler {
 
+        private final Logger logger = LoggerFactory.getLogger(ClientInvocationHandler.class);
+
         private Class<?> clazz;
 
         private YmirReference reference;
@@ -82,8 +87,9 @@ public class YmirClientProxyFactory {
             if (Objects.isNull(response)){
                 throw new RpcException("the response is null");
             }
-            if (Objects.nonNull(response.getException())){
-                throw response.getException();
+            if (Objects.nonNull(response.getThrowable())){
+                logger.error("Service {} throws exception:{}", serviceName, ExceptionUtils.getStackTrace(response.getThrowable()));
+                throw response.getThrowable();
             }
             // 4.结果处理
             return response.getResult();

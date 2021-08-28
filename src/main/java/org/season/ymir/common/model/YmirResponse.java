@@ -19,7 +19,7 @@ public class YmirResponse implements Serializable {
     /**
      * 异常信息
      */
-    private Exception exception;
+    private Throwable throwable;
 
     /**
      * 服务状态
@@ -33,9 +33,9 @@ public class YmirResponse implements Serializable {
         this.statusEnum = statusEnum;
     }
 
-    public YmirResponse(final Object result, final Exception exception, final ServiceStatusEnum statusEnum) {
+    public YmirResponse(final Object result, final Throwable throwable, final ServiceStatusEnum statusEnum) {
         this.result = result;
-        this.exception = exception;
+        this.throwable = throwable;
         this.statusEnum = statusEnum;
     }
 
@@ -58,21 +58,21 @@ public class YmirResponse implements Serializable {
     }
 
     /**
-     * Gets the value of exception.
+     * Gets the value of throwable.
      *
-     * @return the value of exception
+     * @return the value of throwable
      */
-    public Exception getException() {
-        return exception;
+    public Throwable getThrowable() {
+        return throwable;
     }
 
     /**
-     * Sets the exception.
+     * Sets the throwable.
      *
-     * @param exception exception
+     * @param throwable throwable
      */
-    public void setException(final Exception exception) {
-        this.exception = exception;
+    public void setThrowable(final Throwable throwable) {
+        this.throwable = throwable;
     }
 
     /**

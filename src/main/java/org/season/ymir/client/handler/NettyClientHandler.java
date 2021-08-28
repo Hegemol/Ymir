@@ -110,11 +110,11 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<InvocationMe
             response = completableFuture.get(request.getTimeout(), TimeUnit.MILLISECONDS);
         } catch (TimeoutException exception) {
             YmirResponse timeoutExceptionResponse = new YmirResponse(ServiceStatusEnum.ERROR);
-            timeoutExceptionResponse.setException(new RpcTimeoutException(String.format("Invoke remote method %s timeout with %s ms", String.join("#", request.getBody().getServiceName(), request.getBody().getMethod()), request.getTimeout())));
+            timeoutExceptionResponse.setThrowable(new RpcTimeoutException(String.format("Invoke remote method %s timeout with %s ms", String.join("#", request.getBody().getServiceName(), request.getBody().getMethod()), request.getTimeout())));
             return timeoutExceptionResponse;
         } catch (Exception e) {
             YmirResponse exceptionResponse = new YmirResponse(ServiceStatusEnum.ERROR);
-            exceptionResponse.setException(new RpcException(e));
+            exceptionResponse.setThrowable(new RpcException(e));
             return exceptionResponse;
         } finally {
             requestMap.remove(request.getRequestId());

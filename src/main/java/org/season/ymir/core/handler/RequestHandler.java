@@ -41,7 +41,7 @@ public class RequestHandler {
             throw new RpcException("No provider available for service " + data.getServiceName());
         }
 
-        YmirResponse result = null;
+        YmirResponse result;
         try {
             // 2.反射调用对应的方法过程
             Method method = bean.getClazz().getMethod(data.getMethod(), data.getParameterTypes());
@@ -50,7 +50,7 @@ public class RequestHandler {
             result.setResult(returnValue);
         } catch (Exception e) {
             result = new YmirResponse(ServiceStatusEnum.ERROR);
-            result.setException(e);
+            result.setThrowable(e);
         }
         // 3.编组响应消息
         response.setRequestId(requestId);
