@@ -317,7 +317,6 @@ public class SpiTest {
 * Netty优化，重新定义消息结构，考虑是否需要在消息报文中写入序列化类型；
 * 服务端异常传递至客户端；
 * 取消SpringBoot父框架；
-* 使用CompletableFuture包装结果；
 * YmirService属性扩展，增加多版本，分组等属性；
 * YmirReference属性扩展，多版本，分组等；
 * Filter过滤器；

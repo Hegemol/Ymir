@@ -13,7 +13,6 @@ import org.season.ymir.common.base.ServiceStatusEnum;
 import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.exception.RpcTimeoutException;
 import org.season.ymir.common.model.InvocationMessage;
-import org.season.ymir.common.model.YmirFuture;
 import org.season.ymir.common.model.YmirRequest;
 import org.season.ymir.common.model.YmirResponse;
 import org.season.ymir.common.utils.GsonUtils;
@@ -22,8 +21,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -48,14 +47,9 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<InvocationMe
     private volatile Channel channel;
 
     /**
-     * latch lock
+     * 存储request的返回信息，key为每次请求{@link YmirRequest}的requestId，value为{@link CompletableFuture<InvocationMessage<YmirResponse>> }
      */
-    private CountDownLatch countDownLatch = new CountDownLatch(1);
-
-    /**
-     * 存储request的返回信息，key为每次请求{@link YmirRequest}的requestId，value为{@link YmirFuture<YmirResponse>}
-     */
-    private static Map<String, YmirFuture<InvocationMessage<YmirResponse>>> requestMap = new ConcurrentHashMap<>();
+    private static Map<String, CompletableFuture<InvocationMessage<YmirResponse>>> requestMap = new ConcurrentHashMap<>();
 
     public NettyClientHandler(String remoteAddress) {
         this.remoteAddress = remoteAddress;
@@ -64,7 +58,6 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<InvocationMe
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
         this.channel = ctx.channel();
-        countDownLatch.countDown();
     }
 
     @Override
@@ -78,12 +71,12 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<InvocationMe
         if (logger.isDebugEnabled()) {
             logger.debug("Client reads message:{}", GsonUtils.getInstance().toJson(data));
         }
-        YmirFuture<InvocationMessage<YmirResponse>> responseFuture = requestMap.get(data.getRequestId());
+        CompletableFuture<InvocationMessage<YmirResponse>> responseFuture = requestMap.get(data.getRequestId());
         // 如果超时导致requestMap中没有保存值，此处会返回null的future，直接操作会导致NullPointException.
         if (Objects.isNull(responseFuture)) {
             return;
         }
-        responseFuture.setResponse(data);
+        responseFuture.complete(data);
     }
 
     @Override
@@ -109,16 +102,12 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<InvocationMe
 
     public YmirResponse sendRequest(InvocationMessage<YmirRequest> request) {
         InvocationMessage<YmirResponse> response;
-        YmirFuture<InvocationMessage<YmirResponse>> future = new YmirFuture<>();
-        requestMap.put(request.getRequestId(), future);
+        CompletableFuture<InvocationMessage<YmirResponse>> completableFuture = new CompletableFuture<>();
+        requestMap.put(request.getRequestId(), completableFuture);
         try {
-            if (countDownLatch.await(request.getTimeout(), TimeUnit.MILLISECONDS)){
-                channel.writeAndFlush(request);
-                // 等待响应
-                response = future.get(request.getTimeout(), TimeUnit.MILLISECONDS);
-            } else {
-                throw new TimeoutException();
-            }
+            channel.writeAndFlush(request);
+            // 等待响应
+            response = completableFuture.get(request.getTimeout(), TimeUnit.MILLISECONDS);
         } catch (TimeoutException exception) {
             YmirResponse timeoutExceptionResponse = new YmirResponse(ServiceStatusEnum.ERROR);
             timeoutExceptionResponse.setException(new RpcTimeoutException(String.format("Invoke remote method %s timeout with %s ms", String.join("#", request.getBody().getServiceName(), request.getBody().getMethod()), request.getTimeout())));
