@@ -321,3 +321,4 @@ public class SpiTest {
 * YmirReference属性扩展，多版本，分组等；
 * Filter过滤器；
 * 负载均衡算法优化；
+* kryo序列化问题,protostuff序列化异常的堆栈信息失败；
