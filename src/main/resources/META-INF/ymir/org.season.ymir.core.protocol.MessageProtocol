@@ -1,3 +1,3 @@
 proto = org.season.ymir.core.protocol.ProtostuffMessageProtocol
-kryo = org.season.ymir.core.protocol.KryoMessageProtocol
+kryo = org.season.ymir.core.protocol.kryo.KryoMessageProtocol
 gson = org.season.ymir.core.protocol.GsonMessageProtocol
