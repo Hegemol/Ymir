@@ -36,7 +36,7 @@ public class MessageEncoder extends MessageToByteEncoder<Object> {
 
     @Override
     protected void encode(ChannelHandlerContext channelHandlerContext, Object object, ByteBuf byteBuf) throws Exception {
-        byte[] request = protocol.marshalling(object);
+        byte[] request = protocol.serialize(object);
         byteBuf.writeInt(request.length);
         byteBuf.writeBytes(request);
         if (logger.isDebugEnabled()){

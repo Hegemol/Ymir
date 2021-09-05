@@ -43,7 +43,7 @@ public class MessageDecoder extends ByteToMessageDecoder {
         }
         byte[] bytes = new byte[bytesSize];
         byteBuf.readBytes(bytes);
-        InvocationMessage decodeResponse = protocol.unmarshalling(bytes);
+        InvocationMessage decodeResponse = protocol.deserialize(bytes);
         list.add(decodeResponse);
         if (logger.isDebugEnabled()){
             logger.debug("Channel {} decoder message success, message content:{}", channelHandlerContext.channel().id(), GsonUtils.getInstance().toJson(decodeResponse));

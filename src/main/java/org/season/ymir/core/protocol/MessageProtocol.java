@@ -10,20 +10,22 @@ import org.season.ymir.spi.annodation.SPI;
  */
 @SPI("proto")
 public interface MessageProtocol {
+
     /**
      * 编组请求
+     *
      * @param object 请求信息
      * @return 请求字节数组
      * @throws Exception
      */
-    byte[] marshalling(Object object) throws Exception;
+    byte[] serialize(Object object) throws Exception;
 
     /**
-     * 解码
+     * 解组
      *
      * @param data 需要被解码的参数
      * @return {@link InvocationMessage}
      * @throws Exception
      */
-    InvocationMessage unmarshalling(byte[] data) throws Exception;
+    InvocationMessage deserialize(byte[] data) throws Exception;
 }

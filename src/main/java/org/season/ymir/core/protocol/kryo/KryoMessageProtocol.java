@@ -16,7 +16,7 @@ public class KryoMessageProtocol implements MessageProtocol {
     private KryoPool pool = KryoPoolFactory.getKryoPoolInstance();
 
     @Override
-    public byte[] marshalling(final Object object) throws Exception {
+    public byte[] serialize(final Object object) throws Exception {
         Kryo kryo = pool.borrow();
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         Output out = new Output(byteArrayOutputStream);
@@ -37,7 +37,7 @@ public class KryoMessageProtocol implements MessageProtocol {
     }
 
     @Override
-    public InvocationMessage unmarshalling(final byte[] data) throws Exception {
+    public InvocationMessage deserialize(final byte[] data) throws Exception {
         Kryo kryo = pool.borrow();
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(data);
         Input in = new Input(byteArrayInputStream);
