@@ -1,26 +1,31 @@
-package org.season.ymir.core.protocol;
+package org.season.ymir.core.protocol.proto;
 
 
 import com.dyuproject.protostuff.LinkedBuffer;
 import com.dyuproject.protostuff.ProtostuffIOUtil;
 import com.dyuproject.protostuff.Schema;
 import com.dyuproject.protostuff.runtime.RuntimeSchema;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import org.objenesis.Objenesis;
 import org.objenesis.ObjenesisStd;
 import org.season.ymir.common.model.InvocationMessage;
+import org.season.ymir.core.protocol.MessageProtocol;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 消息协议
  *
  * @author KevinClair
  */
-public class ProtostuffMessageProtocol implements MessageProtocol{
+public class ProtostuffMessageProtocol implements MessageProtocol {
 
     // Schema缓存
-    private Map<Class<?>, Schema<?>> cachedSchema = new ConcurrentHashMap<>();
+    private Cache<Class<?>, Schema<?>> cachedSchema = CacheBuilder.newBuilder()
+            .maximumSize(1024).expireAfterWrite(1, TimeUnit.HOURS)
+            .build();
 
     private Objenesis objenesis = new ObjenesisStd(true);
 
@@ -34,9 +39,20 @@ public class ProtostuffMessageProtocol implements MessageProtocol{
         return deserializeExecute(data,InvocationMessage.class);
     }
 
+    /**
+     * 从缓存中获取schema
+     *
+     * @param cls class对象
+     * @param <T> 泛型对象
+     * @return schema实例
+     */
     private <T> Schema<T> getSchema(Class<T> cls) {
         // for thread-safe
-        return (Schema<T>) cachedSchema.computeIfAbsent(cls, RuntimeSchema::createFrom);
+        try {
+            return (Schema<T>) cachedSchema.get(cls, () -> RuntimeSchema.createFrom(cls));
+        } catch (ExecutionException e) {
+            return null;
+        }
     }
 
     /**
