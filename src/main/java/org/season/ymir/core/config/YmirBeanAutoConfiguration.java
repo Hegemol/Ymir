@@ -67,11 +67,10 @@ public class YmirBeanAutoConfiguration {
      * RequestHandler注册
      *
      * @param serviceRegister 服务注册器{@link ServiceRegister}
-     * @param clientProperty  配置属性{@link YmirConfigurationProperty}
      * @return {@link RequestHandler}
      */
     @Bean
-    public RequestHandler requestHandler(ServiceRegister serviceRegister, YmirConfigurationProperty clientProperty){
+    public RequestHandler requestHandler(ServiceRegister serviceRegister){
         return new RequestHandler(serviceRegister);
     }
 
