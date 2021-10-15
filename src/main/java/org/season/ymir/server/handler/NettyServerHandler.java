@@ -10,17 +10,13 @@ import org.season.ymir.common.model.InvocationMessage;
 import org.season.ymir.common.model.YmirRequest;
 import org.season.ymir.common.model.YmirResponse;
 import org.season.ymir.common.utils.GsonUtils;
-import org.season.ymir.common.utils.YmirThreadFactory;
+import org.season.ymir.core.ThreadPoolFactory;
 import org.season.ymir.core.handler.RequestHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Netty服务端处理器
@@ -30,17 +26,12 @@ import java.util.concurrent.TimeUnit;
 @ChannelHandler.Sharable
 public class NettyServerHandler extends SimpleChannelInboundHandler<InvocationMessage<YmirRequest>> {
 
-    private Logger logger = LoggerFactory.getLogger(getClass());
+    private static final Logger logger = LoggerFactory.getLogger(NettyServerHandler.class);
 
-    private RequestHandler requestHandler;
-    private ExecutorService executorService;
+    private final RequestHandler requestHandler;
 
     public NettyServerHandler(RequestHandler requestHandler) {
         this.requestHandler = requestHandler;
-        this.executorService = new ThreadPoolExecutor(4, 8,
-                200, TimeUnit.SECONDS,
-                new LinkedBlockingQueue<>(1000),
-                new YmirThreadFactory("netty"));
     }
 
     /**
@@ -70,8 +61,8 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<InvocationMe
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, InvocationMessage<YmirRequest> msg) throws Exception {
-        executorService.submit(() -> {
+    protected void channelRead0(ChannelHandlerContext ctx, InvocationMessage<YmirRequest> msg) {
+        ThreadPoolFactory.execute(() -> {
             try {
                 if (logger.isDebugEnabled()){
                     logger.debug("Server receives message :{}", msg);

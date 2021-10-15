@@ -9,7 +9,6 @@ import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.register.ServiceRegister;
-import org.season.ymir.common.utils.YmirThreadFactory;
 import org.season.ymir.common.utils.ZkPathUtils;
 import org.season.ymir.core.annotation.YmirReference;
 import org.season.ymir.core.annotation.YmirService;
@@ -29,10 +28,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -46,7 +41,6 @@ public class YmirServiceExportProcessor implements ApplicationListener<ContextRe
 
     private static final Logger logger = LoggerFactory.getLogger(YmirServiceExportProcessor.class);
 
-    private ExecutorService executorService;
     private ServiceRegister serviceRegister;
     private YmirNettyServer nettyServer;
     private YmirClientProxyFactory proxyFactory;
@@ -55,7 +49,6 @@ public class YmirServiceExportProcessor implements ApplicationListener<ContextRe
     private YmirServiceDiscovery serviceDiscovery;
 
     public YmirServiceExportProcessor(ServiceRegister serviceRegister, YmirNettyServer nettyServer, YmirClientProxyFactory proxyFactory, CuratorFramework zkClient, YmirConfigurationProperty property, YmirServiceDiscovery serviceDiscovery) {
-        this.executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(), new YmirThreadFactory("service-export-"));
         this.serviceRegister = serviceRegister;
         this.nettyServer = nettyServer;
         this.proxyFactory = proxyFactory;
@@ -71,7 +64,7 @@ public class YmirServiceExportProcessor implements ApplicationListener<ContextRe
         }
 
         ApplicationContext applicationContext = contextRefreshedEvent.getApplicationContext();
-        executorService.execute(() -> handler(applicationContext));
+        ThreadPoolFactory.execute(() -> handler(applicationContext));
     }
 
     private void handler(ApplicationContext applicationContext) {
