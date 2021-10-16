@@ -6,7 +6,7 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.utils.GsonUtils;
-import org.season.ymir.server.discovery.YmirServiceDiscovery;
+import org.season.ymir.server.discovery.ServiceDiscovery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
@@ -20,13 +20,14 @@ import java.util.Objects;
  *
  * @author KevinClair
  **/
+@Deprecated
 public class ZookeeperNodeChangeListener implements PathChildrenCacheListener {
 
     private static Logger logger = LoggerFactory.getLogger(ZookeeperNodeChangeListener.class);
 
-    private YmirServiceDiscovery serviceDiscovery;
+    private ServiceDiscovery serviceDiscovery;
 
-    public ZookeeperNodeChangeListener(YmirServiceDiscovery serviceDiscovery) {
+    public ZookeeperNodeChangeListener(ServiceDiscovery serviceDiscovery) {
         this.serviceDiscovery = serviceDiscovery;
     }
 
