@@ -10,7 +10,7 @@ import org.season.ymir.common.model.YmirRequest;
 import org.season.ymir.common.model.YmirResponse;
 import org.season.ymir.common.utils.LoadBalanceUtils;
 import org.season.ymir.core.annotation.YmirReference;
-import org.season.ymir.server.discovery.YmirServiceDiscovery;
+import org.season.ymir.server.discovery.ServiceDiscovery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
  **/
 public class YmirClientProxyFactory {
 
-    private YmirServiceDiscovery serviceDiscovery;
+    private ServiceDiscovery serviceDiscovery;
 
     private YmirNettyClient netClient;
 
@@ -96,7 +96,7 @@ public class YmirClientProxyFactory {
         }
     }
 
-    public YmirClientProxyFactory(YmirServiceDiscovery serviceDiscovery, YmirNettyClient netClient) {
+    public YmirClientProxyFactory(ServiceDiscovery serviceDiscovery, YmirNettyClient netClient) {
         this.serviceDiscovery = serviceDiscovery;
         this.netClient = netClient;
     }
