@@ -12,7 +12,7 @@ import java.util.List;
  *
  * @author KevinClair
  **/
-public abstract class DefaultAbstractYmirServiceDiscovery implements YmirServiceDiscovery {
+public abstract class DefaultAbstractServiceDiscovery implements ServiceDiscovery {
 
     // 本地缓存
     private static final Cache<String, List<ServiceBean>> SERVER_MAP = Caffeine.newBuilder()
