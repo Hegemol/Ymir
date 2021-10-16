@@ -14,6 +14,7 @@ public class RandomBalance extends AbstractLoadBalance {
 
     private static final Random random = new Random();
 
+    @Override
     public ServiceBean loadMethod(List<ServiceBean> services, String address) {
         // 计算总权重
         int totalWeight = calculateTotalWeight(services);

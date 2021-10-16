@@ -12,7 +12,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class YmirThreadFactory implements ThreadFactory {
 
-
     private static final AtomicInteger poolNumber = new AtomicInteger(1);
     private final ThreadGroup group;
 
@@ -26,9 +25,10 @@ public class YmirThreadFactory implements ThreadFactory {
         if (StringUtils.isBlank(name)) {
             name = "pool";
         }
-        namePrefix = "ymir-works-" + poolNumber.getAndIncrement() + "-thread-" + name + "-";
+        namePrefix = "ymir-" + poolNumber.getAndIncrement() + "-thread-" + name + "-";
     }
 
+    @Override
     public Thread newThread(Runnable r) {
         Thread t = new Thread(group, r, namePrefix + threadNumber.getAndIncrement(), 0);
         if (t.isDaemon())
