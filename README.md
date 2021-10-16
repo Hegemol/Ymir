@@ -320,3 +320,4 @@ public class SpiTest {
 * Filter过滤器；
 * 负载均衡算法优化；
 * 线程池统一管理；
+* 注册中心支持nacos;
