@@ -2,6 +2,8 @@ package org.season.ymir.core.property;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.util.Properties;
+
 /**
  * zookeeper连接信息
  *
@@ -14,11 +16,7 @@ public class RegisterCenterProperty {
 
     private String url;
 
-    private Integer sessionTimeout = 6000;
-
-    private Integer connectionTimeout = 6000;
-
-    private Integer retryTimes = 3;
+    private Properties props = new Properties();
 
     /**
      * Gets the value of type.
@@ -57,56 +55,20 @@ public class RegisterCenterProperty {
     }
 
     /**
-     * Gets the value of sessionTimeout.
+     * Gets the value of props.
      *
-     * @return the value of sessionTimeout
+     * @return the value of props
      */
-    public Integer getSessionTimeout() {
-        return sessionTimeout;
+    public Properties getProps() {
+        return props;
     }
 
     /**
-     * Sets the sessionTimeout.
+     * Sets the props.
      *
-     * @param sessionTimeout sessionTimeout
+     * @param props props
      */
-    public void setSessionTimeout(final Integer sessionTimeout) {
-        this.sessionTimeout = sessionTimeout;
-    }
-
-    /**
-     * Gets the value of connectionTimeout.
-     *
-     * @return the value of connectionTimeout
-     */
-    public Integer getConnectionTimeout() {
-        return connectionTimeout;
-    }
-
-    /**
-     * Sets the connectionTimeout.
-     *
-     * @param connectionTimeout connectionTimeout
-     */
-    public void setConnectionTimeout(final Integer connectionTimeout) {
-        this.connectionTimeout = connectionTimeout;
-    }
-
-    /**
-     * Gets the value of retryTimes.
-     *
-     * @return the value of retryTimes
-     */
-    public Integer getRetryTimes() {
-        return retryTimes;
-    }
-
-    /**
-     * Sets the retryTimes.
-     *
-     * @param retryTimes retryTimes
-     */
-    public void setRetryTimes(final Integer retryTimes) {
-        this.retryTimes = retryTimes;
+    public void setProps(final Properties props) {
+        this.props = props;
     }
 }

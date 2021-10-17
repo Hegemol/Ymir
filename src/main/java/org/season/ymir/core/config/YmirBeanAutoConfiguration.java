@@ -1,5 +1,9 @@
 package org.season.ymir.core.config;
 
+import com.alibaba.nacos.api.PropertyKeyConst;
+import com.alibaba.nacos.api.exception.NacosException;
+import com.alibaba.nacos.api.naming.NamingFactory;
+import com.alibaba.nacos.api.naming.NamingService;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -23,6 +27,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
+import java.util.Properties;
+
 /**
  * 客户端Bean注入
  *
@@ -43,11 +49,13 @@ public class YmirBeanAutoConfiguration {
          */
         @Bean
         public CuratorFramework curatorFramework(RegisterCenterProperty zookeeperClientProperty ){
-            RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000,zookeeperClientProperty.getRetryTimes());
+            final Properties props = zookeeperClientProperty.getProps();
+
+            RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, Integer.valueOf(props.getProperty("retryTimes", "3")));
             CuratorFramework client = CuratorFrameworkFactory.builder()
                     .connectString(zookeeperClientProperty.getUrl())
-                    .connectionTimeoutMs(zookeeperClientProperty.getConnectionTimeout())
-                    .sessionTimeoutMs(zookeeperClientProperty.getSessionTimeout())
+                    .connectionTimeoutMs(Integer.valueOf(props.getProperty("connectionTimeout", "6000")))
+                    .sessionTimeoutMs(Integer.valueOf(props.getProperty("sessionTimeout", "6000")))
                     .retryPolicy(retryPolicy)
                     .namespace("ymir")
                     .build();
@@ -81,18 +89,41 @@ public class YmirBeanAutoConfiguration {
 
     static class NacosClientRegisterCenter{
 
-        // TODO nacos客户端
+        /**
+         * 初始化Nacos客户端
+         *
+         * @param nacosCenterProperty 注册中心
+         * @return {@link NamingService}
+         * @throws NacosException {@link NacosException}
+         */
+        public NamingService namingService(RegisterCenterProperty nacosCenterProperty) throws NacosException {
+            final Properties props = nacosCenterProperty.getProps();
+            Properties nacosProperties = new Properties();
+            // server address.
+            nacosProperties.put(PropertyKeyConst.SERVER_ADDR, nacosCenterProperty.getUrl());
+            // name space.
+            nacosProperties.put(PropertyKeyConst.NAMESPACE, props.getProperty(PropertyKeyConst.NAMESPACE));
+            // the nacos authentication username
+            nacosProperties.put(PropertyKeyConst.USERNAME, props.getProperty(PropertyKeyConst.USERNAME, ""));
+            // the nacos authentication password
+            nacosProperties.put(PropertyKeyConst.PASSWORD, props.getProperty(PropertyKeyConst.PASSWORD, ""));
+            // access key for namespace
+            nacosProperties.put(PropertyKeyConst.ACCESS_KEY, props.getProperty(PropertyKeyConst.ACCESS_KEY, ""));
+            // secret key for namespace
+            nacosProperties.put(PropertyKeyConst.SECRET_KEY, props.getProperty(PropertyKeyConst.SECRET_KEY, ""));
+            return NamingFactory.createNamingService(nacosProperties);
+        }
 
         /**
          * nacos服务注册器
          *
          * @param clientProperty 配置属性{@link YmirConfigurationProperty}
-         * @param nacosClient       zk客户端{@link CuratorFramework}
+         * @param namingService  nacos服务注册发现客户端{@link NamingService}
          * @return {@link ZookeeperServiceRegister}
          */
         @Bean
-        public ServiceRegister zookeeperServiceRegister(YmirConfigurationProperty clientProperty){
-            return new NacosServiceRegister();
+        public ServiceRegister zookeeperServiceRegister(YmirConfigurationProperty clientProperty, NamingService namingService){
+            return new NacosServiceRegister(namingService, clientProperty.getPort(), clientProperty.getProtocol());
         }
     }
 

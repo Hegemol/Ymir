@@ -33,6 +33,11 @@ public class CommonConstant {
     public static final String PATH_DELIMITER = "/";
 
     /**
+     * nacos实例分隔符
+     */
+    public static final String INSTANCE_DELIMITER = ":";
+
+    /**
      * 重连频率，单位：秒
      */
     public static final Integer RECONNECT_SECONDS = 20;
