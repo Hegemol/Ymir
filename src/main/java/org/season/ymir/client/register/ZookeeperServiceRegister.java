@@ -20,7 +20,6 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * zookeeper服务注册
@@ -41,47 +40,28 @@ public class ZookeeperServiceRegister extends DefaultAbstractServiceRegister imp
     }
 
     @Override
-    public ServiceBeanCache getBean(String name) throws RpcException {
-        return Optional.ofNullable(super.getBean(name)).orElseGet(() -> {
-            try {
-                String zNodePath = ZkPathUtils.buildPath(CommonConstant.ZK_SERVICE_PROVIDER_PATH, name);
-                List<String> childrenNodePath = zkClient.getChildren().forPath(zNodePath);
-                // 不存在子节点，异常上报
-                if (CollectionUtils.isEmpty(childrenNodePath)){
-                    return null;
-                }
-                ServiceBean serviceBean = GsonUtils.getInstance().fromJson(new String(zkClient.getData().forPath(childrenNodePath.get(0)), CommonConstant.UTF_8), ServiceBean.class);
-                super.registerBean(serviceBean);
-                return super.getBean(serviceBean.getName());
-            } catch (Exception e) {
-                logger.error("Get service error, error:{}", ExceptionUtils.getStackTrace(e));
+    protected ServiceBeanCache getIfNoCache(String name) throws RpcException {
+        try {
+            String zNodePath = ZkPathUtils.buildPath(CommonConstant.ZK_SERVICE_PROVIDER_PATH, name);
+            List<String> childrenNodePath = zkClient.getChildren().forPath(zNodePath);
+            // 不存在子节点，异常上报
+            if (CollectionUtils.isEmpty(childrenNodePath)) {
                 return null;
             }
-        });
+            ServiceBean serviceBean = GsonUtils.getInstance().fromJson(new String(zkClient.getData().forPath(childrenNodePath.get(0)), CommonConstant.UTF_8), ServiceBean.class);
+            super.registerBean(serviceBean);
+            return super.getBean(serviceBean.getName());
+        } catch (Exception e) {
+            logger.error("Get service error, error:{}", ExceptionUtils.getStackTrace(e));
+            return null;
+        }
 
     }
 
     @Override
-    public void registerBean(ServiceBean serviceBean) throws RpcException {
-        super.registerBean(serviceBean);
-        ServiceBeanEvent exportEventModel = new ServiceBeanEvent();
-        exportEventModel.setName(serviceBean.getName());
-        exportEventModel.setProtocol(protocol);
-        exportEventModel.setAddress(serviceBean.getAddress());
-        exportEventModel.setWeight(serviceBean.getWeight());
-        exportEventModel.setGroup(serviceBean.getGroup());
-        exportEventModel.setVersion(serviceBean.getVersion());
-
-        try {
-            // 服务发布至注册中心
-            exportService(serviceBean, exportEventModel);
-        } catch (Exception e) {
-            logger.error("Export service to register center error, error message:{}", ExceptionUtils.getStackTrace(e));
-            throw new RpcException(String.format("Export service %s to register center error", serviceBean.getName()));
-        }
-
+    public void publishEvent(final ServiceBeanEvent serviceBeanEvent) {
         // 发布事件
-        applicationEventPublisher.publishEvent(new ServiceBeanExportEvent(exportEventModel));
+        applicationEventPublisher.publishEvent(new ServiceBeanExportEvent(serviceBeanEvent));
     }
 
     /**
@@ -90,7 +70,7 @@ public class ZookeeperServiceRegister extends DefaultAbstractServiceRegister imp
      * @param model            服务注册模型
      * @param exportEventModel 服务导出事件模型
      */
-    private void exportService(final ServiceBean model, final ServiceBeanEvent exportEventModel) throws Exception {
+    protected void exportService(final ServiceBean model, final ServiceBeanEvent exportEventModel) throws Exception {
         String serviceName = model.getName();
         String zNodePath = ZkPathUtils.buildPath(CommonConstant.ZK_SERVICE_PROVIDER_PATH, serviceName);
         if (Objects.isNull(zkClient.checkExists().forPath(zNodePath))) {
