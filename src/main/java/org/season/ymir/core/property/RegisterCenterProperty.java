@@ -1,7 +1,5 @@
 package org.season.ymir.core.property;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
 import java.util.Properties;
 
 /**
@@ -9,7 +7,6 @@ import java.util.Properties;
  *
  * @author KevinClair
  */
-@ConfigurationProperties(prefix = "ymir.register")
 public class RegisterCenterProperty {
 
     private String type = "zookeeper";

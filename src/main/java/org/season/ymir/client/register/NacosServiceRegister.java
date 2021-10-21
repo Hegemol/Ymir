@@ -83,7 +83,7 @@ public class NacosServiceRegister extends DefaultAbstractServiceRegister impleme
      * @param exportEventModel 服务导出事件模型
      */
     protected void exportService(final ServiceBean model, final ServiceBeanEvent exportEventModel) throws Exception {
-        final String serviceName = NacosServiceNameUtils.buildService(CommonConstant.ZK_SERVICE_PROVIDER_PATH, model.getName(), model.getVersion(), model.getGroup());
+        final String serviceName = NacosServiceNameUtils.buildService(CommonConstant.SERVICE_PROVIDER_SIDE, model.getName());
         exportEventModel.setPath(serviceName);
         Instance instance = new Instance();
         // 解析ip地址

@@ -14,11 +14,9 @@ public class NacosServiceNameUtils {
      *
      * @param side        使用方，分为consumer和provider
      * @param serviceName 接口服务名，全路径。
-     * @param version     服务版本号
-     * @param group       服务组
      * @return nacos实例名
      */
-    public static String buildService(String side, String serviceName, String version, String group){
-        return String.join(CommonConstant.INSTANCE_DELIMITER, side, serviceName, group, version);
+    public static String buildService(String side, String serviceName){
+        return String.join(CommonConstant.INSTANCE_DELIMITER, side, serviceName);
     }
 }

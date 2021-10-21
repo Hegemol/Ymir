@@ -6,8 +6,6 @@ import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.register.ServiceRegister;
-import org.season.ymir.common.utils.YmirThreadFactory;
-import org.season.ymir.common.utils.ZkPathUtils;
 import org.season.ymir.core.annotation.YmirReference;
 import org.season.ymir.core.annotation.YmirService;
 import org.season.ymir.core.property.YmirConfigurationProperty;
@@ -128,7 +126,7 @@ public class YmirServiceExportProcessor implements ApplicationListener<ContextRe
                 // TODO 服务检测根据注册类型重写
                 if(reference.check()) {
                     try {
-                        String servicePath = CommonConstant.PATH_DELIMITER + fieldClass.getName() + CommonConstant.PATH_DELIMITER + CommonConstant.ZK_SERVICE_PROVIDER_PATH;
+                        String servicePath = CommonConstant.PATH_DELIMITER + fieldClass.getName() + CommonConstant.PATH_DELIMITER + CommonConstant.SERVICE_PROVIDER_SIDE;
 //                        List<String> childrenList = zkClient.getChildren().forPath(servicePath);
 //                        if (Objects.isNull(childrenList) || childrenList.size() == 0){
 //                            throw new RpcException(String.format("No provider available for service %s from path %s", fieldClass.getName(), servicePath));
@@ -153,6 +151,6 @@ public class YmirServiceExportProcessor implements ApplicationListener<ContextRe
         // 注册子节点监听
         serviceDiscovery.listener(serviceList, address);
 
-        logger.info("Subscribe service zk node successfully");
+        logger.info("Subscribe service successfully");
     }
 }

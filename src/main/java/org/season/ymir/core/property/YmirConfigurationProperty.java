@@ -1,13 +1,10 @@
 package org.season.ymir.core.property;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
 /**
  * 配置信息
  *
  * @author KevinClair
  */
-@ConfigurationProperties(prefix = "ymir")
 public class YmirConfigurationProperty {
 
     /**

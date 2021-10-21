@@ -42,7 +42,7 @@ public class ZookeeperServiceRegister extends DefaultAbstractServiceRegister imp
     @Override
     protected ServiceBeanCache getIfNoCache(String name) throws RpcException {
         try {
-            String zNodePath = ZkPathUtils.buildPath(CommonConstant.ZK_SERVICE_PROVIDER_PATH, name);
+            String zNodePath = ZkPathUtils.buildPath(CommonConstant.SERVICE_PROVIDER_SIDE, name);
             List<String> childrenNodePath = zkClient.getChildren().forPath(zNodePath);
             // 不存在子节点，异常上报
             if (CollectionUtils.isEmpty(childrenNodePath)) {
@@ -72,7 +72,7 @@ public class ZookeeperServiceRegister extends DefaultAbstractServiceRegister imp
      */
     protected void exportService(final ServiceBean model, final ServiceBeanEvent exportEventModel) throws Exception {
         String serviceName = model.getName();
-        String zNodePath = ZkPathUtils.buildPath(CommonConstant.ZK_SERVICE_PROVIDER_PATH, serviceName);
+        String zNodePath = ZkPathUtils.buildPath(CommonConstant.SERVICE_PROVIDER_SIDE, serviceName);
         if (Objects.isNull(zkClient.checkExists().forPath(zNodePath))) {
             // 创建节点
             zkClient.create().creatingParentsIfNeeded().withMode(CreateMode.PERSISTENT).forPath(zNodePath);
