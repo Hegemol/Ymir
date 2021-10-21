@@ -51,12 +51,12 @@ public class ZookeeperServiceDiscovery extends DefaultAbstractServiceDiscovery {
     }
 
     @Override
-    public List<ServiceBean> findServiceList(String name) throws Exception {
+    public List<ServiceBean> findServiceListByRegisterCenter(String name) throws Exception {
         List<ServiceBean> serviceList = super.findServiceList(name);
         if (!CollectionUtils.isEmpty(serviceList)) {
             return serviceList;
         }
-        String servicePath = CommonConstant.PATH_DELIMITER + name + CommonConstant.PATH_DELIMITER + CommonConstant.ZK_SERVICE_PROVIDER_PATH;
+        String servicePath = CommonConstant.PATH_DELIMITER + name + CommonConstant.PATH_DELIMITER + CommonConstant.SERVICE_PROVIDER_SIDE;
         List<String> children = zkClient.getChildren().forPath(servicePath);
         if (CollectionUtils.isEmpty(children)){
             throw new RpcException(String.format("No provider available for service %s from registry address %s",name, zkClient.getZookeeperClient().getCurrentConnectionString()));
@@ -79,7 +79,7 @@ public class ZookeeperServiceDiscovery extends DefaultAbstractServiceDiscovery {
         serviceList.forEach(name -> {
             try {
                 // 节点监听
-                String servicePath = CommonConstant.PATH_DELIMITER + name + CommonConstant.PATH_DELIMITER + CommonConstant.ZK_SERVICE_PROVIDER_PATH;
+                String servicePath = CommonConstant.PATH_DELIMITER + name + CommonConstant.PATH_DELIMITER + CommonConstant.SERVICE_PROVIDER_SIDE;
                 final PathChildrenCache childrenCache = new PathChildrenCache(zkClient, servicePath, true);
                 childrenCache.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
                 childrenCache.getListenable().addListener(new PathChildrenCacheListener() {
@@ -109,7 +109,7 @@ public class ZookeeperServiceDiscovery extends DefaultAbstractServiceDiscovery {
                     }
                 });
 
-                String consumerNode = CommonConstant.PATH_DELIMITER + name + CommonConstant.PATH_DELIMITER + CommonConstant.ZK_SERVICE_SERVER_PATH;
+                String consumerNode = CommonConstant.PATH_DELIMITER + name + CommonConstant.PATH_DELIMITER + CommonConstant.SERVICE_CONSUMER_SIDE;
                 String registerZNodePath = ZkPathUtils.buildUriPath(consumerNode, address);
                 // 写入consumer节点
                 zkClient.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(registerZNodePath);

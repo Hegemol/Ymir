@@ -43,7 +43,11 @@ public abstract class DefaultAbstractServiceDiscovery implements ServiceDiscover
 
     @Override
     public List<ServiceBean> findServiceList(String name) throws Exception {
-        return SERVER_MAP.getIfPresent(name);
+        List<ServiceBean> serviceList = SERVER_MAP.getIfPresent(name);
+        if (!CollectionUtils.isEmpty(serviceList)) {
+            return serviceList;
+        }
+        return findServiceListByRegisterCenter(name);
     }
 
     /**
@@ -52,4 +56,12 @@ public abstract class DefaultAbstractServiceDiscovery implements ServiceDiscover
      * @param serviceList 服务列表
      */
     protected abstract void handleClient(List<ServiceBean> serviceList);
+
+    /**
+     * 从注册中心读取服务列表
+     *
+     * @param name 服务名
+     * @return 服务列表
+     */
+    protected abstract List<ServiceBean> findServiceListByRegisterCenter(String name) throws Exception;
 }
