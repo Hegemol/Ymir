@@ -19,14 +19,17 @@ import org.season.ymir.core.property.RegisterCenterProperty;
 import org.season.ymir.core.property.YmirConfigurationProperty;
 import org.season.ymir.core.protocol.MessageProtocol;
 import org.season.ymir.server.YmirNettyServer;
+import org.season.ymir.server.discovery.NacosServiceDiscovery;
 import org.season.ymir.server.discovery.ServiceDiscovery;
 import org.season.ymir.server.discovery.ZookeeperServiceDiscovery;
 import org.season.ymir.server.handler.NettyServerHandler;
 import org.season.ymir.spi.loader.ExtensionLoader;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
+import java.util.Objects;
 import java.util.Properties;
 
 /**
@@ -34,11 +37,37 @@ import java.util.Properties;
  *
  * @author KevinClair
  */
-@EnableConfigurationProperties({YmirConfigurationProperty.class, RegisterCenterProperty.class})
 @ConditionalOnProperty(value = "ymir.register.url")
+@Configuration
 public class YmirBeanAutoConfiguration {
 
-    @ConditionalOnProperty(value = "ymir.register.type", havingValue = "zookeeper")
+
+    /**
+     * 注册YmirConfigurationProperty.
+     *
+     * @return
+     */
+    @Bean
+    @ConfigurationProperties(prefix = "ymir")
+    public YmirConfigurationProperty ymirConfigurationProperty(){
+        return new YmirConfigurationProperty();
+    }
+
+    /**
+     * 注册RegisterCenterProperty.
+     *
+     * @return
+     */
+    @Bean
+    @ConfigurationProperties(prefix = "ymir.register")
+    public RegisterCenterProperty registerCenterProperty(){
+        return new RegisterCenterProperty();
+    }
+
+    /**
+     * zookeeper注册中心注册器
+     */
+    @ConditionalOnProperty(prefix = "ymir.register", name = "type", havingValue = "zookeeper")
     static class ZookeeperClientRegisterCenter{
 
         /**
@@ -87,6 +116,10 @@ public class YmirBeanAutoConfiguration {
         }
     }
 
+    /**
+     * nacos注册中心注册器
+     */
+    @ConditionalOnProperty(prefix = "ymir.register", name = "type", havingValue = "nacos")
     static class NacosClientRegisterCenter{
 
         /**
@@ -96,13 +129,17 @@ public class YmirBeanAutoConfiguration {
          * @return {@link NamingService}
          * @throws NacosException {@link NacosException}
          */
+        @Bean
         public NamingService namingService(RegisterCenterProperty nacosCenterProperty) throws NacosException {
-            final Properties props = nacosCenterProperty.getProps();
             Properties nacosProperties = new Properties();
             // server address.
             nacosProperties.put(PropertyKeyConst.SERVER_ADDR, nacosCenterProperty.getUrl());
+            final Properties props = nacosCenterProperty.getProps();
+            if (Objects.isNull(props)){
+                return NamingFactory.createNamingService(nacosProperties);
+            }
             // name space.
-            nacosProperties.put(PropertyKeyConst.NAMESPACE, props.getProperty(PropertyKeyConst.NAMESPACE));
+            nacosProperties.put(PropertyKeyConst.NAMESPACE, props.getProperty(PropertyKeyConst.NAMESPACE, ""));
             // the nacos authentication username
             nacosProperties.put(PropertyKeyConst.USERNAME, props.getProperty(PropertyKeyConst.USERNAME, ""));
             // the nacos authentication password
@@ -122,8 +159,19 @@ public class YmirBeanAutoConfiguration {
          * @return {@link ZookeeperServiceRegister}
          */
         @Bean
-        public ServiceRegister zookeeperServiceRegister(YmirConfigurationProperty clientProperty, NamingService namingService){
+        public ServiceRegister nacosServiceRegister(YmirConfigurationProperty clientProperty, NamingService namingService){
             return new NacosServiceRegister(namingService, clientProperty.getPort(), clientProperty.getProtocol());
+        }
+
+        /**
+         * 服务发现
+         *
+         * @param namingService nacos客户端
+         * @return {@link ServiceDiscovery}
+         */
+        @Bean
+        public ServiceDiscovery ymirServiceDiscovery(NamingService namingService, YmirNettyClient client){
+            return new NacosServiceDiscovery(namingService, client);
         }
     }
 
