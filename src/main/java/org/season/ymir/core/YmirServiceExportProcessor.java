@@ -2,7 +2,6 @@ package org.season.ymir.core;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.season.ymir.client.proxy.YmirClientProxyFactory;
-import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.register.ServiceRegister;
@@ -126,11 +125,10 @@ public class YmirServiceExportProcessor implements ApplicationListener<ContextRe
                 // TODO 服务检测根据注册类型重写
                 if(reference.check()) {
                     try {
-                        String servicePath = CommonConstant.PATH_DELIMITER + fieldClass.getName() + CommonConstant.PATH_DELIMITER + CommonConstant.SERVICE_PROVIDER_SIDE;
-//                        List<String> childrenList = zkClient.getChildren().forPath(servicePath);
-//                        if (Objects.isNull(childrenList) || childrenList.size() == 0){
-//                            throw new RpcException(String.format("No provider available for service %s from path %s", fieldClass.getName(), servicePath));
-//                        }
+                        final List<ServiceBean> serviceBeans = serviceDiscovery.findServiceList(fieldClass.getName());
+                        if (Objects.isNull(serviceBeans) || serviceBeans.isEmpty()){
+                            throw new RpcException(String.format("No provider available for service %s", fieldClass.getName()));
+                        }
                     } catch (Exception e) {
                         logger.error("Check service error:{}", ExceptionUtils.getStackTrace(e));
                         throw new RpcException(e);
