@@ -52,16 +52,12 @@ public class ZookeeperServiceDiscovery extends DefaultAbstractServiceDiscovery {
 
     @Override
     public List<ServiceBean> findServiceListByRegisterCenter(String name) throws Exception {
-        List<ServiceBean> serviceList = super.findServiceList(name);
-        if (!CollectionUtils.isEmpty(serviceList)) {
-            return serviceList;
-        }
         String servicePath = CommonConstant.PATH_DELIMITER + name + CommonConstant.PATH_DELIMITER + CommonConstant.SERVICE_PROVIDER_SIDE;
         List<String> children = zkClient.getChildren().forPath(servicePath);
         if (CollectionUtils.isEmpty(children)){
             throw new RpcException(String.format("No provider available for service %s from registry address %s",name, zkClient.getZookeeperClient().getCurrentConnectionString()));
         }
-        serviceList = Optional.ofNullable(children).orElseGet(() -> new ArrayList<>()).stream().map(path -> {
+        List<ServiceBean> serviceList = Optional.ofNullable(children).orElseGet(() -> new ArrayList<>()).stream().map(path -> {
             String serviceBeanUri = null;
             try {
                 serviceBeanUri = new String(zkClient.getData().forPath(String.join(CommonConstant.PATH_DELIMITER, servicePath, path)), CommonConstant.UTF_8);
