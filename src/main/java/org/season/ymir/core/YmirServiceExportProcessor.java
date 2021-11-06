@@ -7,6 +7,7 @@ import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.register.ServiceRegister;
 import org.season.ymir.core.annotation.YmirReference;
 import org.season.ymir.core.annotation.YmirService;
+import org.season.ymir.core.generic.GenericService;
 import org.season.ymir.core.property.YmirConfigurationProperty;
 import org.season.ymir.server.YmirNettyServer;
 import org.season.ymir.server.discovery.ServiceDiscovery;
@@ -122,16 +123,18 @@ public class YmirServiceExportProcessor implements ApplicationListener<ContextRe
                     continue;
                 }
                 Class<?> fieldClass = field.getType();
-                // TODO 服务检测根据注册类型重写
                 if(reference.check()) {
-                    try {
-                        final List<ServiceBean> serviceBeans = serviceDiscovery.findServiceList(fieldClass.getName());
-                        if (Objects.isNull(serviceBeans) || serviceBeans.isEmpty()){
-                            throw new RpcException(String.format("No provider available for service %s", fieldClass.getName()));
+                    if (!fieldClass.getName().equals(GenericService.class.getName())) {
+                        // do nothing
+                        try {
+                            final List<ServiceBean> serviceBeans = serviceDiscovery.findServiceList(fieldClass.getName());
+                            if (Objects.isNull(serviceBeans) || serviceBeans.isEmpty()) {
+                                throw new RpcException(String.format("No provider available for service %s", fieldClass.getName()));
+                            }
+                        } catch (Exception e) {
+                            logger.error("Check service error:{}", ExceptionUtils.getStackTrace(e));
+                            throw new RpcException(e);
                         }
-                    } catch (Exception e) {
-                        logger.error("Check service error:{}", ExceptionUtils.getStackTrace(e));
-                        throw new RpcException(e);
                     }
                 }
                 Object object = context.getBean(name);
