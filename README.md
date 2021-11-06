@@ -25,7 +25,7 @@ Ymir，出自动漫[进击的巨人](https://baike.baidu.com/item/%E8%BF%9B%E5%8
 * 注册事件通知
 
 ## 如何使用
-### 前提操作
+### 添加依赖
 * 克隆代码到本地仓库
 `git clone https://github.com/KevinClair/Ymir.git`
 * 打包到本地Maven仓库
@@ -51,11 +51,21 @@ private Integer port = 20777;
  * 服务序列化协议
  */
 private String protocol = "protoBuf";
-
-/**
- * 消息体的最大
- */
-private int maxSize = 1024;
+```
+* Ymir对注册中心的支持;
+  * 目前已支持Zookeeper和Nacos;
+  * 预留接口[ServiceDiscovery](src/main/java/org/season/ymir/server/discovery/ServiceDiscovery.java)以及[ServiceRegister](src/main/java/org/season/ymir/common/register/ServiceRegister.java);
+  * 新增加的接口只需要实现上面两个接口就可以无缝对接;
+```yaml
+ymir:
+  register:
+    // 目前可选注册类型zookeeper和nacos
+    type: zookeeper 
+    // 注册中心地址，集群用`,`分隔
+    url: localhost:2181
+    // 客户端连接参数，一般为连接超时时间等
+    props:
+      connectionTimeout: 6000
 ```
 #### 注解支持
 * @YmirService
@@ -160,6 +170,23 @@ public class TestController {
 curl --location --request POST 'http://localhost:port/name?name=11'
 ```
 ## Ymir的一些设计理念
+### 泛化调用
+#### 如何使用
+* Ymir的泛化调用允许客户端不依赖服务端的依赖就可以调用服务。在需要使用的地方添加[GenericService](src/main/java/org/season/ymir/core/generic/GenericService.java)的引入即可;
+```java
+@RestController
+public class TestController {
+
+    @YmirReference
+    private GenericService service;
+
+    @PostMapping("/name")
+    public String get(@RequestParam("name") String name){
+        return service.invoke("org.season.ymir.example.client.controller.TestInterface", "test", new String[]{"java.lang.String"}, new Object[]{name});
+    }
+}
+```
+* 在invoke的方法中填入参数就可以通过泛化调用请求服务;
 ### SPI
 #### Java SPI
 * Java的SPI允许我们在对应的位置添加实现，就可以通过`ServiceLoader`来加载对应的接口实现，但是缺点在于会一次性加载所有的扩展点，例如：
