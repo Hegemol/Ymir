@@ -1,21 +1,16 @@
 package org.season.ymir.core;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.recipes.cache.PathChildrenCache;
-import org.apache.zookeeper.CreateMode;
 import org.season.ymir.client.proxy.YmirClientProxyFactory;
-import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.register.ServiceRegister;
-import org.season.ymir.common.utils.ZkPathUtils;
 import org.season.ymir.core.annotation.YmirReference;
 import org.season.ymir.core.annotation.YmirService;
+import org.season.ymir.core.generic.GenericService;
 import org.season.ymir.core.property.YmirConfigurationProperty;
-import org.season.ymir.core.zookeeper.ZookeeperNodeChangeListener;
 import org.season.ymir.server.YmirNettyServer;
-import org.season.ymir.server.discovery.YmirServiceDiscovery;
+import org.season.ymir.server.discovery.ServiceDiscovery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -44,15 +39,13 @@ public class YmirServiceExportProcessor implements ApplicationListener<ContextRe
     private ServiceRegister serviceRegister;
     private YmirNettyServer nettyServer;
     private YmirClientProxyFactory proxyFactory;
-    private CuratorFramework zkClient;
     private YmirConfigurationProperty property;
-    private YmirServiceDiscovery serviceDiscovery;
+    private ServiceDiscovery serviceDiscovery;
 
-    public YmirServiceExportProcessor(ServiceRegister serviceRegister, YmirNettyServer nettyServer, YmirClientProxyFactory proxyFactory, CuratorFramework zkClient, YmirConfigurationProperty property, YmirServiceDiscovery serviceDiscovery) {
+    public YmirServiceExportProcessor(ServiceRegister serviceRegister, YmirNettyServer nettyServer, YmirClientProxyFactory proxyFactory, YmirConfigurationProperty property, ServiceDiscovery serviceDiscovery) {
         this.serviceRegister = serviceRegister;
         this.nettyServer = nettyServer;
         this.proxyFactory = proxyFactory;
-        this.zkClient = zkClient;
         this.property = property;
         this.serviceDiscovery = serviceDiscovery;
     }
@@ -130,17 +123,18 @@ public class YmirServiceExportProcessor implements ApplicationListener<ContextRe
                     continue;
                 }
                 Class<?> fieldClass = field.getType();
-                // 服务检测
-                if(reference.check()){
-                    try {
-                        String servicePath = CommonConstant.PATH_DELIMITER + fieldClass.getName() + CommonConstant.PATH_DELIMITER + CommonConstant.ZK_SERVICE_PROVIDER_PATH;
-                        List<String> childrenList = zkClient.getChildren().forPath(servicePath);
-                        if (Objects.isNull(childrenList) || childrenList.size() == 0){
-                            throw new RpcException(String.format("No provider available for service %s from path %s", fieldClass.getName(), servicePath));
+                if(reference.check()) {
+                    if (!fieldClass.getName().equals(GenericService.class.getName())) {
+                        // do nothing
+                        try {
+                            final List<ServiceBean> serviceBeans = serviceDiscovery.findServiceList(fieldClass.getName());
+                            if (Objects.isNull(serviceBeans) || serviceBeans.isEmpty()) {
+                                throw new RpcException(String.format("No provider available for service %s", fieldClass.getName()));
+                            }
+                        } catch (Exception e) {
+                            logger.error("Check service error:{}", ExceptionUtils.getStackTrace(e));
+                            throw new RpcException(e);
                         }
-                    } catch (Exception e) {
-                        logger.error("Check service error:{}", ExceptionUtils.getStackTrace(e));
-                        throw new RpcException(e);
                     }
                 }
                 Object object = context.getBean(name);
@@ -156,23 +150,8 @@ public class YmirServiceExportProcessor implements ApplicationListener<ContextRe
             }
         }
         // 注册子节点监听
-        serviceList.forEach(name -> {
-            try {
-                // 节点监听
-                String servicePath = CommonConstant.PATH_DELIMITER + name + CommonConstant.PATH_DELIMITER + CommonConstant.ZK_SERVICE_PROVIDER_PATH;
-                final PathChildrenCache childrenCache = new PathChildrenCache(zkClient, servicePath, true);
-                childrenCache.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
-                childrenCache.getListenable().addListener(new ZookeeperNodeChangeListener(serviceDiscovery));
+        serviceDiscovery.listener(serviceList, address);
 
-                String consumerNode = CommonConstant.PATH_DELIMITER + name + CommonConstant.PATH_DELIMITER + CommonConstant.ZK_SERVICE_SERVER_PATH;
-                String registerZNodePath = ZkPathUtils.buildUriPath(consumerNode, address);
-                // 写入consumer节点
-                zkClient.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(registerZNodePath);
-            } catch (Exception e) {
-                logger.error("Zookeeper node add listener error, message:{}", ExceptionUtils.getStackTrace(e));
-                throw new RpcException(e);
-            }
-        });
-        logger.info("Subscribe service zk node successfully");
+        logger.info("Subscribe service successfully");
     }
 }

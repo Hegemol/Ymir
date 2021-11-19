@@ -12,7 +12,7 @@ import java.util.List;
  *
  * @author KevinClair
  **/
-public abstract class DefaultAbstractYmirServiceDiscovery implements YmirServiceDiscovery {
+public abstract class DefaultAbstractServiceDiscovery implements ServiceDiscovery {
 
     // 本地缓存
     private static final Cache<String, List<ServiceBean>> SERVER_MAP = Caffeine.newBuilder()
@@ -43,7 +43,11 @@ public abstract class DefaultAbstractYmirServiceDiscovery implements YmirService
 
     @Override
     public List<ServiceBean> findServiceList(String name) throws Exception {
-        return SERVER_MAP.getIfPresent(name);
+        List<ServiceBean> serviceList = SERVER_MAP.getIfPresent(name);
+        if (!CollectionUtils.isEmpty(serviceList)) {
+            return serviceList;
+        }
+        return findServiceListByRegisterCenter(name);
     }
 
     /**
@@ -52,4 +56,12 @@ public abstract class DefaultAbstractYmirServiceDiscovery implements YmirService
      * @param serviceList 服务列表
      */
     protected abstract void handleClient(List<ServiceBean> serviceList);
+
+    /**
+     * 从注册中心读取服务列表
+     *
+     * @param name 服务名
+     * @return 服务列表
+     */
+    protected abstract List<ServiceBean> findServiceListByRegisterCenter(String name) throws Exception;
 }

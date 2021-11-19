@@ -319,4 +319,4 @@ public class SpiTest {
 * YmirReference属性扩展，多版本，分组等；
 * Filter过滤器；
 * 负载均衡算法优化；
-* 线程池统一管理；
+* 增加provider和consumer的线程池配置参数;

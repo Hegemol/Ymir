@@ -8,9 +8,11 @@ import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.model.InvocationMessage;
 import org.season.ymir.common.model.YmirRequest;
 import org.season.ymir.common.model.YmirResponse;
+import org.season.ymir.common.utils.ClassUtil;
 import org.season.ymir.common.utils.LoadBalanceUtils;
 import org.season.ymir.core.annotation.YmirReference;
-import org.season.ymir.server.discovery.YmirServiceDiscovery;
+import org.season.ymir.core.generic.GenericService;
+import org.season.ymir.server.discovery.ServiceDiscovery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
  **/
 public class YmirClientProxyFactory {
 
-    private YmirServiceDiscovery serviceDiscovery;
+    private ServiceDiscovery serviceDiscovery;
 
     private YmirNettyClient netClient;
 
@@ -66,7 +68,30 @@ public class YmirClientProxyFactory {
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
             // 1.获得服务信息
+            String className = clazz.getName();
             String serviceName = clazz.getName();
+            Object[] parameters = args;
+            Class<?>[] parameterTypes = method.getParameterTypes();
+            String methodName = method.getName();
+            // 泛化调用实现
+            if (className.equals(GenericService.class.getName()) && method.getName().equals("invoke")) {
+                // 如果是泛化调用，根据参数查找服务名;
+                serviceName = (String) args[0];
+                methodName = (String) args[1];
+                Class<?>[] paramTypes = null;
+                if (Objects.nonNull(args[2])){
+                    // 解析请求参数类型
+                    String[] paramTypesStringArray = (String[]) args[2];
+                    if (Objects.nonNull(paramTypesStringArray) && paramTypesStringArray.length > 0) {
+                        paramTypes = new Class[paramTypesStringArray.length];
+                        for (int i = 0; i < paramTypesStringArray.length; i++) {
+                            paramTypes[i] = ClassUtil.resolveClass(paramTypesStringArray[i]);
+                        }
+                    }
+                }
+                parameterTypes = paramTypes;
+                parameters = (Object[]) args[3];
+            }
             List<ServiceBean> services = serviceDiscovery.findServiceList(serviceName);
             // TODO 此处address地址
             ServiceBean service = LoadBalanceUtils.selector(services, reference.loadBalance(), reference.url(), "");
@@ -78,9 +103,9 @@ public class YmirClientProxyFactory {
             requestInvocationMessage.setTimeout(reference.timeout());
             YmirRequest request = new YmirRequest();
             request.setServiceName(service.getName());
-            request.setMethod(method.getName());
-            request.setParameters(args);
-            request.setParameterTypes(method.getParameterTypes());
+            request.setMethod(methodName);
+            request.setParameters(parameters);
+            request.setParameterTypes(parameterTypes);
             requestInvocationMessage.setBody(request);
             // 3.发送请求
             YmirResponse response = netClient.sendRequest(requestInvocationMessage, service);
@@ -96,7 +121,7 @@ public class YmirClientProxyFactory {
         }
     }
 
-    public YmirClientProxyFactory(YmirServiceDiscovery serviceDiscovery, YmirNettyClient netClient) {
+    public YmirClientProxyFactory(ServiceDiscovery serviceDiscovery, YmirNettyClient netClient) {
         this.serviceDiscovery = serviceDiscovery;
         this.netClient = netClient;
     }

@@ -29,6 +29,8 @@
 
     <properties>
         <java.version>1.8</java.version>
+        <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <zkclient.version>0.10</zkclient.version>
         <curator.version>2.7.1</curator.version>
         <protostuff.version>1.0.7</protostuff.version>
@@ -39,6 +41,7 @@
         <caffeine.version>2.8.8</caffeine.version>
         <netty-all.version>4.1.59.Final</netty-all.version>
         <hessian.version>4.0.63</hessian.version>
+        <nacos.version>1.4.1</nacos.version>
         <maven-javadoc-plugin.version>3.2.0</maven-javadoc-plugin.version>
         <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
     </properties>
@@ -49,6 +52,12 @@
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-recipes</artifactId>
             <version>${curator.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.alibaba.nacos</groupId>
+            <artifactId>nacos-client</artifactId>
+            <version>${nacos.version}</version>
         </dependency>
 
         <dependency>

@@ -9,7 +9,7 @@ import java.util.List;
  *
  * @author KevinClair
  **/
-public interface YmirServiceDiscovery {
+public interface ServiceDiscovery {
 
     /**
      * 服务发现
@@ -49,4 +49,12 @@ public interface YmirServiceDiscovery {
      * @param serviceList 实例列表
      */
     void put(String serviceName, List<ServiceBean> serviceList);
+
+    /**
+     * 服务监听
+     *
+     * @param serviceList 服务列表
+     * @param address     地址
+     */
+    void listener(List<String> serviceList, String address);
 }

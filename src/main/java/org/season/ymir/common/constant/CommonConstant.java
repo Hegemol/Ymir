@@ -18,19 +18,24 @@ public class CommonConstant {
     public static final String ZK_SERVICE_PATH = "/ymir";
 
     /**
-     * Zookeeper客户端地址
+     * 客户端地址
      */
-    public static final String ZK_SERVICE_PROVIDER_PATH = "providers";
+    public static final String SERVICE_PROVIDER_SIDE = "providers";
 
     /**
-     * Zookeeper服务端地址
+     * 服务端地址
      */
-    public static final String ZK_SERVICE_SERVER_PATH = "consumers";
+    public static final String SERVICE_CONSUMER_SIDE = "consumers";
 
     /**
      * 路径分隔符
      */
     public static final String PATH_DELIMITER = "/";
+
+    /**
+     * nacos实例分隔符
+     */
+    public static final String INSTANCE_DELIMITER = ":";
 
     /**
      * 重连频率，单位：秒
