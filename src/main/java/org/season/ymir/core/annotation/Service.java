@@ -42,5 +42,5 @@ public @interface Service {
     /**
      * 过滤器
      */
-    String filter() default "";
+    String[] filter() default {};
 }
