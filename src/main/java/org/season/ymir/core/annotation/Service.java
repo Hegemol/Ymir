@@ -17,7 +17,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Component
 @Documented
-public @interface YmirService {
+public @interface Service {
 
     /**
      * 权重
@@ -38,4 +38,9 @@ public @interface YmirService {
      * 版本
      */
     String version() default "";
+
+    /**
+     * 过滤器
+     */
+    String filter() default "";
 }

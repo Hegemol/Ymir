@@ -10,7 +10,7 @@ import org.season.ymir.common.model.YmirRequest;
 import org.season.ymir.common.model.YmirResponse;
 import org.season.ymir.common.utils.ClassUtil;
 import org.season.ymir.common.utils.LoadBalanceUtils;
-import org.season.ymir.core.annotation.YmirReference;
+import org.season.ymir.core.annotation.Reference;
 import org.season.ymir.core.generic.GenericService;
 import org.season.ymir.server.discovery.ServiceDiscovery;
 import org.slf4j.Logger;
@@ -45,7 +45,7 @@ public class YmirClientProxyFactory {
      * @param <T>
      * @return
      */
-    public <T> T getProxy(Class<T> clazz, YmirReference reference) {
+    public <T> T getProxy(Class<T> clazz, Reference reference) {
         return (T) objectCache.computeIfAbsent(clazz, clz ->
                 Proxy.newProxyInstance(clz.getClassLoader(), new Class[]{clz}, new ClientInvocationHandler(clz, reference))
         );
@@ -58,9 +58,9 @@ public class YmirClientProxyFactory {
 
         private Class<?> clazz;
 
-        private YmirReference reference;
+        private Reference reference;
 
-        public ClientInvocationHandler(Class<?> clazz, YmirReference reference) {
+        public ClientInvocationHandler(Class<?> clazz, Reference reference) {
             this.clazz = clazz;
             this.reference = reference;
         }
