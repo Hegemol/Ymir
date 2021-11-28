@@ -13,7 +13,7 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Component
 @Documented
-public @interface YmirReference {
+public @interface Reference {
 
     /**
      * 检查服务状态
@@ -41,4 +41,9 @@ public @interface YmirReference {
      * 服务直连url
      */
     String url() default "";
+
+    /**
+     * 过滤器
+     */
+    String filter() default "";
 }

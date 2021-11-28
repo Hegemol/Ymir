@@ -5,8 +5,8 @@ import org.season.ymir.client.proxy.YmirClientProxyFactory;
 import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.register.ServiceRegister;
-import org.season.ymir.core.annotation.YmirReference;
-import org.season.ymir.core.annotation.YmirService;
+import org.season.ymir.core.annotation.Reference;
+import org.season.ymir.core.annotation.Service;
 import org.season.ymir.core.generic.GenericService;
 import org.season.ymir.core.property.YmirConfigurationProperty;
 import org.season.ymir.server.YmirNettyServer;
@@ -19,10 +19,7 @@ import org.springframework.context.event.ContextRefreshedEvent;
 
 import java.lang.reflect.Field;
 import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -75,14 +72,13 @@ public class YmirServiceExportProcessor implements ApplicationListener<ContextRe
     }
 
     private void registerService(ApplicationContext context, String address) {
-        Map<String, Object> beans = context.getBeansWithAnnotation(YmirService.class);
+        Map<String, Object> beans = context.getBeansWithAnnotation(Service.class);
 
         if (beans.size() > 0) {
             for (Object obj : beans.values()) {
                 try {
                     Class<?> clazz = obj.getClass();
-                    ServiceBean serviceBean;
-                    YmirService service = clazz.getAnnotation(YmirService.class);
+                    Service service = clazz.getAnnotation(Service.class);
                     // 如果不需要注册，跳过
                     if (!service.register()) {
                         continue;
@@ -92,8 +88,7 @@ public class YmirServiceExportProcessor implements ApplicationListener<ContextRe
                         logger.error("Only one interface class can be inherited, class {} is illegal!", obj.getClass().getName());
                         continue;
                     }
-                    Class<?> superInterface = interfaces[0];
-                    serviceBean = new ServiceBean(superInterface.getName(), clazz.getName(), address, service.weight(), service.group(), service.version());
+                    ServiceBean serviceBean = new ServiceBean(interfaces[0].getName(), clazz.getName(), address, service.weight(), service.group(), service.version(), Arrays.asList(service.filter()));
                     // register bean;
                     serviceRegister.registerBean(serviceBean);
                     logger.info("Service {} register success", obj.getClass().getName());
@@ -118,7 +113,7 @@ public class YmirServiceExportProcessor implements ApplicationListener<ContextRe
 
             Field[] declaredFields = clazz.getDeclaredFields();
             for (Field field : declaredFields) {
-                YmirReference reference = field.getAnnotation(YmirReference.class);
+                Reference reference = field.getAnnotation(Reference.class);
                 if (Objects.isNull(reference)) {
                     continue;
                 }

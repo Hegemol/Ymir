@@ -13,7 +13,8 @@ public interface Filter {
     /**
      * 处理器
      *
+     * @param filterChain 执行器 {@link FilterChain}
      * @param serviceBean {@link ServiceBean}
      */
-    void handler(ServiceBean serviceBean);
+    void handler(FilterChain filterChain, ServiceBean serviceBean);
 }
