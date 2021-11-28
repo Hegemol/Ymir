@@ -96,7 +96,7 @@ public @interface Service {
 ```
 * @Reference
 ```java
-public @interface YmirReference {
+public @interface Reference {
 
     /**
      * 启动时检查
@@ -134,7 +134,7 @@ public interface TestService {
 ```
 * 在需要暴露的服务上添加注解
 ```java
-@YmirService
+@Service
 public class TestServiceImpl implements TestService {
     @Override
     public String test(String name) {
@@ -157,7 +157,7 @@ public class TestServiceImpl implements TestService {
 @RestController
 public class TestController {
 
-    @YmirReference
+    @Reference
     private TestService service;
 
     @PostMapping("/name")
@@ -198,7 +198,7 @@ import org.season.ymir.core.context.RpcContext;
 @RestController
 public class TestController {
 
-  @YmirReference
+  @Reference
   private TestService service;
 
   @PostMapping("/name")
@@ -213,7 +213,7 @@ public class TestController {
 ```java
 import org.season.ymir.core.context.RpcContext;
 
-@YmirService
+@Service
 public class TestServiceImpl implements TestService {
   @Override
   public String test(String name) {
