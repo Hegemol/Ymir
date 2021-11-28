@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author KevinClair
  */
-public class ThreadFactory implements java.util.concurrent.ThreadFactory {
+public class YmirThreadFactory implements ThreadFactory {
 
     private static final AtomicInteger poolNumber = new AtomicInteger(1);
     private final ThreadGroup group;
@@ -18,7 +18,7 @@ public class ThreadFactory implements java.util.concurrent.ThreadFactory {
     private final AtomicInteger threadNumber = new AtomicInteger(1);
     private final String namePrefix;
 
-    public ThreadFactory(String name) {
+    public YmirThreadFactory(String name) {
 
         SecurityManager s = System.getSecurityManager();
         group = (s != null) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
