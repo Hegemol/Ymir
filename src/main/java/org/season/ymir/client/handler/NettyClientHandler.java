@@ -16,6 +16,7 @@ import org.season.ymir.common.model.InvocationMessage;
 import org.season.ymir.common.model.Request;
 import org.season.ymir.common.model.Response;
 import org.season.ymir.common.utils.GsonUtils;
+import org.season.ymir.core.context.RpcContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,6 +105,8 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<InvocationMe
         InvocationMessage<Response> response;
         CompletableFuture<InvocationMessage<Response>> completableFuture = new CompletableFuture<>();
         requestMap.put(request.getRequestId(), completableFuture);
+        request.setHeaders(RpcContext.getContext().getAttachments());
+        RpcContext.clear();
         try {
             channel.writeAndFlush(request);
             // 等待响应

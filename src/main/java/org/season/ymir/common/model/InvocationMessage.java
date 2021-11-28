@@ -47,12 +47,13 @@ public class InvocationMessage<T> implements Serializable {
     public InvocationMessage() {
     }
 
-    public InvocationMessage(final String requestId, final int timeout, final int retries, final InvocationType type, final T body) {
+    public InvocationMessage(final String requestId, final int timeout, final int retries, final InvocationType type, final T body, final Map<String,String> headers) {
         this.requestId = requestId;
         this.timeout = timeout;
         this.retries = retries;
         this.type = type;
         this.body = body;
+        this.headers = headers;
     }
 
     /**
@@ -143,5 +144,23 @@ public class InvocationMessage<T> implements Serializable {
      */
     public void setBody(final T body) {
         this.body = body;
+    }
+
+    /**
+     * Gets the value of headers.
+     *
+     * @return the value of headers
+     */
+    public Map<String, String> getHeaders() {
+        return headers;
+    }
+
+    /**
+     * Sets the headers.
+     *
+     * @param headers headers
+     */
+    public void setHeaders(final Map<String, String> headers) {
+        this.headers = headers;
     }
 }

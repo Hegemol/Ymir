@@ -25,6 +25,13 @@ public class RpcContext {
     }
 
     /**
+     * Clear ThreadLocal.
+     */
+    public static void clear(){
+        LOCAL.remove();
+    }
+
+    /**
      * get context.
      *
      * @return {@link RpcContext}

@@ -11,6 +11,7 @@ import org.season.ymir.common.model.Request;
 import org.season.ymir.common.model.Response;
 import org.season.ymir.common.utils.GsonUtils;
 import org.season.ymir.core.ThreadPoolFactory;
+import org.season.ymir.core.context.RpcContext;
 import org.season.ymir.core.handler.RequestHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,6 +68,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<InvocationMe
                 if (logger.isDebugEnabled()){
                     logger.debug("Server receives message :{}", msg);
                 }
+                msg.getHeaders().forEach((k, v) -> RpcContext.getContext().setAttachments(k, v));
                 InvocationMessage<Response> response = requestHandler.handleRequest(msg.getBody(), msg.getRequestId());
                 if (logger.isDebugEnabled()){
                     logger.debug("Server return response:{}", GsonUtils.getInstance().toJson(response));
@@ -74,6 +76,8 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<InvocationMe
                 ctx.writeAndFlush(response);
             } catch (Exception e) {
                 logger.error("Server read exception:{}", ExceptionUtils.getStackTrace(e));
+            } finally {
+                RpcContext.clear();
             }
         });
     }
