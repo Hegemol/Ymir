@@ -14,8 +14,8 @@ Ymir，出自动漫[进击的巨人](https://baike.baidu.com/item/%E8%BF%9B%E5%8
   ![](./images/Ymir架构设计.png)
 
 ## Ymir有哪些功能
-* 只订阅(doing)
-* 启动时检查(doing)
+* 只订阅
+* 启动时检查
 * 负载均衡
 * 超时检测
 * 服务重试(doing)
@@ -23,6 +23,7 @@ Ymir，出自动漫[进击的巨人](https://baike.baidu.com/item/%E8%BF%9B%E5%8
 * 服务分组(doing)
 * 多版本(doing)
 * 注册事件通知
+* 隐式传参
 
 ## 如何使用
 ### 添加依赖
@@ -43,19 +44,19 @@ Ymir，出自动漫[进击的巨人](https://baike.baidu.com/item/%E8%BF%9B%E5%8
 * Ymir共支持以下几种类型的配置信息
 ```text
 /**
- * 服务端口
+ * 服务端口,不填默认为20777
  */
 private Integer port = 20777;
 
 /**
- * 服务序列化协议
+ * 服务序列化协议, 不日按默认为proto
  */
-private String protocol = "protoBuf";
+private String protocol = "proto";
 ```
 * Ymir对注册中心的支持;
   * 目前已支持Zookeeper和Nacos;
   * 预留接口[ServiceDiscovery](src/main/java/org/season/ymir/server/discovery/ServiceDiscovery.java)以及[ServiceRegister](src/main/java/org/season/ymir/common/register/ServiceRegister.java);
-  * 新增加的接口只需要实现上面两个接口就可以无缝对接;
+  * 新增加的注册中心只需要实现上面两个接口就可以无缝对接;
 ```yaml
 ymir:
   register:
@@ -68,9 +69,9 @@ ymir:
       connectionTimeout: 6000
 ```
 #### 注解支持
-* @YmirService
+* @Service
 ```java
-public @interface YmirService {
+public @interface Service {
 
     /**
      * 权重
@@ -93,7 +94,7 @@ public @interface YmirService {
     String version() default "";
 }
 ```
-* @YmirReference
+* @Reference
 ```java
 public @interface YmirReference {
 
@@ -187,6 +188,40 @@ public class TestController {
 }
 ```
 * 在invoke的方法中填入参数就可以通过泛化调用请求服务;
+### 隐士传参
+#### 如何使用
+* Ymir的服务允许producer和consumer通过RpcContext进行跨端之间的参数传递;
+* consumer在使用时，只需要通过RpcContext进行参数设置即可;
+```java
+import org.season.ymir.core.context.RpcContext;
+
+@RestController
+public class TestController {
+
+  @YmirReference
+  private TestService service;
+
+  @PostMapping("/name")
+  public String get(@RequestParam("name") String name) {
+    RpcContext.getContext().setAttachments("testKey", "testValue");
+    return service.test(name);
+  }
+}
+```
+* producer就可以通过RpcContext进行获取传递的参数;
+
+```java
+import org.season.ymir.core.context.RpcContext;
+
+@YmirService
+public class TestServiceImpl implements TestService {
+  @Override
+  public String test(String name) {
+    RpcContext.getContext().getAttachments().get("testKey");
+    return "Hello " + name;
+  }
+}
+```
 ### SPI
 #### Java SPI
 * Java的SPI允许我们在对应的位置添加实现，就可以通过`ServiceLoader`来加载对应的接口实现，但是缺点在于会一次性加载所有的扩展点，例如：
