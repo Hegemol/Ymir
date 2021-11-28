@@ -178,7 +178,7 @@ curl --location --request POST 'http://localhost:port/name?name=11'
 @RestController
 public class TestController {
 
-    @YmirReference
+    @Reference
     private GenericService service;
 
     @PostMapping("/name")
