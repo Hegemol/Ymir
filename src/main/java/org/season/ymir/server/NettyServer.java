@@ -16,7 +16,7 @@ import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.core.codec.MessageDecoder;
 import org.season.ymir.core.codec.MessageEncoder;
 import org.season.ymir.core.heartbeat.HeartBeatRequestHandler;
-import org.season.ymir.core.property.YmirConfigurationProperty;
+import org.season.ymir.core.property.ConfigurationProperty;
 import org.season.ymir.core.protocol.MessageProtocol;
 import org.season.ymir.server.handler.NettyServerHandler;
 import org.season.ymir.spi.loader.ExtensionLoader;
@@ -31,22 +31,22 @@ import java.net.InetSocketAddress;
  *
  * @author KevinClair
  */
-public class YmirNettyServer implements DisposableBean {
+public class NettyServer implements DisposableBean {
 
-    private static final Logger logger = LoggerFactory.getLogger(YmirNettyServer.class);
+    private static final Logger logger = LoggerFactory.getLogger(NettyServer.class);
     /**
      * 心跳超时时间
      */
     private static final Integer READ_TIMEOUT_SECONDS = 3 * 60;
 
     private Channel channel;
-    private YmirConfigurationProperty property;
+    private ConfigurationProperty property;
     private NettyServerHandler nettyServerHandler;
     // 配置服务器
     private EventLoopGroup bossGroup = new NioEventLoopGroup();
     private EventLoopGroup workerGroup = new NioEventLoopGroup();
 
-    public YmirNettyServer(YmirConfigurationProperty property, NettyServerHandler nettyServerHandler) {
+    public NettyServer(ConfigurationProperty property, NettyServerHandler nettyServerHandler) {
         this.property = property;
         this.nettyServerHandler = nettyServerHandler;
     }

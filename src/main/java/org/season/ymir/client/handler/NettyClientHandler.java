@@ -7,14 +7,14 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleStateEvent;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.season.ymir.client.YmirClientCacheManager;
+import org.season.ymir.client.ClientCacheManager;
 import org.season.ymir.common.base.InvocationType;
 import org.season.ymir.common.base.ServiceStatusEnum;
 import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.exception.RpcTimeoutException;
 import org.season.ymir.common.model.InvocationMessage;
-import org.season.ymir.common.model.YmirRequest;
-import org.season.ymir.common.model.YmirResponse;
+import org.season.ymir.common.model.Request;
+import org.season.ymir.common.model.Response;
 import org.season.ymir.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +32,7 @@ import java.util.concurrent.TimeoutException;
  * @author KevinClair
  **/
 @ChannelHandler.Sharable
-public class NettyClientHandler extends SimpleChannelInboundHandler<InvocationMessage<YmirResponse>> {
+public class NettyClientHandler extends SimpleChannelInboundHandler<InvocationMessage<Response>> {
 
     private static Logger logger = LoggerFactory.getLogger(NettyClientHandler.class);
 
@@ -47,9 +47,9 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<InvocationMe
     private volatile Channel channel;
 
     /**
-     * 存储request的返回信息，key为每次请求{@link YmirRequest}的requestId，value为{@link CompletableFuture<InvocationMessage<YmirResponse>> }
+     * 存储request的返回信息，key为每次请求{@link Request}的requestId，value为{@link CompletableFuture<InvocationMessage< Response >> }
      */
-    private static Map<String, CompletableFuture<InvocationMessage<YmirResponse>>> requestMap = new ConcurrentHashMap<>();
+    private static Map<String, CompletableFuture<InvocationMessage<Response>>> requestMap = new ConcurrentHashMap<>();
 
     public NettyClientHandler(String remoteAddress) {
         this.remoteAddress = remoteAddress;
@@ -62,16 +62,16 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<InvocationMe
 
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-        YmirClientCacheManager.remove(remoteAddress);
+        ClientCacheManager.remove(remoteAddress);
         logger.error("Channel unregistered with remoteAddress:{}", remoteAddress);
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext channelHandlerContext, InvocationMessage<YmirResponse> data) throws Exception {
+    protected void channelRead0(ChannelHandlerContext channelHandlerContext, InvocationMessage<Response> data) throws Exception {
         if (logger.isDebugEnabled()) {
             logger.debug("Client reads message:{}", GsonUtils.getInstance().toJson(data));
         }
-        CompletableFuture<InvocationMessage<YmirResponse>> responseFuture = requestMap.get(data.getRequestId());
+        CompletableFuture<InvocationMessage<Response>> responseFuture = requestMap.get(data.getRequestId());
         // 如果超时导致requestMap中没有保存值，此处会返回null的future，直接操作会导致NullPointException.
         if (Objects.isNull(responseFuture)) {
             return;
@@ -82,7 +82,7 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<InvocationMe
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         logger.error("Exception occurred:{}", ExceptionUtils.getStackTrace(cause));
-        YmirClientCacheManager.remove(remoteAddress);
+        ClientCacheManager.remove(remoteAddress);
         ctx.close();
     }
 
@@ -100,20 +100,20 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<InvocationMe
         super.userEventTriggered(ctx, evt);
     }
 
-    public YmirResponse sendRequest(InvocationMessage<YmirRequest> request) {
-        InvocationMessage<YmirResponse> response;
-        CompletableFuture<InvocationMessage<YmirResponse>> completableFuture = new CompletableFuture<>();
+    public Response sendRequest(InvocationMessage<Request> request) {
+        InvocationMessage<Response> response;
+        CompletableFuture<InvocationMessage<Response>> completableFuture = new CompletableFuture<>();
         requestMap.put(request.getRequestId(), completableFuture);
         try {
             channel.writeAndFlush(request);
             // 等待响应
             response = completableFuture.get(request.getTimeout(), TimeUnit.MILLISECONDS);
         } catch (TimeoutException exception) {
-            YmirResponse timeoutExceptionResponse = new YmirResponse(ServiceStatusEnum.ERROR);
+            Response timeoutExceptionResponse = new Response(ServiceStatusEnum.ERROR);
             timeoutExceptionResponse.setThrowable(new RpcTimeoutException(String.format("Invoke remote method %s timeout with %s ms", String.join("#", request.getBody().getServiceName(), request.getBody().getMethod()), request.getTimeout())));
             return timeoutExceptionResponse;
         } catch (Exception e) {
-            YmirResponse exceptionResponse = new YmirResponse(ServiceStatusEnum.ERROR);
+            Response exceptionResponse = new Response(ServiceStatusEnum.ERROR);
             exceptionResponse.setThrowable(new RpcException(e));
             return exceptionResponse;
         } finally {

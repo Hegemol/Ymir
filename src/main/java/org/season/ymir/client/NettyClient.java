@@ -15,8 +15,8 @@ import org.season.ymir.client.handler.NettyClientHandler;
 import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.model.InvocationMessage;
-import org.season.ymir.common.model.YmirRequest;
-import org.season.ymir.common.model.YmirResponse;
+import org.season.ymir.common.model.Request;
+import org.season.ymir.common.model.Response;
 import org.season.ymir.core.codec.MessageDecoder;
 import org.season.ymir.core.codec.MessageEncoder;
 import org.season.ymir.core.heartbeat.HeartBeatResponseHandler;
@@ -31,15 +31,15 @@ import java.util.concurrent.TimeUnit;
  *
  * @author KevinClair
  **/
-public class YmirNettyClient {
+public class NettyClient {
 
     private MessageProtocol protocol;
 
-    public YmirNettyClient(final MessageProtocol protocol) {
+    public NettyClient(final MessageProtocol protocol) {
         this.protocol = protocol;
     }
 
-    private static Logger logger = LoggerFactory.getLogger(YmirNettyClient.class);
+    private static Logger logger = LoggerFactory.getLogger(NettyClient.class);
 
     // TODO 可配置化
     private EventLoopGroup loopGroup = new NioEventLoopGroup(4);
@@ -50,14 +50,14 @@ public class YmirNettyClient {
      *
      * @param rpcRequest 请求参数
      * @param service    服务信息
-     * @return {@link YmirResponse}
+     * @return {@link Response}
      */
-    public YmirResponse sendRequest(InvocationMessage<YmirRequest> rpcRequest, ServiceBean service) {
+    public Response sendRequest(InvocationMessage<Request> rpcRequest, ServiceBean service) {
 
         String address = service.getAddress();
         synchronized (address) {
-            if (YmirClientCacheManager.contains(address)) {
-                NettyClientHandler handler = YmirClientCacheManager.get(address);
+            if (ClientCacheManager.contains(address)) {
+                NettyClientHandler handler = ClientCacheManager.get(address);
                 return handler.sendRequest(rpcRequest);
             }
             final NettyClientHandler handler = new NettyClientHandler(address);
@@ -118,7 +118,7 @@ public class YmirNettyClient {
                 return;
             }
             logger.info("Server address:{} connect successfully.", address);
-            YmirClientCacheManager.put(address, handler);
+            ClientCacheManager.put(address, handler);
         });
     }
 

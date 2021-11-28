@@ -1,15 +1,15 @@
 package org.season.ymir.core;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.season.ymir.client.proxy.YmirClientProxyFactory;
+import org.season.ymir.client.proxy.ClientProxyFactory;
 import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.register.ServiceRegister;
 import org.season.ymir.core.annotation.Reference;
 import org.season.ymir.core.annotation.Service;
 import org.season.ymir.core.generic.GenericService;
-import org.season.ymir.core.property.YmirConfigurationProperty;
-import org.season.ymir.server.YmirNettyServer;
+import org.season.ymir.core.property.ConfigurationProperty;
+import org.season.ymir.server.NettyServer;
 import org.season.ymir.server.discovery.ServiceDiscovery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,19 +27,19 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * @author KevinClair
  */
-public class YmirServiceExportProcessor implements ApplicationListener<ContextRefreshedEvent> {
+public class ServiceExportProcessor implements ApplicationListener<ContextRefreshedEvent> {
 
     private final AtomicBoolean flag = new AtomicBoolean(false);
 
-    private static final Logger logger = LoggerFactory.getLogger(YmirServiceExportProcessor.class);
+    private static final Logger logger = LoggerFactory.getLogger(ServiceExportProcessor.class);
 
     private ServiceRegister serviceRegister;
-    private YmirNettyServer nettyServer;
-    private YmirClientProxyFactory proxyFactory;
-    private YmirConfigurationProperty property;
+    private NettyServer nettyServer;
+    private ClientProxyFactory proxyFactory;
+    private ConfigurationProperty property;
     private ServiceDiscovery serviceDiscovery;
 
-    public YmirServiceExportProcessor(ServiceRegister serviceRegister, YmirNettyServer nettyServer, YmirClientProxyFactory proxyFactory, YmirConfigurationProperty property, ServiceDiscovery serviceDiscovery) {
+    public ServiceExportProcessor(ServiceRegister serviceRegister, NettyServer nettyServer, ClientProxyFactory proxyFactory, ConfigurationProperty property, ServiceDiscovery serviceDiscovery) {
         this.serviceRegister = serviceRegister;
         this.nettyServer = nettyServer;
         this.proxyFactory = proxyFactory;

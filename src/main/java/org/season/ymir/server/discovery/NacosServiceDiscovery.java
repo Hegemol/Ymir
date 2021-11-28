@@ -5,8 +5,8 @@ import com.alibaba.nacos.api.naming.NamingService;
 import com.alibaba.nacos.api.naming.listener.NamingEvent;
 import com.alibaba.nacos.api.naming.pojo.Instance;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.season.ymir.client.YmirClientCacheManager;
-import org.season.ymir.client.YmirNettyClient;
+import org.season.ymir.client.ClientCacheManager;
+import org.season.ymir.client.NettyClient;
 import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.exception.RpcException;
@@ -30,9 +30,9 @@ public class NacosServiceDiscovery extends DefaultAbstractServiceDiscovery {
     private static final Logger logger = LoggerFactory.getLogger(NacosServiceDiscovery.class);
 
     private NamingService namingService;
-    private YmirNettyClient nettyClient;
+    private NettyClient nettyClient;
 
-    public NacosServiceDiscovery(final NamingService namingService, final YmirNettyClient nettyClient) {
+    public NacosServiceDiscovery(final NamingService namingService, final NettyClient nettyClient) {
         this.namingService = namingService;
         this.nettyClient = nettyClient;
     }
@@ -40,7 +40,7 @@ public class NacosServiceDiscovery extends DefaultAbstractServiceDiscovery {
     @Override
     protected void handleClient(List<ServiceBean> serviceList) {
         for (ServiceBean each : serviceList) {
-            boolean clientIsExisted = YmirClientCacheManager.contains(each.getAddress());
+            boolean clientIsExisted = ClientCacheManager.contains(each.getAddress());
             if (!clientIsExisted) {
                 nettyClient.initClient(each.getAddress());
             }

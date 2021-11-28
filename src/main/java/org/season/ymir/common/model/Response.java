@@ -9,7 +9,7 @@ import java.io.Serializable;
  *
  * @author KevinClair
  */
-public class YmirResponse implements Serializable {
+public class Response implements Serializable {
 
     /**
      * 返回结果
@@ -26,14 +26,14 @@ public class YmirResponse implements Serializable {
      */
     private ServiceStatusEnum statusEnum;
 
-    public YmirResponse() {
+    public Response() {
     }
 
-    public YmirResponse(final ServiceStatusEnum statusEnum) {
+    public Response(final ServiceStatusEnum statusEnum) {
         this.statusEnum = statusEnum;
     }
 
-    public YmirResponse(final Object result, final Throwable throwable, final ServiceStatusEnum statusEnum) {
+    public Response(final Object result, final Throwable throwable, final ServiceStatusEnum statusEnum) {
         this.result = result;
         this.throwable = throwable;
         this.statusEnum = statusEnum;

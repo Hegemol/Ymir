@@ -6,8 +6,8 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.apache.zookeeper.CreateMode;
-import org.season.ymir.client.YmirClientCacheManager;
-import org.season.ymir.client.YmirNettyClient;
+import org.season.ymir.client.ClientCacheManager;
+import org.season.ymir.client.NettyClient;
 import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.exception.RpcException;
@@ -33,9 +33,9 @@ public class ZookeeperServiceDiscovery extends DefaultAbstractServiceDiscovery {
     private static final Logger logger = LoggerFactory.getLogger(ZookeeperServiceDiscovery.class);
 
     private CuratorFramework zkClient;
-    private YmirNettyClient nettyClient;
+    private NettyClient nettyClient;
 
-    public ZookeeperServiceDiscovery(CuratorFramework zkClient, YmirNettyClient nettyClient) {
+    public ZookeeperServiceDiscovery(CuratorFramework zkClient, NettyClient nettyClient) {
         this.zkClient = zkClient;
         this.nettyClient = nettyClient;
     }
@@ -43,7 +43,7 @@ public class ZookeeperServiceDiscovery extends DefaultAbstractServiceDiscovery {
     @Override
     protected void handleClient(List<ServiceBean> serviceList) {
         for (ServiceBean each : serviceList) {
-            boolean clientIsExisted = YmirClientCacheManager.contains(each.getAddress());
+            boolean clientIsExisted = ClientCacheManager.contains(each.getAddress());
             if (!clientIsExisted){
                 nettyClient.initClient(each.getAddress());
             }

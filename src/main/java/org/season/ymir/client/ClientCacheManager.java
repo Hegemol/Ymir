@@ -1,7 +1,5 @@
 package org.season.ymir.client;
 
-import com.github.benmanes.caffeine.cache.CacheLoader;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import org.season.ymir.client.handler.NettyClientHandler;
 
 import java.util.Map;
@@ -12,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author KevinClair
  **/
-public class YmirClientCacheManager {
+public class ClientCacheManager {
 
 
     /**

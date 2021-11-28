@@ -1,6 +1,6 @@
 package org.season.ymir.core;
 
-import org.season.ymir.common.utils.YmirThreadFactory;
+import org.season.ymir.common.utils.ThreadFactory;
 
 import java.util.concurrent.*;
 
@@ -12,7 +12,7 @@ public class ThreadPoolFactory {
     /**
      * 公用线程池
      */
-    private static final Executor EXECUTOR = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().availableProcessors() * 2, 3000, TimeUnit.MILLISECONDS, new LinkedBlockingDeque<>(), new YmirThreadFactory("works"), new ThreadPoolExecutor.AbortPolicy());
+    private static final Executor EXECUTOR = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().availableProcessors() * 2, 3000, TimeUnit.MILLISECONDS, new LinkedBlockingDeque<>(), new ThreadFactory("works"), new ThreadPoolExecutor.AbortPolicy());
 
      /**
      * 提交任务执行

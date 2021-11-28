@@ -6,7 +6,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
 import org.season.ymir.common.base.InvocationType;
 import org.season.ymir.common.model.InvocationMessage;
-import org.season.ymir.common.model.YmirRequest;
+import org.season.ymir.common.model.Request;
 import org.season.ymir.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +23,7 @@ public class HeartBeatRequestHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        InvocationMessage<YmirRequest> request = (InvocationMessage<YmirRequest>) msg;
+        InvocationMessage<Request> request = (InvocationMessage<Request>) msg;
         if (request.getType().equals(InvocationType.HEART_BEAT_RQEUEST)){
             if (logger.isDebugEnabled()){
                 logger.debug("Server heart beat request:{}", GsonUtils.getInstance().toJson(request));

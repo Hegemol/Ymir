@@ -5,8 +5,8 @@ import org.season.ymir.common.base.ServiceStatusEnum;
 import org.season.ymir.common.entity.ServiceBeanCache;
 import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.model.InvocationMessage;
-import org.season.ymir.common.model.YmirRequest;
-import org.season.ymir.common.model.YmirResponse;
+import org.season.ymir.common.model.Request;
+import org.season.ymir.common.model.Response;
 import org.season.ymir.common.register.ServiceRegister;
 
 import java.lang.reflect.Method;
@@ -29,11 +29,11 @@ public class RequestHandler {
      * 请求处理
      *
      * @param data 请求data
-     * @return {@link YmirResponse}
+     * @return {@link Response}
      * @throws Exception
      */
-    public InvocationMessage<YmirResponse> handleRequest(YmirRequest data, String requestId) throws RpcException {
-        InvocationMessage<YmirResponse> response = new InvocationMessage<>();
+    public InvocationMessage<Response> handleRequest(Request data, String requestId) throws RpcException {
+        InvocationMessage<Response> response = new InvocationMessage<>();
         response.setType(InvocationType.SERVICE_RESPONSE);
         // 1.查找服务对应
         ServiceBeanCache bean = serviceRegister.getBean(data.getServiceName());
@@ -41,15 +41,15 @@ public class RequestHandler {
             throw new RpcException("No provider available for service " + data.getServiceName());
         }
 
-        YmirResponse result;
+        Response result;
         try {
             // 2.反射调用对应的方法过程
             Method method = bean.getClazz().getMethod(data.getMethod(), data.getParameterTypes());
             Object returnValue = method.invoke(bean.getBean(), data.getParameters());
-            result = new YmirResponse(ServiceStatusEnum.SUCCESS);
+            result = new Response(ServiceStatusEnum.SUCCESS);
             result.setResult(returnValue);
         } catch (Exception e) {
-            result = new YmirResponse(ServiceStatusEnum.ERROR);
+            result = new Response(ServiceStatusEnum.ERROR);
             result.setThrowable(e);
         }
         // 3.编组响应消息

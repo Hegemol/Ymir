@@ -7,7 +7,7 @@ import java.io.Serializable;
  *
  * @author KevinClair
  */
-public class YmirRequest implements Serializable {
+public class Request implements Serializable {
 
     /**
      * 请求的服务名

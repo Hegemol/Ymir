@@ -11,9 +11,9 @@ import java.util.Properties;
  *
  * @author KevinClair
  */
-public class YmirApplicationStartInfo implements ApplicationListener<ApplicationEnvironmentPreparedEvent> {
+public class ApplicationStartInfo implements ApplicationListener<ApplicationEnvironmentPreparedEvent> {
 
-    private static final Logger logger = LoggerFactory.getLogger(YmirApplicationStartInfo.class);
+    private static final Logger logger = LoggerFactory.getLogger(ApplicationStartInfo.class);
 
     public static final String LINE_SEPARATOR = System.getProperty("line.separator");
     private static final String PATH = "/META-INF/maven/org.season/ymir/pom.properties";
@@ -45,7 +45,7 @@ public class YmirApplicationStartInfo implements ApplicationListener<Application
         String version = null;
         try {
             Properties properties = new Properties();
-            properties.load(YmirApplicationStartInfo.class.getResourceAsStream(PATH));
+            properties.load(ApplicationStartInfo.class.getResourceAsStream(PATH));
             version = properties.getProperty("version");
         } catch (Exception e) {
         }

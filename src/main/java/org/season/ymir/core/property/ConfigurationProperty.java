@@ -5,7 +5,7 @@ package org.season.ymir.core.property;
  *
  * @author KevinClair
  */
-public class YmirConfigurationProperty {
+public class ConfigurationProperty {
 
     /**
      * 服务端口

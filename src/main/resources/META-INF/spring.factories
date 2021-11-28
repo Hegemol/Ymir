@@ -1,3 +1,3 @@
-org.springframework.context.ApplicationListener = org.season.ymir.core.config.YmirApplicationStartInfo
+org.springframework.context.ApplicationListener = org.season.ymir.core.config.ApplicationStartInfo
 
-org.springframework.boot.autoconfigure.EnableAutoConfiguration = org.season.ymir.core.config.YmirBeanAutoConfiguration
+org.springframework.boot.autoconfigure.EnableAutoConfiguration = org.season.ymir.core.config.BeanAutoConfiguration

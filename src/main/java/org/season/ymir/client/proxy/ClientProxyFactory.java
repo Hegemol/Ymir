@@ -1,13 +1,13 @@
 package org.season.ymir.client.proxy;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.season.ymir.client.YmirNettyClient;
+import org.season.ymir.client.NettyClient;
 import org.season.ymir.common.base.InvocationType;
 import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.model.InvocationMessage;
-import org.season.ymir.common.model.YmirRequest;
-import org.season.ymir.common.model.YmirResponse;
+import org.season.ymir.common.model.Request;
+import org.season.ymir.common.model.Response;
 import org.season.ymir.common.utils.ClassUtil;
 import org.season.ymir.common.utils.LoadBalanceUtils;
 import org.season.ymir.core.annotation.Reference;
@@ -30,11 +30,11 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author KevinClair
  **/
-public class YmirClientProxyFactory {
+public class ClientProxyFactory {
 
     private ServiceDiscovery serviceDiscovery;
 
-    private YmirNettyClient netClient;
+    private NettyClient netClient;
 
     private Map<Class<?>, Object> objectCache = new ConcurrentHashMap<>();
 
@@ -96,19 +96,19 @@ public class YmirClientProxyFactory {
             // TODO 此处address地址
             ServiceBean service = LoadBalanceUtils.selector(services, reference.loadBalance(), reference.url(), "");
             // 2.构造request对象
-            InvocationMessage<YmirRequest> requestInvocationMessage = new InvocationMessage<>();
+            InvocationMessage<Request> requestInvocationMessage = new InvocationMessage<>();
             requestInvocationMessage.setRequestId(UUID.randomUUID().toString());
             requestInvocationMessage.setType(InvocationType.SERVICE_REQUEST);
             requestInvocationMessage.setRetries(reference.retries());
             requestInvocationMessage.setTimeout(reference.timeout());
-            YmirRequest request = new YmirRequest();
+            Request request = new Request();
             request.setServiceName(service.getName());
             request.setMethod(methodName);
             request.setParameters(parameters);
             request.setParameterTypes(parameterTypes);
             requestInvocationMessage.setBody(request);
             // 3.发送请求
-            YmirResponse response = netClient.sendRequest(requestInvocationMessage, service);
+            Response response = netClient.sendRequest(requestInvocationMessage, service);
             if (Objects.isNull(response)){
                 throw new RpcException("the response is null");
             }
@@ -121,11 +121,11 @@ public class YmirClientProxyFactory {
         }
     }
 
-    public YmirClientProxyFactory(ServiceDiscovery serviceDiscovery, YmirNettyClient netClient) {
+    public ClientProxyFactory(ServiceDiscovery serviceDiscovery, NettyClient netClient) {
         this.serviceDiscovery = serviceDiscovery;
         this.netClient = netClient;
     }
 
-    public YmirClientProxyFactory() {
+    public ClientProxyFactory() {
     }
 }

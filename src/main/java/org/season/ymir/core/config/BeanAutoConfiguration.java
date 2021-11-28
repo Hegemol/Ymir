@@ -8,17 +8,17 @@ import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.season.ymir.client.YmirNettyClient;
-import org.season.ymir.client.proxy.YmirClientProxyFactory;
+import org.season.ymir.client.NettyClient;
+import org.season.ymir.client.proxy.ClientProxyFactory;
 import org.season.ymir.client.register.NacosServiceRegister;
 import org.season.ymir.client.register.ZookeeperServiceRegister;
 import org.season.ymir.common.register.ServiceRegister;
-import org.season.ymir.core.YmirServiceExportProcessor;
+import org.season.ymir.core.ServiceExportProcessor;
 import org.season.ymir.core.handler.RequestHandler;
 import org.season.ymir.core.property.RegisterCenterProperty;
-import org.season.ymir.core.property.YmirConfigurationProperty;
+import org.season.ymir.core.property.ConfigurationProperty;
 import org.season.ymir.core.protocol.MessageProtocol;
-import org.season.ymir.server.YmirNettyServer;
+import org.season.ymir.server.NettyServer;
 import org.season.ymir.server.discovery.NacosServiceDiscovery;
 import org.season.ymir.server.discovery.ServiceDiscovery;
 import org.season.ymir.server.discovery.ZookeeperServiceDiscovery;
@@ -39,7 +39,7 @@ import java.util.Properties;
  */
 @ConditionalOnProperty(value = "ymir.register.url")
 @Configuration
-public class YmirBeanAutoConfiguration {
+public class BeanAutoConfiguration {
 
 
     /**
@@ -49,8 +49,8 @@ public class YmirBeanAutoConfiguration {
      */
     @Bean
     @ConfigurationProperties(prefix = "ymir")
-    public YmirConfigurationProperty ymirConfigurationProperty(){
-        return new YmirConfigurationProperty();
+    public ConfigurationProperty ymirConfigurationProperty(){
+        return new ConfigurationProperty();
     }
 
     /**
@@ -95,12 +95,12 @@ public class YmirBeanAutoConfiguration {
         /**
          * zk服务注册器
          *
-         * @param clientProperty 配置属性{@link YmirConfigurationProperty}
+         * @param clientProperty 配置属性{@link ConfigurationProperty}
          * @param zkClient       zk客户端{@link CuratorFramework}
          * @return {@link ZookeeperServiceRegister}
          */
         @Bean
-        public ServiceRegister zookeeperServiceRegister(YmirConfigurationProperty clientProperty, CuratorFramework zkClient){
+        public ServiceRegister zookeeperServiceRegister(ConfigurationProperty clientProperty, CuratorFramework zkClient){
             return new ZookeeperServiceRegister(zkClient, clientProperty.getPort(), clientProperty.getProtocol());
         }
 
@@ -111,7 +111,7 @@ public class YmirBeanAutoConfiguration {
          * @return {@link ServiceDiscovery}
          */
         @Bean
-        public ServiceDiscovery ymirServiceDiscovery(CuratorFramework zkClient, YmirNettyClient client){
+        public ServiceDiscovery ymirServiceDiscovery(CuratorFramework zkClient, NettyClient client){
             return new ZookeeperServiceDiscovery(zkClient, client);
         }
     }
@@ -154,12 +154,12 @@ public class YmirBeanAutoConfiguration {
         /**
          * nacos服务注册器
          *
-         * @param clientProperty 配置属性{@link YmirConfigurationProperty}
+         * @param clientProperty 配置属性{@link ConfigurationProperty}
          * @param namingService  nacos服务注册发现客户端{@link NamingService}
          * @return {@link ZookeeperServiceRegister}
          */
         @Bean
-        public ServiceRegister nacosServiceRegister(YmirConfigurationProperty clientProperty, NamingService namingService){
+        public ServiceRegister nacosServiceRegister(ConfigurationProperty clientProperty, NamingService namingService){
             return new NacosServiceRegister(namingService, clientProperty.getPort(), clientProperty.getProtocol());
         }
 
@@ -170,7 +170,7 @@ public class YmirBeanAutoConfiguration {
          * @return {@link ServiceDiscovery}
          */
         @Bean
-        public ServiceDiscovery ymirServiceDiscovery(NamingService namingService, YmirNettyClient client){
+        public ServiceDiscovery ymirServiceDiscovery(NamingService namingService, NettyClient client){
             return new NacosServiceDiscovery(namingService, client);
         }
     }
@@ -200,23 +200,23 @@ public class YmirBeanAutoConfiguration {
     /**
      * Netty服务注册
      *
-     * @param property           配置属性{@link YmirConfigurationProperty}
+     * @param property           配置属性{@link ConfigurationProperty}
      * @param nettyServerHandler Netty服务端处理器{@link NettyServerHandler}
-     * @return {@link YmirNettyServer}
+     * @return {@link NettyServer}
      */
     @Bean
-    public YmirNettyServer ymirNettyServer(YmirConfigurationProperty property, NettyServerHandler nettyServerHandler){
-        return new YmirNettyServer(property, nettyServerHandler);
+    public NettyServer ymirNettyServer(ConfigurationProperty property, NettyServerHandler nettyServerHandler){
+        return new NettyServer(property, nettyServerHandler);
     }
 
     /**
      * Netty客户端
      *
-     * @return {@link YmirNettyClient}
+     * @return {@link NettyClient}
      */
     @Bean
-    public YmirNettyClient nettyNetClient(YmirConfigurationProperty property){
-        return new YmirNettyClient(ExtensionLoader.getExtensionLoader(MessageProtocol.class).getLoader(property.getProtocol()));
+    public NettyClient nettyNetClient(ConfigurationProperty property){
+        return new NettyClient(ExtensionLoader.getExtensionLoader(MessageProtocol.class).getLoader(property.getProtocol()));
     }
 
     /**
@@ -224,22 +224,22 @@ public class YmirBeanAutoConfiguration {
      *
      * @param serviceDiscovery 服务发现
      * @param netClient        Netty客户端
-     * @return {@link YmirClientProxyFactory}
+     * @return {@link ClientProxyFactory}
      */
     @Bean
-    public YmirClientProxyFactory ymirClientProxyFactory(ServiceDiscovery serviceDiscovery, YmirNettyClient netClient){
-        return new YmirClientProxyFactory(serviceDiscovery, netClient);
+    public ClientProxyFactory ymirClientProxyFactory(ServiceDiscovery serviceDiscovery, NettyClient netClient){
+        return new ClientProxyFactory(serviceDiscovery, netClient);
     }
 
     /**
      * 服务导出处理器
      *
      * @param serviceRegister 服务注册{@link ServiceRegister}
-     * @param nettyServer     Netty服务{@link YmirNettyServer}
-     * @return {@link YmirServiceExportProcessor}
+     * @param nettyServer     Netty服务{@link NettyServer}
+     * @return {@link ServiceExportProcessor}
      */
     @Bean
-    public YmirServiceExportProcessor defaultServiceExportProcessor(ServiceRegister serviceRegister, YmirNettyServer nettyServer, YmirClientProxyFactory proxyFactory, YmirConfigurationProperty property, ServiceDiscovery serviceDiscovery){
-        return new YmirServiceExportProcessor(serviceRegister, nettyServer, proxyFactory, property, serviceDiscovery);
+    public ServiceExportProcessor defaultServiceExportProcessor(ServiceRegister serviceRegister, NettyServer nettyServer, ClientProxyFactory proxyFactory, ConfigurationProperty property, ServiceDiscovery serviceDiscovery){
+        return new ServiceExportProcessor(serviceRegister, nettyServer, proxyFactory, property, serviceDiscovery);
     }
 }
