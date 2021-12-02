@@ -376,9 +376,7 @@ public class SpiTest {
 
 ## 最近计划
 最近准备开始着手做一次项目的重构和升级，调整一下项目的模块以及工程架构；
-* Netty优化，重新定义消息结构，考虑是否需要在消息报文中写入序列化类型；
-* YmirService属性扩展，增加多版本，分组等属性；
-* YmirReference属性扩展，多版本，分组等；
-* Filter过滤器；
+* @Service属性扩展，增加多版本，分组等属性；
+* @Reference属性扩展，多版本，分组等；
 * 负载均衡算法优化；
 * 增加provider和consumer的线程池配置参数;
