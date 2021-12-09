@@ -188,9 +188,9 @@ public class TestController {
 }
 ```
 * 在invoke的方法中填入参数就可以通过泛化调用请求服务;
-### 隐士传参
+### 隐式传参
 #### 如何使用
-* Ymir的服务允许producer和consumer通过RpcContext进行跨端之间的参数传递;
+* Ymir的服务允许provider和consumer通过RpcContext进行跨端之间的参数传递;
 * consumer在使用时，只需要通过RpcContext进行参数设置即可;
 ```java
 import org.season.ymir.core.context.RpcContext;
@@ -208,7 +208,7 @@ public class TestController {
   }
 }
 ```
-* producer就可以通过RpcContext进行获取传递的参数;
+* provider就可以通过RpcContext进行获取传递的参数;
 
 ```java
 import org.season.ymir.core.context.RpcContext;
