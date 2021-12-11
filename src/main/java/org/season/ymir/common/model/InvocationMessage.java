@@ -33,7 +33,6 @@ public class InvocationMessage<T> implements Serializable {
      */
     private InvocationType type;
 
-
     /**
      * 请求头
      */

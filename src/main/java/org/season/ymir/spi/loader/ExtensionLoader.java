@@ -8,7 +8,12 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.*;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -85,6 +90,35 @@ public class ExtensionLoader<T> {
             }
         }
         return (T) value;
+    }
+
+    /**
+     * 获取所有names对应的实现类数组
+     *
+     * @param names 扩展名集合
+     * @return 类对象
+     */
+    public Map<String, T> getLoader(List<String> names) {
+        Map<String, T> result = new HashMap<>();
+        names.forEach(name -> {
+            Holder<Object> objectHolder = cachedInstances.get(name);
+            if (objectHolder == null) {
+                cachedInstances.putIfAbsent(name, new Holder<>());
+                objectHolder = cachedInstances.get(name);
+            }
+            Object value = objectHolder.getValue();
+            if (value == null) {
+                synchronized (cachedInstances) {
+                    if (value == null) {
+                        value = createExtension(name);
+                        objectHolder.setValue(value);
+                    }
+                }
+            }
+            result.put(name,(T)value);
+        });
+
+        return result;
     }
 
     /**
