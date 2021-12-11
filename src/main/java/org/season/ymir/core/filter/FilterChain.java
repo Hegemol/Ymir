@@ -1,7 +1,6 @@
 package org.season.ymir.core.filter;
 
-import org.season.ymir.common.entity.ServiceBean;
-import org.season.ymir.common.model.Response;
+import org.season.ymir.common.model.InvocationMessage;
 
 /**
  * 过滤器执行器
@@ -13,8 +12,8 @@ public interface FilterChain {
     /**
      * 执行器
      *
-     * @param bean
+     * @param message 消息体
      * @return
      */
-    Response execute(ServiceBean bean);
+    void execute(InvocationMessage message);
 }
