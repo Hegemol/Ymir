@@ -3,6 +3,7 @@ package org.season.ymir.client.proxy;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.season.ymir.client.NettyClient;
 import org.season.ymir.common.base.InvocationType;
+import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.model.InvocationMessage;
@@ -19,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -107,6 +109,8 @@ public class ClientProxyFactory {
             request.setParameters(parameters);
             request.setParameterTypes(parameterTypes);
             requestInvocationMessage.setBody(request);
+            // 设置Filter
+            requestInvocationMessage.setHeaders(new HashMap<String,String>(){{put(CommonConstant.FILTER_FROM_HEADERS, reference.filter());}});
             // 3.发送请求
             Response response = netClient.sendRequest(requestInvocationMessage, service);
             if (Objects.isNull(response)){

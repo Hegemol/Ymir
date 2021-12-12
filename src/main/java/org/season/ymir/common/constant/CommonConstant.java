@@ -64,4 +64,19 @@ public class CommonConstant {
     public static final String LEFT_ANGLE_BRACKETS = "{";
 
     public static final String RIGHT_ANGLE_BRACKETS = "}";
+
+    /**
+     * provider端rpcContext过滤器
+     */
+    public static final String PROVIDER_RPC_CONTEXT_FILTER = "providerRpcContextFilter";
+
+    /**
+     * consumer端rpcContext过滤器
+     */
+    public static final String CONSUMER_RPC_CONTEXT_FILTER = "consumerRpcContextFilter";
+
+    /**
+     * 过滤器key
+     */
+    public static final String FILTER_FROM_HEADERS = "filters";
 }

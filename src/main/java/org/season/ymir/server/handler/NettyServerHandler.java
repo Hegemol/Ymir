@@ -68,8 +68,8 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<InvocationMe
                 if (logger.isDebugEnabled()){
                     logger.debug("Server receives message :{}", msg);
                 }
-                msg.getHeaders().forEach((k, v) -> RpcContext.getContext().setAttachments(k, v));
-                InvocationMessage<Response> response = requestHandler.handleRequest(msg.getBody(), msg.getRequestId());
+                final Request msgBody = msg.getBody();
+                InvocationMessage<Response> response = requestHandler.handleRequest(msg);
                 if (logger.isDebugEnabled()){
                     logger.debug("Server return response:{}", GsonUtils.getInstance().toJson(response));
                 }

@@ -10,16 +10,18 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.season.ymir.client.ClientCacheManager;
 import org.season.ymir.common.base.InvocationType;
 import org.season.ymir.common.base.ServiceStatusEnum;
+import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.exception.RpcTimeoutException;
 import org.season.ymir.common.model.InvocationMessage;
 import org.season.ymir.common.model.Request;
 import org.season.ymir.common.model.Response;
 import org.season.ymir.common.utils.GsonUtils;
-import org.season.ymir.core.context.RpcContext;
+import org.season.ymir.core.filter.DefaultFilterChain;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -105,9 +107,8 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<InvocationMe
         InvocationMessage<Response> response;
         CompletableFuture<InvocationMessage<Response>> completableFuture = new CompletableFuture<>();
         requestMap.put(request.getRequestId(), completableFuture);
-        request.setHeaders(RpcContext.getContext().getAttachments());
-        RpcContext.clear();
         try {
+            new DefaultFilterChain(Arrays.asList(request.getHeaders().get(CommonConstant.FILTER_FROM_HEADERS).split(",")), CommonConstant.SERVICE_CONSUMER_SIDE).execute(request);
             channel.writeAndFlush(request);
             // 等待响应
             response = completableFuture.get(request.getTimeout(), TimeUnit.MILLISECONDS);
