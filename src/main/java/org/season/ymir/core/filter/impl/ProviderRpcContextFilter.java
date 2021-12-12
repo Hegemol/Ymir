@@ -10,14 +10,12 @@ import org.season.ymir.core.filter.FilterChain;
  *
  * @author KevinClair
  **/
-public class RpcContextFilter implements Filter {
+public class ProviderRpcContextFilter implements Filter {
 
     @Override
     public void execute(final FilterChain filterChain, final InvocationMessage message) {
-        // 将RpcContext的值设置到InvocationMessage的Headers中
-        message.setHeaders(RpcContext.getContext().getAttachments());
-        // 清空
-        RpcContext.clear();
+        // 将InvocationMessage的Headers中值放入RpcContext
+        message.getHeaders().forEach((k, v) -> RpcContext.getContext().setAttachments((String)k, (String)v));
         filterChain.execute(message);
     }
 }

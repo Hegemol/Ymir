@@ -1,0 +1,2 @@
+providerRpcContext=org.season.ymir.core.filter.impl.ProviderRpcContextFilter
+consumerRpcContext=org.season.ymir.core.filter.impl.ConsumerRpcContextFilter
