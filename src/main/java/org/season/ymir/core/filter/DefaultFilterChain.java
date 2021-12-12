@@ -1,7 +1,10 @@
 package org.season.ymir.core.filter;
 
+import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.model.InvocationMessage;
+import org.season.ymir.spi.loader.ExtensionLoader;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -13,8 +16,17 @@ public class DefaultFilterChain implements FilterChain {
 
     private final List<Filter> filterList;
 
-    public DefaultFilterChain(final List<Filter> filterList) {
-        this.filterList = filterList;
+    public DefaultFilterChain(final List<String> filterNames, final String side) {
+        // 添加默认的执行器
+        filterList = new ArrayList<>();
+        if (side.equals(CommonConstant.SERVICE_PROVIDER_SIDE)){
+            // provider端，默认添加ProviderRpcContextFilter
+            filterNames.add(CommonConstant.PROVIDER_RPC_CONTEXT_FILTER);
+        } else {
+            // consumer端，默认添加ConsumerRpcContextFilter
+            filterNames.add(0, CommonConstant.CONSUMER_RPC_CONTEXT_FILTER);
+        }
+        filterList.addAll(ExtensionLoader.getExtensionLoader(Filter.class).getLoader(filterNames).values());
     }
 
     @Override
