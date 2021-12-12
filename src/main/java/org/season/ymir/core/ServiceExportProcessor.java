@@ -88,7 +88,7 @@ public class ServiceExportProcessor implements ApplicationListener<ContextRefres
                         logger.error("Only one interface class can be inherited, class {} is illegal!", obj.getClass().getName());
                         continue;
                     }
-                    ServiceBean serviceBean = new ServiceBean(interfaces[0].getName(), clazz.getName(), address, service.weight(), service.group(), service.version(), Arrays.asList(service.filter()));
+                    ServiceBean serviceBean = new ServiceBean(interfaces[0].getName(), clazz.getName(), address, service.weight(), service.group(), service.version(), service.filter());
                     // register bean;
                     serviceRegister.registerBean(serviceBean);
                     logger.info("Service {} register success", obj.getClass().getName());

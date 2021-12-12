@@ -21,6 +21,11 @@ public class ServiceBeanCache {
      */
     private Object bean;
 
+    /**
+     * 过滤器
+     */
+    private String filter;
+
     public String getName() {
         return name;
     }
@@ -45,12 +50,21 @@ public class ServiceBeanCache {
         this.bean = bean;
     }
 
+    public String getFilter() {
+        return filter;
+    }
+
+    public void setFilter(final String filter) {
+        this.filter = filter;
+    }
+
     public ServiceBeanCache() {
     }
 
-    public ServiceBeanCache(String name, Class<?> clazz, Object bean) {
+    public ServiceBeanCache(final String name, final Class<?> clazz, final Object bean, final String filter) {
         this.name = name;
         this.clazz = clazz;
         this.bean = bean;
+        this.filter = filter;
     }
 }

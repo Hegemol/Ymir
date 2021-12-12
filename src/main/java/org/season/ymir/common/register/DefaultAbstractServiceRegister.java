@@ -59,7 +59,7 @@ public abstract class DefaultAbstractServiceRegister implements ServiceRegister 
         try {
             // 实例化对象
             Class<?> classObject = Class.forName(serviceBean.getClazz());
-            ServiceBeanCache serviceBeanCache = new ServiceBeanCache(serviceBean.getName(), classObject, classObject.newInstance());
+            ServiceBeanCache serviceBeanCache = new ServiceBeanCache(serviceBean.getName(), classObject, classObject.newInstance(), serviceBean.getFilter());
             service.put(serviceBean.getName(), serviceBeanCache);
         } catch (Exception e) {
             throw new RpcException(String.format("Register bean %s error, please check it.", serviceBean.getName()));

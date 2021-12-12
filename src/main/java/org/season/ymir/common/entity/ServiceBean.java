@@ -1,7 +1,5 @@
 package org.season.ymir.common.entity;
 
-import java.util.List;
-
 /**
  * 服务注册
  *
@@ -45,7 +43,7 @@ public class ServiceBean {
     /**
      * 过滤器
      */
-    private List<String> filter;
+    private String filter;
 
     public String getProtocol() {
         return protocol;
@@ -103,18 +101,18 @@ public class ServiceBean {
         this.clazz = clazz;
     }
 
-    public List<String> getFilter() {
+    public String getFilter() {
         return filter;
     }
 
-    public void setFilter(List<String> filter) {
+    public void setFilter(final String filter) {
         this.filter = filter;
     }
 
     public ServiceBean() {
     }
 
-    public ServiceBean(String name, String clazz, String address, Integer weight, String group, String version, List<String> filter) {
+    public ServiceBean(String name, String clazz, String address, Integer weight, String group, String version, String filter) {
         this.name = name;
         this.clazz = clazz;
         this.address = address;
