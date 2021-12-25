@@ -370,7 +370,6 @@ public class SpiTest {
 
 ## 致谢
 感谢以下的项目，在个人学习过程中，给我起到了很大的帮助
-
 * [Dubbo](http://dubbo.apache.org/zh-cn/)
 * [shenyu](https://github.com/apache/incubator-shenyu)
 
