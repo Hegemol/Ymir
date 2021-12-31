@@ -1,15 +1,9 @@
 package org.season.ymir.server;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelPipeline;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.timeout.IdleStateHandler;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.season.ymir.common.constant.CommonConstant;
@@ -70,13 +64,13 @@ public class NettyServer implements DisposableBean {
                                     /*Netty提供的日志打印Handler，可以展示发送接收出去的字节*/
 //                                    .addLast(new LoggingHandler(LogLevel.INFO))
                                     /*剥离接收到的消息的长度字段，拿到实际的消息报文的字节数组*/
-                                    .addLast(new LengthFieldBasedFrameDecoder(65535,
-                                                    0, 4, 0,
-                                                    0))
+                                    //.addLast(new LengthFieldBasedFrameDecoder(65535,
+                                    //                0, 4, 0,
+                                    //                0))
                                     // 空闲检测
                                     .addLast(new IdleStateHandler(CommonConstant.TIMEOUT_SECONDS, 0, 0))
                                     // 解码器
-                                    .addLast(new MessageDecoder(ExtensionLoader.getExtensionLoader(MessageProtocol.class).getLoader(property.getProtocol())))
+                                    .addLast(new MessageDecoder(65535, 0, 4, 0, 0))
                                     // 编码器
                                     .addLast(new MessageEncoder(ExtensionLoader.getExtensionLoader(MessageProtocol.class).getLoader(property.getProtocol())))
                                     // 心跳处理器

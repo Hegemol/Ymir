@@ -1,12 +1,7 @@
 package org.season.ymir.client;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelPipeline;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
@@ -102,7 +97,7 @@ public class NettyClient {
                                 // 空闲检测
                                 .addLast(new IdleStateHandler(CommonConstant.TIMEOUT_SECONDS, 0, 0))
                                 // 解码器
-                                .addLast(new MessageDecoder(protocol))
+                                .addLast(new MessageDecoder(65535, 0, 4, 0, 0))
                                 // 编码器
                                 .addLast(new MessageEncoder(protocol))
                                 // 心跳检测
