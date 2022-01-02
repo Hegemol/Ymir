@@ -108,7 +108,7 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<InvocationMe
         CompletableFuture<InvocationMessage<Response>> completableFuture = new CompletableFuture<>();
         requestMap.put(request.getRequestId(), completableFuture);
         try {
-            new DefaultFilterChain(Arrays.asList(request.getHeaders().get(CommonConstant.FILTER_FROM_HEADERS).split(",")), CommonConstant.SERVICE_CONSUMER_SIDE).execute(request);
+            new DefaultFilterChain(new ArrayList<>(Arrays.asList(data.getHeaders().get(CommonConstant.FILTER_FROM_HEADERS).split(","))), CommonConstant.SERVICE_CONSUMER_SIDE).execute(data);
             channel.writeAndFlush(request);
             // 等待响应
             response = completableFuture.get(request.getTimeout(), TimeUnit.MILLISECONDS);

@@ -45,7 +45,7 @@ public class RequestHandler {
             throw new RpcException("No provider available for service " + data.getServiceName());
         }
         // 执行过滤器
-        new DefaultFilterChain(Arrays.asList(bean.getFilter().split(",")), CommonConstant.SERVICE_PROVIDER_SIDE).execute(msg);
+        new DefaultFilterChain(new ArrayList<>(Arrays.asList(bean.getFilter().split(","))), CommonConstant.SERVICE_PROVIDER_SIDE).execute(msg.getData());
         Response result;
         try {
             // 2.反射调用对应的方法过程

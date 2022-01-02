@@ -101,6 +101,9 @@ public class ExtensionLoader<T> {
     public Map<String, T> getLoader(List<String> names) {
         Map<String, T> result = new HashMap<>();
         names.forEach(name -> {
+            if (StringUtils.isBlank(name)){
+                return;
+            }
             Holder<Object> objectHolder = cachedInstances.get(name);
             if (objectHolder == null) {
                 cachedInstances.putIfAbsent(name, new Holder<>());

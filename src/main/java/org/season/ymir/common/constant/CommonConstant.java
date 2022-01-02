@@ -68,12 +68,12 @@ public class CommonConstant {
     /**
      * provider端rpcContext过滤器
      */
-    public static final String PROVIDER_RPC_CONTEXT_FILTER = "providerRpcContextFilter";
+    public static final String PROVIDER_RPC_CONTEXT_FILTER = "providerRpcContext";
 
     /**
      * consumer端rpcContext过滤器
      */
-    public static final String CONSUMER_RPC_CONTEXT_FILTER = "consumerRpcContextFilter";
+    public static final String CONSUMER_RPC_CONTEXT_FILTER = "consumerRpcContext";
 
     /**
      * 过滤器key
