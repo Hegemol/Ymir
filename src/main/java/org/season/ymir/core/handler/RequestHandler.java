@@ -1,17 +1,19 @@
 package org.season.ymir.core.handler;
 
-import org.season.ymir.common.base.InvocationType;
+import org.season.ymir.common.base.MessageTypeEnum;
 import org.season.ymir.common.base.ServiceStatusEnum;
 import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.entity.ServiceBeanCache;
 import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.model.InvocationMessage;
+import org.season.ymir.common.model.InvocationMessageWrap;
 import org.season.ymir.common.model.Request;
 import org.season.ymir.common.model.Response;
 import org.season.ymir.common.register.ServiceRegister;
 import org.season.ymir.core.filter.DefaultFilterChain;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -35,10 +37,12 @@ public class RequestHandler {
      * @return {@link Response}
      * @throws Exception
      */
-    public InvocationMessage<Response> handleRequest(InvocationMessage<Request> msg) throws RpcException {
-        Request data = msg.getBody();
+    public InvocationMessageWrap<Response> handleRequest(InvocationMessageWrap<Request> msg) throws RpcException {
+        Request data = msg.getData().getBody();
+        InvocationMessageWrap messageWrap = new InvocationMessageWrap();
+        messageWrap.setType(MessageTypeEnum.SERVICE_RESPONSE);
+
         InvocationMessage<Response> response = new InvocationMessage<>();
-        response.setType(InvocationType.SERVICE_RESPONSE);
         // 1.查找服务对应
         ServiceBeanCache bean = serviceRegister.getBean(data.getServiceName());
         if (Objects.isNull(bean)) {
@@ -58,9 +62,13 @@ public class RequestHandler {
             result.setThrowable(e);
         }
         // 3.编组响应消息
-        response.setRequestId(msg.getRequestId());
+        messageWrap.setRequestId(msg.getRequestId());
         response.setBody(result);
-        return response;
+
+        messageWrap.setData(response);
+        messageWrap.setSerial(msg.getSerial());
+
+        return messageWrap;
     }
 
 }
