@@ -1,15 +1,20 @@
 package org.season.ymir.client;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
-import io.netty.handler.timeout.IdleStateHandler;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 import org.season.ymir.client.handler.NettyClientHandler;
 import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.entity.ServiceBean;
-import org.season.ymir.common.model.InvocationMessage;
+import org.season.ymir.common.model.InvocationMessageWrap;
 import org.season.ymir.common.model.Request;
 import org.season.ymir.common.model.Response;
 import org.season.ymir.core.codec.MessageDecoder;
@@ -47,7 +52,7 @@ public class NettyClient {
      * @param service    服务信息
      * @return {@link Response}
      */
-    public Response sendRequest(InvocationMessage<Request> rpcRequest, ServiceBean service) {
+    public Response sendRequest(InvocationMessageWrap<Request> rpcRequest, ServiceBean service) {
 
         String address = service.getAddress();
         synchronized (address) {
@@ -89,17 +94,17 @@ public class NettyClient {
                         ChannelPipeline pipeline = channel.pipeline();
                         pipeline
                                 /*Netty提供的日志打印Handler，可以展示发送接收出去的字节*/
-//                                .addLast(new LoggingHandler(LogLevel.INFO))
+                                .addLast(new LoggingHandler(LogLevel.INFO))
                                 /*剥离接收到的消息的长度字段，拿到实际的消息报文的字节数组*/
-                                .addLast(new LengthFieldBasedFrameDecoder(65535,
-                                        0, 4, 0,
-                                        0))
+//                                .addLast(new LengthFieldBasedFrameDecoder(65535,
+//                                        0, 4, 0,
+//                                        0))
                                 // 空闲检测
-                                .addLast(new IdleStateHandler(CommonConstant.TIMEOUT_SECONDS, 0, 0))
+//                                .addLast(new IdleStateHandler(CommonConstant.TIMEOUT_SECONDS, 0, 0))
                                 // 解码器
-                                .addLast(new MessageDecoder(65535, 0, 4, 0, 0))
+                                .addLast(new MessageDecoder(65535, 10, 4, 0, 0))
                                 // 编码器
-                                .addLast(new MessageEncoder(protocol))
+                                .addLast(new MessageEncoder())
                                 // 心跳检测
                                 .addLast(new HeartBeatResponseHandler())
                                 // 客户端业务处理器

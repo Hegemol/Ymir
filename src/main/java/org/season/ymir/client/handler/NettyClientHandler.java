@@ -8,12 +8,13 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleStateEvent;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.season.ymir.client.ClientCacheManager;
-import org.season.ymir.common.base.InvocationType;
+import org.season.ymir.common.base.MessageTypeEnum;
 import org.season.ymir.common.base.ServiceStatusEnum;
 import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.exception.RpcTimeoutException;
 import org.season.ymir.common.model.InvocationMessage;
+import org.season.ymir.common.model.InvocationMessageWrap;
 import org.season.ymir.common.model.Request;
 import org.season.ymir.common.model.Response;
 import org.season.ymir.common.utils.GsonUtils;
@@ -21,6 +22,7 @@ import org.season.ymir.core.filter.DefaultFilterChain;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
@@ -35,7 +37,7 @@ import java.util.concurrent.TimeoutException;
  * @author KevinClair
  **/
 @ChannelHandler.Sharable
-public class NettyClientHandler extends SimpleChannelInboundHandler<InvocationMessage<Response>> {
+public class NettyClientHandler extends SimpleChannelInboundHandler<InvocationMessageWrap<Response>> {
 
     private static Logger logger = LoggerFactory.getLogger(NettyClientHandler.class);
 
@@ -52,7 +54,7 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<InvocationMe
     /**
      * 存储request的返回信息，key为每次请求{@link Request}的requestId，value为{@link CompletableFuture<InvocationMessage< Response >> }
      */
-    private static Map<String, CompletableFuture<InvocationMessage<Response>>> requestMap = new ConcurrentHashMap<>();
+    private static Map<Integer, CompletableFuture<InvocationMessage<Response>>> requestMap = new ConcurrentHashMap<>();
 
     public NettyClientHandler(String remoteAddress) {
         this.remoteAddress = remoteAddress;
@@ -70,7 +72,7 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<InvocationMe
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext channelHandlerContext, InvocationMessage<Response> data) throws Exception {
+    protected void channelRead0(ChannelHandlerContext channelHandlerContext, InvocationMessageWrap<Response> data) throws Exception {
         if (logger.isDebugEnabled()) {
             logger.debug("Client reads message:{}", GsonUtils.getInstance().toJson(data));
         }
@@ -79,7 +81,7 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<InvocationMe
         if (Objects.isNull(responseFuture)) {
             return;
         }
-        responseFuture.complete(data);
+        responseFuture.complete(data.getData());
     }
 
     @Override
@@ -95,26 +97,27 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<InvocationMe
             if (logger.isDebugEnabled()) {
                 logger.debug("Client send heart beat");
             }
-            InvocationMessage heartBeatInvocationMessage = new InvocationMessage();
-            heartBeatInvocationMessage.setType(InvocationType.HEART_BEAT_RQEUEST);
+            InvocationMessageWrap heartBeatInvocationMessage = new InvocationMessageWrap();
+            heartBeatInvocationMessage.setType(MessageTypeEnum.HEART_BEAT_RQEUEST);
             ctx.writeAndFlush(heartBeatInvocationMessage).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
             return;
         }
         super.userEventTriggered(ctx, evt);
     }
 
-    public Response sendRequest(InvocationMessage<Request> request) {
+    public Response sendRequest(InvocationMessageWrap<Request> request) {
         InvocationMessage<Response> response;
         CompletableFuture<InvocationMessage<Response>> completableFuture = new CompletableFuture<>();
         requestMap.put(request.getRequestId(), completableFuture);
+        InvocationMessage<Request> data = request.getData();
         try {
             new DefaultFilterChain(new ArrayList<>(Arrays.asList(data.getHeaders().get(CommonConstant.FILTER_FROM_HEADERS).split(","))), CommonConstant.SERVICE_CONSUMER_SIDE).execute(data);
             channel.writeAndFlush(request);
             // 等待响应
-            response = completableFuture.get(request.getTimeout(), TimeUnit.MILLISECONDS);
+            response = completableFuture.get(data.getTimeout(), TimeUnit.MILLISECONDS);
         } catch (TimeoutException exception) {
             Response timeoutExceptionResponse = new Response(ServiceStatusEnum.ERROR);
-            timeoutExceptionResponse.setThrowable(new RpcTimeoutException(String.format("Invoke remote method %s timeout with %s ms", String.join("#", request.getBody().getServiceName(), request.getBody().getMethod()), request.getTimeout())));
+            timeoutExceptionResponse.setThrowable(new RpcTimeoutException(String.format("Invoke remote method %s timeout with %s ms", String.join("#", data.getBody().getServiceName(), data.getBody().getMethod()), data.getTimeout())));
             return timeoutExceptionResponse;
         } catch (Exception e) {
             Response exceptionResponse = new Response(ServiceStatusEnum.ERROR);
