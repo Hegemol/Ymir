@@ -227,8 +227,8 @@ public class BeanAutoConfiguration {
      * @return {@link ClientProxyFactory}
      */
     @Bean
-    public ClientProxyFactory ymirClientProxyFactory(ServiceDiscovery serviceDiscovery, NettyClient netClient){
-        return new ClientProxyFactory(serviceDiscovery, netClient);
+    public ClientProxyFactory ymirClientProxyFactory(ServiceDiscovery serviceDiscovery, NettyClient netClient, ConfigurationProperty property){
+        return new ClientProxyFactory(serviceDiscovery, netClient, property);
     }
 
     /**

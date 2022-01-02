@@ -2,17 +2,20 @@ package org.season.ymir.client.proxy;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.season.ymir.client.NettyClient;
-import org.season.ymir.common.base.InvocationType;
+import org.season.ymir.common.base.MessageTypeEnum;
+import org.season.ymir.common.base.SerializationTypeEnum;
 import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.exception.RpcException;
 import org.season.ymir.common.model.InvocationMessage;
+import org.season.ymir.common.model.InvocationMessageWrap;
 import org.season.ymir.common.model.Request;
 import org.season.ymir.common.model.Response;
 import org.season.ymir.common.utils.ClassUtil;
 import org.season.ymir.common.utils.LoadBalanceUtils;
 import org.season.ymir.core.annotation.Reference;
 import org.season.ymir.core.generic.GenericService;
+import org.season.ymir.core.property.ConfigurationProperty;
 import org.season.ymir.server.discovery.ServiceDiscovery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,8 +27,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 客户端代理
@@ -38,7 +41,11 @@ public class ClientProxyFactory {
 
     private NettyClient netClient;
 
+    private ConfigurationProperty property;
+
     private Map<Class<?>, Object> objectCache = new ConcurrentHashMap<>();
+
+    private static final AtomicInteger ATOMIC_INTEGER = new AtomicInteger(0);
 
     /**
      * 通过Java动态代理获取服务代理类
@@ -98,9 +105,9 @@ public class ClientProxyFactory {
             // TODO 此处address地址
             ServiceBean service = LoadBalanceUtils.selector(services, reference.loadBalance(), reference.url(), "");
             // 2.构造request对象
+            InvocationMessageWrap<Request> invocationMessageWrap = new InvocationMessageWrap();
+            invocationMessageWrap.setType(MessageTypeEnum.SERVICE_REQUEST);
             InvocationMessage<Request> requestInvocationMessage = new InvocationMessage<>();
-            requestInvocationMessage.setRequestId(UUID.randomUUID().toString());
-            requestInvocationMessage.setType(InvocationType.SERVICE_REQUEST);
             requestInvocationMessage.setRetries(reference.retries());
             requestInvocationMessage.setTimeout(reference.timeout());
             Request request = new Request();
@@ -111,8 +118,11 @@ public class ClientProxyFactory {
             requestInvocationMessage.setBody(request);
             // 设置Filter
             requestInvocationMessage.setHeaders(new HashMap<String,String>(){{put(CommonConstant.FILTER_FROM_HEADERS, reference.filter());}});
+            invocationMessageWrap.setData(requestInvocationMessage);
+            invocationMessageWrap.setSerial(SerializationTypeEnum.getType(property.getProtocol()));
+            invocationMessageWrap.setRequestId(ATOMIC_INTEGER.getAndIncrement());
             // 3.发送请求
-            Response response = netClient.sendRequest(requestInvocationMessage, service);
+            Response response = netClient.sendRequest(invocationMessageWrap, service);
             if (Objects.isNull(response)){
                 throw new RpcException("the response is null");
             }
@@ -125,9 +135,10 @@ public class ClientProxyFactory {
         }
     }
 
-    public ClientProxyFactory(ServiceDiscovery serviceDiscovery, NettyClient netClient) {
+    public ClientProxyFactory(ServiceDiscovery serviceDiscovery, NettyClient netClient, ConfigurationProperty property) {
         this.serviceDiscovery = serviceDiscovery;
         this.netClient = netClient;
+        this.property = property;
     }
 
     public ClientProxyFactory() {
