@@ -15,7 +15,7 @@ public class ConfigurationProperty {
     /**
      * 服务协议
      */
-    private String protocol = "proto";
+    private String protocol = "protostuff";
 
     public Integer getPort() {
         return port;
