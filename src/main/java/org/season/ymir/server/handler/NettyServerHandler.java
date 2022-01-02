@@ -6,7 +6,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelId;
 import io.netty.channel.SimpleChannelInboundHandler;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.season.ymir.common.model.InvocationMessage;
+import org.season.ymir.common.model.InvocationMessageWrap;
 import org.season.ymir.common.model.Request;
 import org.season.ymir.common.model.Response;
 import org.season.ymir.common.utils.GsonUtils;
@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentMap;
  * @author KevinClair
  **/
 @ChannelHandler.Sharable
-public class NettyServerHandler extends SimpleChannelInboundHandler<InvocationMessage<Request>> {
+public class NettyServerHandler extends SimpleChannelInboundHandler<InvocationMessageWrap<Request>> {
 
     private static final Logger logger = LoggerFactory.getLogger(NettyServerHandler.class);
 
@@ -62,14 +62,13 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<InvocationMe
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, InvocationMessage<Request> msg) {
+    protected void channelRead0(ChannelHandlerContext ctx, InvocationMessageWrap<Request> msg) {
         ThreadPoolFactory.execute(() -> {
             try {
                 if (logger.isDebugEnabled()){
                     logger.debug("Server receives message :{}", msg);
                 }
-                final Request msgBody = msg.getBody();
-                InvocationMessage<Response> response = requestHandler.handleRequest(msg);
+                InvocationMessageWrap<Response> response = requestHandler.handleRequest(msg);
                 if (logger.isDebugEnabled()){
                     logger.debug("Server return response:{}", GsonUtils.getInstance().toJson(response));
                 }
