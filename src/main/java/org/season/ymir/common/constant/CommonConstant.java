@@ -79,4 +79,14 @@ public class CommonConstant {
      * 过滤器key
      */
     public static final String FILTER_FROM_HEADERS = "filters";
+
+    /**
+     * 魔法书，定义在消息头
+     */
+    public static final byte[] MAGIC_NUMBER = {(byte) 'y', (byte) 'm', (byte) 'i', (byte) 'r'};
+
+    /**
+     * 消息体的长度
+     */
+    public static final byte TOTAL_LENGTH = 14;
 }

@@ -1,7 +1,5 @@
 package org.season.ymir.common.model;
 
-import org.season.ymir.common.base.InvocationType;
-
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,11 +12,6 @@ import java.util.Map;
 public class InvocationMessage<T> implements Serializable {
 
     /**
-     * 请求id
-     */
-    private String requestId;
-
-    /**
      * 超时时间
      */
     private int timeout;
@@ -27,11 +20,6 @@ public class InvocationMessage<T> implements Serializable {
      * 重试次数
      */
     private int retries;
-
-    /**
-     * 本次消息类型 {@link InvocationType}
-     */
-    private InvocationType type;
 
     /**
      * 请求头
@@ -46,31 +34,11 @@ public class InvocationMessage<T> implements Serializable {
     public InvocationMessage() {
     }
 
-    public InvocationMessage(final String requestId, final int timeout, final int retries, final InvocationType type, final T body, final Map<String,String> headers) {
-        this.requestId = requestId;
+    public InvocationMessage(final int timeout, final int retries, final Map<String, String> headers, final T body) {
         this.timeout = timeout;
         this.retries = retries;
-        this.type = type;
-        this.body = body;
         this.headers = headers;
-    }
-
-    /**
-     * Gets the value of requestId.
-     *
-     * @return the value of requestId
-     */
-    public String getRequestId() {
-        return requestId;
-    }
-
-    /**
-     * Sets the requestId.
-     *
-     * @param requestId requestId
-     */
-    public void setRequestId(final String requestId) {
-        this.requestId = requestId;
+        this.body = body;
     }
 
     /**
@@ -110,21 +78,21 @@ public class InvocationMessage<T> implements Serializable {
     }
 
     /**
-     * Gets the value of type.
+     * Gets the value of headers.
      *
-     * @return the value of type
+     * @return the value of headers
      */
-    public InvocationType getType() {
-        return type;
+    public Map<String, String> getHeaders() {
+        return headers;
     }
 
     /**
-     * Sets the type.
+     * Sets the headers.
      *
-     * @param type type
+     * @param headers headers
      */
-    public void setType(final InvocationType type) {
-        this.type = type;
+    public void setHeaders(final Map<String, String> headers) {
+        this.headers = headers;
     }
 
     /**
@@ -143,23 +111,5 @@ public class InvocationMessage<T> implements Serializable {
      */
     public void setBody(final T body) {
         this.body = body;
-    }
-
-    /**
-     * Gets the value of headers.
-     *
-     * @return the value of headers
-     */
-    public Map<String, String> getHeaders() {
-        return headers;
-    }
-
-    /**
-     * Sets the headers.
-     *
-     * @param headers headers
-     */
-    public void setHeaders(final Map<String, String> headers) {
-        this.headers = headers;
     }
 }
