@@ -49,9 +49,9 @@ Ymir，出自动漫[进击的巨人](https://baike.baidu.com/item/%E8%BF%9B%E5%8
 private Integer port = 20777;
 
 /**
- * 服务序列化协议, 不日按默认为proto
+ * 服务序列化协议, 不日按默认为protostuff
  */
-private String protocol = "proto";
+private String serial = "protostuff";
 ```
 * Ymir对注册中心的支持;
   * 目前已支持Zookeeper和Nacos;
