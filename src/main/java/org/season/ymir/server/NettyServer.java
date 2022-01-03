@@ -9,7 +9,11 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.timeout.IdleStateHandler;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.core.codec.MessageDecoder;
 import org.season.ymir.core.codec.MessageEncoder;
 import org.season.ymir.core.heartbeat.HeartBeatRequestHandler;
@@ -59,13 +63,9 @@ public class NettyServer implements DisposableBean {
                             // 添加一堆 NettyServerHandler 到 ChannelPipeline 中
                             channelPipeline
                                     /*Netty提供的日志打印Handler，可以展示发送接收出去的字节*/
-//                                    .addLast(new LoggingHandler(LogLevel.INFO))
-                                    /*剥离接收到的消息的长度字段，拿到实际的消息报文的字节数组*/
-                                    //.addLast(new LengthFieldBasedFrameDecoder(65535,
-                                    //                0, 4, 0,
-                                    //                0))
+                                    .addLast(new LoggingHandler(LogLevel.INFO))
                                     // 空闲检测
-//                                    .addLast(new IdleStateHandler(CommonConstant.TIMEOUT_SECONDS, 0, 0))
+                                    .addLast(new IdleStateHandler(CommonConstant.TIMEOUT_SECONDS, 0, 0))
                                     // 解码器
                                     .addLast(new MessageDecoder(65535, 10, 4, 0, 0))
                                     // 编码器

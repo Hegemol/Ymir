@@ -11,6 +11,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.timeout.IdleStateHandler;
 import org.season.ymir.client.handler.NettyClientHandler;
 import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.entity.ServiceBean;
@@ -20,7 +21,6 @@ import org.season.ymir.common.model.Response;
 import org.season.ymir.core.codec.MessageDecoder;
 import org.season.ymir.core.codec.MessageEncoder;
 import org.season.ymir.core.heartbeat.HeartBeatResponseHandler;
-import org.season.ymir.core.protocol.MessageProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,17 +33,10 @@ import java.util.concurrent.TimeUnit;
  **/
 public class NettyClient {
 
-    private MessageProtocol protocol;
-
-    public NettyClient(final MessageProtocol protocol) {
-        this.protocol = protocol;
-    }
-
     private static Logger logger = LoggerFactory.getLogger(NettyClient.class);
 
     // TODO 可配置化
     private EventLoopGroup loopGroup = new NioEventLoopGroup(4);
-
 
     /**
      * 发送请求
@@ -95,12 +88,8 @@ public class NettyClient {
                         pipeline
                                 /*Netty提供的日志打印Handler，可以展示发送接收出去的字节*/
                                 .addLast(new LoggingHandler(LogLevel.INFO))
-                                /*剥离接收到的消息的长度字段，拿到实际的消息报文的字节数组*/
-//                                .addLast(new LengthFieldBasedFrameDecoder(65535,
-//                                        0, 4, 0,
-//                                        0))
                                 // 空闲检测
-//                                .addLast(new IdleStateHandler(CommonConstant.TIMEOUT_SECONDS, 0, 0))
+                                .addLast(new IdleStateHandler(CommonConstant.TIMEOUT_SECONDS, 0, 0))
                                 // 解码器
                                 .addLast(new MessageDecoder(65535, 10, 4, 0, 0))
                                 // 编码器
