@@ -1,4 +1,4 @@
-package org.season.ymir.core.protocol;
+package org.season.ymir.core.serial;
 
 import org.season.ymir.common.model.InvocationMessage;
 import org.season.ymir.spi.annodation.SPI;
@@ -8,8 +8,8 @@ import org.season.ymir.spi.annodation.SPI;
  *
  * @author KevinClair
  */
-@SPI("proto")
-public interface MessageProtocol {
+@SPI("protostuff")
+public interface Serializer {
 
     /**
      * 编组请求

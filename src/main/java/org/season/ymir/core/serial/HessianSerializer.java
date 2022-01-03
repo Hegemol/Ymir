@@ -1,4 +1,4 @@
-package org.season.ymir.core.protocol;
+package org.season.ymir.core.serial;
 
 import com.caucho.hessian.io.Hessian2Input;
 import com.caucho.hessian.io.Hessian2Output;
@@ -13,7 +13,7 @@ import java.util.Objects;
  *
  * @author KevinClair
  **/
-public class HessianMessageProtocol implements MessageProtocol {
+public class HessianSerializer implements Serializer {
 
     @Override
     public byte[] serialize(final Object object) throws Exception {

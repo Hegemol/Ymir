@@ -1,3 +1,0 @@
-protostuff = org.season.ymir.core.protocol.proto.ProtostuffMessageProtocol
-kryo = org.season.ymir.core.protocol.kryo.KryoMessageProtocol
-hessian = org.season.ymir.core.protocol.HessianMessageProtocol

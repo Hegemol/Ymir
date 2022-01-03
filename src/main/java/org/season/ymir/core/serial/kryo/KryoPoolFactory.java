@@ -1,4 +1,4 @@
-package org.season.ymir.core.protocol.kryo;
+package org.season.ymir.core.serial.kryo;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.pool.KryoFactory;

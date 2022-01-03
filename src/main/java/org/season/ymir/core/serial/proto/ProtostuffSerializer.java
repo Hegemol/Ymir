@@ -1,4 +1,4 @@
-package org.season.ymir.core.protocol.proto;
+package org.season.ymir.core.serial.proto;
 
 
 import com.dyuproject.protostuff.LinkedBuffer;
@@ -10,7 +10,7 @@ import com.google.common.cache.CacheBuilder;
 import org.objenesis.Objenesis;
 import org.objenesis.ObjenesisStd;
 import org.season.ymir.common.model.InvocationMessage;
-import org.season.ymir.core.protocol.MessageProtocol;
+import org.season.ymir.core.serial.Serializer;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author KevinClair
  */
-public class ProtostuffMessageProtocol implements MessageProtocol {
+public class ProtostuffSerializer implements Serializer {
 
     // Schema缓存
     private Cache<Class<?>, Schema<?>> cachedSchema = CacheBuilder.newBuilder()

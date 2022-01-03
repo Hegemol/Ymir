@@ -7,7 +7,7 @@ import org.season.ymir.common.base.SerializationTypeEnum;
 import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.model.InvocationMessageWrap;
 import org.season.ymir.common.utils.GsonUtils;
-import org.season.ymir.core.protocol.MessageProtocol;
+import org.season.ymir.core.serial.Serializer;
 import org.season.ymir.spi.loader.ExtensionLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +45,7 @@ public class MessageEncoder extends MessageToByteEncoder<InvocationMessageWrap> 
         SerializationTypeEnum serial = object.getSerial();
         byteBuf.writeByte(serial.getCode());
         // 消息长度
-        MessageProtocol protocol = ExtensionLoader.getExtensionLoader(MessageProtocol.class).getLoader(serial.getName());
+        Serializer protocol = ExtensionLoader.getExtensionLoader(Serializer.class).getLoader(serial.getName());
         byte[] body = protocol.serialize(object.getData());
         byteBuf.writeInt(body.length);
 

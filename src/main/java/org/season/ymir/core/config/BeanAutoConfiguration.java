@@ -15,15 +15,13 @@ import org.season.ymir.client.register.ZookeeperServiceRegister;
 import org.season.ymir.common.register.ServiceRegister;
 import org.season.ymir.core.ServiceExportProcessor;
 import org.season.ymir.core.handler.RequestHandler;
-import org.season.ymir.core.property.RegisterCenterProperty;
 import org.season.ymir.core.property.ConfigurationProperty;
-import org.season.ymir.core.protocol.MessageProtocol;
+import org.season.ymir.core.property.RegisterCenterProperty;
 import org.season.ymir.server.NettyServer;
 import org.season.ymir.server.discovery.NacosServiceDiscovery;
 import org.season.ymir.server.discovery.ServiceDiscovery;
 import org.season.ymir.server.discovery.ZookeeperServiceDiscovery;
 import org.season.ymir.server.handler.NettyServerHandler;
-import org.season.ymir.spi.loader.ExtensionLoader;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -101,7 +99,7 @@ public class BeanAutoConfiguration {
          */
         @Bean
         public ServiceRegister zookeeperServiceRegister(ConfigurationProperty clientProperty, CuratorFramework zkClient){
-            return new ZookeeperServiceRegister(zkClient, clientProperty.getPort(), clientProperty.getProtocol());
+            return new ZookeeperServiceRegister(zkClient, clientProperty.getPort(), clientProperty.getSerial());
         }
 
         /**
@@ -160,7 +158,7 @@ public class BeanAutoConfiguration {
          */
         @Bean
         public ServiceRegister nacosServiceRegister(ConfigurationProperty clientProperty, NamingService namingService){
-            return new NacosServiceRegister(namingService, clientProperty.getPort(), clientProperty.getProtocol());
+            return new NacosServiceRegister(namingService, clientProperty.getPort(), clientProperty.getSerial());
         }
 
         /**
@@ -216,7 +214,7 @@ public class BeanAutoConfiguration {
      */
     @Bean
     public NettyClient nettyNetClient(ConfigurationProperty property){
-        return new NettyClient(ExtensionLoader.getExtensionLoader(MessageProtocol.class).getLoader(property.getProtocol()));
+        return new NettyClient();
     }
 
     /**

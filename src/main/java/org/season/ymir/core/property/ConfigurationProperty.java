@@ -15,7 +15,7 @@ public class ConfigurationProperty {
     /**
      * 服务协议
      */
-    private String protocol = "protostuff";
+    private String serial = "protostuff";
 
     public Integer getPort() {
         return port;
@@ -25,11 +25,11 @@ public class ConfigurationProperty {
         this.port = port;
     }
 
-    public String getProtocol() {
-        return protocol;
+    public String getSerial() {
+        return serial;
     }
 
-    public void setProtocol(String protocol) {
-        this.protocol = protocol;
+    public void setSerial(String serial) {
+        this.serial = serial;
     }
 }

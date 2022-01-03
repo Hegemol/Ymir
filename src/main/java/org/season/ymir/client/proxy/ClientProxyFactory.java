@@ -119,7 +119,7 @@ public class ClientProxyFactory {
             // 设置Filter
             requestInvocationMessage.setHeaders(new HashMap<String,String>(){{put(CommonConstant.FILTER_FROM_HEADERS, reference.filter());}});
             invocationMessageWrap.setData(requestInvocationMessage);
-            invocationMessageWrap.setSerial(SerializationTypeEnum.getType(property.getProtocol()));
+            invocationMessageWrap.setSerial(SerializationTypeEnum.getType(property.getSerial()));
             invocationMessageWrap.setRequestId(ATOMIC_INTEGER.getAndIncrement());
             // 3.发送请求
             Response response = netClient.sendRequest(invocationMessageWrap, service);

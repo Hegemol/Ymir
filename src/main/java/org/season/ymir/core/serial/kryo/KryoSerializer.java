@@ -1,17 +1,17 @@
-package org.season.ymir.core.protocol.kryo;
+package org.season.ymir.core.serial.kryo;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryo.pool.KryoPool;
 import org.season.ymir.common.model.InvocationMessage;
-import org.season.ymir.core.protocol.MessageProtocol;
+import org.season.ymir.core.serial.Serializer;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-public class KryoMessageProtocol implements MessageProtocol {
+public class KryoSerializer implements Serializer {
 
     private KryoPool pool = KryoPoolFactory.getKryoPoolInstance();
 

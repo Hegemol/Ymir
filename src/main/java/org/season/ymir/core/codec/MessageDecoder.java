@@ -10,7 +10,7 @@ import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.model.InvocationMessage;
 import org.season.ymir.common.model.InvocationMessageWrap;
 import org.season.ymir.common.utils.GsonUtils;
-import org.season.ymir.core.protocol.MessageProtocol;
+import org.season.ymir.core.serial.Serializer;
 import org.season.ymir.spi.loader.ExtensionLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,7 +77,7 @@ public class MessageDecoder extends LengthFieldBasedFrameDecoder {
         byte[] body = new byte[messageLength];
         byteBuf.readBytes(body);
         SerializationTypeEnum serializationType = SerializationTypeEnum.getType(serialType);
-        InvocationMessage message = ExtensionLoader.getExtensionLoader(MessageProtocol.class).getLoader(serializationType.getName()).deserialize(body);
+        InvocationMessage message = ExtensionLoader.getExtensionLoader(Serializer.class).getLoader(serializationType.getName()).deserialize(body);
         InvocationMessageWrap messageWrap = new InvocationMessageWrap();
         messageWrap.setRequestId(requestId);
         messageWrap.setType(MessageTypeEnum.getType(type));
