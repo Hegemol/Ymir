@@ -1,14 +1,11 @@
 package org.season.ymir.client.handler;
 
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.timeout.IdleStateEvent;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.season.ymir.client.ClientCacheManager;
-import org.season.ymir.common.base.MessageTypeEnum;
 import org.season.ymir.common.base.ServiceStatusEnum;
 import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.exception.RpcException;
@@ -89,20 +86,6 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<InvocationMe
         logger.error("Exception occurred:{}", ExceptionUtils.getStackTrace(cause));
         ClientCacheManager.remove(remoteAddress);
         ctx.close();
-    }
-
-    @Override
-    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-        if (evt instanceof IdleStateEvent) {
-            if (logger.isDebugEnabled()) {
-                logger.debug("Client send heart beat");
-            }
-            InvocationMessageWrap heartBeatInvocationMessage = new InvocationMessageWrap();
-            heartBeatInvocationMessage.setType(MessageTypeEnum.HEART_BEAT_RQEUEST);
-            ctx.writeAndFlush(heartBeatInvocationMessage).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
-            return;
-        }
-        super.userEventTriggered(ctx, evt);
     }
 
     public Response sendRequest(InvocationMessageWrap<Request> request) {
