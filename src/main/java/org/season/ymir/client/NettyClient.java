@@ -1,12 +1,7 @@
 package org.season.ymir.client;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelPipeline;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.logging.LogLevel;
@@ -89,7 +84,7 @@ public class NettyClient {
                                 /*Netty提供的日志打印Handler，可以展示发送接收出去的字节*/
                                 .addLast(new LoggingHandler(LogLevel.INFO))
                                 // 空闲检测
-                                .addLast(new IdleStateHandler(CommonConstant.TIMEOUT_SECONDS, 0, 0))
+                                .addLast(new IdleStateHandler(0, CommonConstant.TIMEOUT_SECONDS, 0))
                                 // 解码器
                                 .addLast(new MessageDecoder(65535, 10, 4, 0, 0))
                                 // 编码器
