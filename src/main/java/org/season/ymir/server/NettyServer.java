@@ -16,7 +16,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.core.codec.MessageDecoder;
 import org.season.ymir.core.codec.MessageEncoder;
-import org.season.ymir.core.heartbeat.HeartBeatRequestHandler;
+import org.season.ymir.core.heartbeat.HeartBeatServerHandler;
 import org.season.ymir.core.property.ConfigurationProperty;
 import org.season.ymir.server.handler.NettyServerHandler;
 import org.slf4j.Logger;
@@ -71,7 +71,7 @@ public class NettyServer implements DisposableBean {
                                     // 编码器
                                     .addLast(new MessageEncoder())
                                     // 心跳处理器
-                                    .addLast(new HeartBeatRequestHandler())
+                                    .addLast(new HeartBeatServerHandler())
                                     // 服务端处理器
                                     .addLast(nettyServerHandler);
                         }
