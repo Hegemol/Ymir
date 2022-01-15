@@ -15,7 +15,7 @@ import org.season.ymir.common.model.Request;
 import org.season.ymir.common.model.Response;
 import org.season.ymir.core.codec.MessageDecoder;
 import org.season.ymir.core.codec.MessageEncoder;
-import org.season.ymir.core.heartbeat.HeartBeatResponseHandler;
+import org.season.ymir.core.heartbeat.HeartBeatClientHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,12 +43,16 @@ public class NettyClient {
     public Response sendRequest(InvocationMessageWrap<Request> rpcRequest, ServiceBean service) {
 
         String address = service.getAddress();
+        if (ClientCacheManager.contains(address)){
+            NettyClientHandler handler = ClientCacheManager.get(address);
+            return handler.sendRequest(rpcRequest);
+        }
         synchronized (address) {
-            if (ClientCacheManager.contains(address)) {
+            if (ClientCacheManager.contains(address)){
                 NettyClientHandler handler = ClientCacheManager.get(address);
                 return handler.sendRequest(rpcRequest);
             }
-            final NettyClientHandler handler = new NettyClientHandler(address);
+            NettyClientHandler handler = new NettyClientHandler(address);
             // 异步建立客户端
             startClient(address, handler);
             return handler.sendRequest(rpcRequest);
@@ -61,7 +65,7 @@ public class NettyClient {
      * @param address 服务端地址
      */
     public void initClient(String address) {
-        final NettyClientHandler handler = new NettyClientHandler(address);
+        NettyClientHandler handler = new NettyClientHandler(address);
         startClient(address, handler);
     }
 
@@ -90,7 +94,7 @@ public class NettyClient {
                                 // 编码器
                                 .addLast(new MessageEncoder())
                                 // 心跳检测
-                                .addLast(new HeartBeatResponseHandler())
+                                .addLast(new HeartBeatClientHandler())
                                 // 客户端业务处理器
                                 .addLast(handler);
                     }
