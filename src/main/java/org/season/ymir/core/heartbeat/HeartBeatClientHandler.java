@@ -1,11 +1,13 @@
 package org.season.ymir.core.heartbeat;
 
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.ReferenceCountUtil;
+import org.season.ymir.client.ClientCacheManager;
 import org.season.ymir.common.base.MessageTypeEnum;
 import org.season.ymir.common.model.InvocationMessageWrap;
 import org.season.ymir.common.model.Response;
@@ -19,9 +21,12 @@ import org.slf4j.LoggerFactory;
  * @author KevinClair
  **/
 @ChannelHandler.Sharable
-public class HeartBeatResponseHandler extends ChannelInboundHandlerAdapter {
+public class HeartBeatClientHandler extends ChannelInboundHandlerAdapter {
 
-    private static final Logger logger = LoggerFactory.getLogger(HeartBeatResponseHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(HeartBeatClientHandler.class);
+
+    // 最大重试次数
+    private int retryTimes = 0;
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -29,8 +34,9 @@ public class HeartBeatResponseHandler extends ChannelInboundHandlerAdapter {
         InvocationMessageWrap invocationMessage = (InvocationMessageWrap<Response>) msg;
         if (invocationMessage.getType().equals(MessageTypeEnum.HEART_BEAT_RESPONSE)) {
             if (logger.isDebugEnabled()) {
-                logger.debug("Client receive heart beat response:{}", GsonUtils.getInstance().toJson(msg));
+                logger.debug("Client receive heartbeat response:{}", GsonUtils.getInstance().toJson(msg));
             }
+            retryTimes = 0;
             ReferenceCountUtil.release(msg);
         } else {
             ctx.fireChannelRead(msg);
@@ -40,12 +46,20 @@ public class HeartBeatResponseHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         if (evt instanceof IdleStateEvent) {
-            if (logger.isDebugEnabled()) {
-                logger.debug("Client send heart beat");
+            IdleStateEvent event = (IdleStateEvent) evt;
+            if (event.state() == IdleState.WRITER_IDLE){
+                // 超过最大重试次数，关闭连接
+                if (retryTimes > 3){
+                    logger.warn("Heartbeat check, it's more than 3 times since the last heartbeat,channel {} has lost connection.", ctx.channel().id());
+                    ClientCacheManager.remove((SocketChannel) ctx.channel());
+                    ctx.close();
+                }
+                // 写超时处理
+                InvocationMessageWrap heartBeatInvocationMessage = new InvocationMessageWrap();
+                heartBeatInvocationMessage.setType(MessageTypeEnum.HEART_BEAT_RQEUEST);
+                ++retryTimes;
+                ctx.writeAndFlush(heartBeatInvocationMessage);
             }
-            InvocationMessageWrap heartBeatInvocationMessage = new InvocationMessageWrap();
-            heartBeatInvocationMessage.setType(MessageTypeEnum.HEART_BEAT_RQEUEST);
-            ctx.writeAndFlush(heartBeatInvocationMessage).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
             return;
         }
         super.userEventTriggered(ctx, evt);
