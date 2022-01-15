@@ -1,7 +1,9 @@
 package org.season.ymir.client;
 
+import io.netty.channel.socket.SocketChannel;
 import org.season.ymir.client.handler.NettyClientHandler;
 
+import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -27,6 +29,18 @@ public class ClientCacheManager {
      */
     public static NettyClientHandler get(String address){
         return connectedServerNodes.get(address);
+    }
+
+    /**
+     * 获取缓存，根据远程地址获取客户端的处理器
+     *
+     * @param channel 远程服务端地址
+     * @return {@link NettyClientHandler}
+     */
+    public static NettyClientHandler get(SocketChannel channel){
+        InetSocketAddress inetSocketAddress = channel.remoteAddress();
+        String hostAddress = inetSocketAddress.getAddress().getHostAddress();
+        return connectedServerNodes.get(hostAddress);
     }
 
     /**
@@ -56,5 +70,16 @@ public class ClientCacheManager {
      */
     public static void remove(String address){
         connectedServerNodes.remove(address);
+    }
+
+    /**
+     * 移除服务端
+     *
+     * @param channel 服务端地址
+     */
+    public static void remove(SocketChannel channel){
+        InetSocketAddress inetSocketAddress = channel.remoteAddress();
+        String hostAddress = inetSocketAddress.getAddress().getHostAddress();
+        connectedServerNodes.remove(hostAddress);
     }
 }
