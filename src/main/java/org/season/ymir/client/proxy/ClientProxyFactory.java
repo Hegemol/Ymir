@@ -1,12 +1,17 @@
 package org.season.ymir.client.proxy;
 
+import io.netty.channel.Channel;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.season.ymir.client.NettyChannelManager;
 import org.season.ymir.client.NettyClient;
+import org.season.ymir.client.RequestFutureManager;
 import org.season.ymir.common.base.MessageTypeEnum;
 import org.season.ymir.common.base.SerializationTypeEnum;
+import org.season.ymir.common.base.ServiceStatusEnum;
 import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.exception.RpcException;
+import org.season.ymir.common.exception.RpcTimeoutException;
 import org.season.ymir.common.model.InvocationMessage;
 import org.season.ymir.common.model.InvocationMessageWrap;
 import org.season.ymir.common.model.Request;
@@ -14,6 +19,7 @@ import org.season.ymir.common.model.Response;
 import org.season.ymir.common.utils.ClassUtil;
 import org.season.ymir.common.utils.LoadBalanceUtils;
 import org.season.ymir.core.annotation.Reference;
+import org.season.ymir.core.filter.DefaultFilterChain;
 import org.season.ymir.core.generic.GenericService;
 import org.season.ymir.core.property.ConfigurationProperty;
 import org.season.ymir.server.discovery.ServiceDiscovery;
@@ -23,11 +29,16 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -46,6 +57,15 @@ public class ClientProxyFactory {
     private Map<Class<?>, Object> objectCache = new ConcurrentHashMap<>();
 
     private static final AtomicInteger ATOMIC_INTEGER = new AtomicInteger(0);
+
+    public ClientProxyFactory(ServiceDiscovery serviceDiscovery, NettyClient netClient, ConfigurationProperty property) {
+        this.serviceDiscovery = serviceDiscovery;
+        this.netClient = netClient;
+        this.property = property;
+    }
+
+    public ClientProxyFactory() {
+    }
 
     /**
      * 通过Java动态代理获取服务代理类
@@ -122,7 +142,7 @@ public class ClientProxyFactory {
             invocationMessageWrap.setSerial(SerializationTypeEnum.getType(property.getSerial()));
             invocationMessageWrap.setRequestId(ATOMIC_INTEGER.getAndIncrement());
             // 3.发送请求
-            Response response = netClient.sendRequest(invocationMessageWrap, service);
+            Response response = sendRequest(invocationMessageWrap, service.getAddress());
             if (Objects.isNull(response)){
                 throw new RpcException("the response is null");
             }
@@ -133,14 +153,54 @@ public class ClientProxyFactory {
             // 4.结果处理
             return response.getResult();
         }
+
+        /**
+         * 发送请求
+         *
+         * @param rpcRequest 请求参数
+         * @param address    服务地址
+         * @return {@link Response}
+         */
+        private Response sendRequest(InvocationMessageWrap<Request> rpcRequest, String address) {
+
+            if (NettyChannelManager.contains(address)){
+                return this.sendRequestByChannel(rpcRequest, NettyChannelManager.get(address));
+            }
+            synchronized (address) {
+                if (NettyChannelManager.contains(address)){
+                    return this.sendRequestByChannel(rpcRequest, NettyChannelManager.get(address));
+                }
+                // 建立客户端
+                netClient.initClient(address);
+                return this.sendRequestByChannel(rpcRequest, NettyChannelManager.get(address));
+            }
+        }
+
+        private Response sendRequestByChannel(InvocationMessageWrap<Request> request, Channel channel) {
+            CompletableFuture<InvocationMessage<Response>> completableFuture = new CompletableFuture<>();
+            RequestFutureManager.putTask(request.getRequestId(), completableFuture);
+            InvocationMessage<Request> data = request.getData();
+            try {
+                new DefaultFilterChain(new ArrayList<>(Arrays.asList(data.getHeaders().get(CommonConstant.FILTER_FROM_HEADERS).split(","))), CommonConstant.SERVICE_CONSUMER_SIDE).execute(data);
+                channel.writeAndFlush(request);
+                // 等待响应
+                InvocationMessage<Response> response = completableFuture.get(data.getTimeout(), TimeUnit.MILLISECONDS);
+                return response.getBody();
+            } catch (TimeoutException exception) {
+                Response timeoutExceptionResponse = new Response(ServiceStatusEnum.ERROR);
+                timeoutExceptionResponse.setThrowable(new RpcTimeoutException(String.format("Invoke remote method %s timeout with %s ms", String.join("#", data.getBody().getServiceName(), data.getBody().getMethod()), data.getTimeout())));
+                return timeoutExceptionResponse;
+            } catch (Exception e) {
+                Response exceptionResponse = new Response(ServiceStatusEnum.ERROR);
+                exceptionResponse.setThrowable(new RpcException(e));
+                return exceptionResponse;
+            } finally {
+                RequestFutureManager.remove(request.getRequestId());
+            }
+        }
     }
 
-    public ClientProxyFactory(ServiceDiscovery serviceDiscovery, NettyClient netClient, ConfigurationProperty property) {
-        this.serviceDiscovery = serviceDiscovery;
-        this.netClient = netClient;
-        this.property = property;
-    }
 
-    public ClientProxyFactory() {
-    }
+
+
 }
