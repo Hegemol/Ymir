@@ -1,19 +1,24 @@
 package org.season.ymir.core.heartbeat;
 
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.ReferenceCountUtil;
-import org.season.ymir.client.ClientCacheManager;
+import org.season.ymir.client.NettyChannelManager;
 import org.season.ymir.common.base.MessageTypeEnum;
+import org.season.ymir.common.base.SerializationTypeEnum;
+import org.season.ymir.common.model.HeartBeat;
+import org.season.ymir.common.model.InvocationMessage;
 import org.season.ymir.common.model.InvocationMessageWrap;
 import org.season.ymir.common.model.Response;
 import org.season.ymir.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.net.InetSocketAddress;
 
 /**
  * 心跳响应处理器
@@ -25,9 +30,6 @@ public class HeartBeatClientHandler extends ChannelInboundHandlerAdapter {
 
     private static final Logger logger = LoggerFactory.getLogger(HeartBeatClientHandler.class);
 
-    // 最大重试次数
-    private int retryTimes = 0;
-
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         // 心跳回应
@@ -36,7 +38,7 @@ public class HeartBeatClientHandler extends ChannelInboundHandlerAdapter {
             if (logger.isDebugEnabled()) {
                 logger.debug("Client receive heartbeat response:{}", GsonUtils.getInstance().toJson(msg));
             }
-            retryTimes = 0;
+            NettyChannelManager.get((InetSocketAddress) ctx.channel().remoteAddress()).setRetryTimes(0);
             ReferenceCountUtil.release(msg);
         } else {
             ctx.fireChannelRead(msg);
@@ -49,16 +51,20 @@ public class HeartBeatClientHandler extends ChannelInboundHandlerAdapter {
             IdleStateEvent event = (IdleStateEvent) evt;
             if (event.state() == IdleState.WRITER_IDLE){
                 // 超过最大重试次数，关闭连接
-                if (retryTimes > 3){
+                HeartBeat heartBeat = NettyChannelManager.get((InetSocketAddress) ctx.channel().remoteAddress());
+                if (heartBeat.getRetryTimes() > 3){
                     logger.warn("Heartbeat check, it's more than 3 times since the last heartbeat,channel {} has lost connection.", ctx.channel().id());
-                    ClientCacheManager.remove((SocketChannel) ctx.channel());
+                    NettyChannelManager.remove((InetSocketAddress) ctx.channel().remoteAddress());
                     ctx.close();
+                    return;
                 }
                 // 写超时处理
+                heartBeat.setRetryTimes(heartBeat.getRetryTimes()+1);
                 InvocationMessageWrap heartBeatInvocationMessage = new InvocationMessageWrap();
                 heartBeatInvocationMessage.setType(MessageTypeEnum.HEART_BEAT_RQEUEST);
-                ++retryTimes;
-                ctx.writeAndFlush(heartBeatInvocationMessage);
+                heartBeatInvocationMessage.setSerial(SerializationTypeEnum.PROTOSTUFF);
+                heartBeatInvocationMessage.setData(new InvocationMessage());
+                heartBeat.getChannel().writeAndFlush(heartBeatInvocationMessage).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
             }
             return;
         }

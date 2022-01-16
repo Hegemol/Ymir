@@ -1,6 +1,7 @@
 package org.season.ymir.core.heartbeat;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelId;
@@ -10,14 +11,14 @@ import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.ReferenceCountUtil;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.season.ymir.common.base.MessageTypeEnum;
-import org.season.ymir.common.exception.HeartBeatServerModel;
+import org.season.ymir.common.base.SerializationTypeEnum;
+import org.season.ymir.common.model.InvocationMessage;
 import org.season.ymir.common.model.InvocationMessageWrap;
 import org.season.ymir.common.model.Request;
 import org.season.ymir.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Date;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -34,12 +35,12 @@ public class HeartBeatServerHandler extends ChannelInboundHandlerAdapter {
     /**
      * Channel 映射，存储Channel信息
      */
-    private ConcurrentMap<ChannelId, HeartBeatServerModel> channels = new ConcurrentHashMap<>();
+    private ConcurrentMap<ChannelId, Channel> channels = new ConcurrentHashMap<>();
 
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) {
         // 从管理器中添加
-        channels.put(ctx.channel().id(), new HeartBeatServerModel(ctx.channel(), new Date()));
+        channels.put(ctx.channel().id(), ctx.channel());
         logger.info("Netty server, one active channel add, channel info:{}", ctx.channel());
     }
 
@@ -65,14 +66,10 @@ public class HeartBeatServerHandler extends ChannelInboundHandlerAdapter {
             // 判断是否为读事件
             IdleStateEvent event = (IdleStateEvent) evt;
             if (event.state() == IdleState.READER_IDLE){
-                // 如果最后一次心跳时间，和当前时间间隔超过两分钟，断开连接
-                HeartBeatServerModel heartBeatServerModel = channels.get(ctx.channel().id());
-                if (new Date().getTime() - heartBeatServerModel.getLastHeartBeatTime().getTime() >= 120000){
-                    Channel channel = ctx.channel();
-                    logger.warn("Heartbeat check, it's more than two minutes since the last heartbeat,channel {} has lost connection.", channel.id());
-                    channels.remove(channel.id());
-                    ctx.close();
-                }
+                Channel channel = ctx.channel();
+                logger.warn("Heartbeat check, it's more than two minutes since the last heartbeat,channel {} has lost connection.", channel.id());
+                channels.remove(channel.id());
+                ctx.close();
             }
             return;
         }
@@ -86,11 +83,11 @@ public class HeartBeatServerHandler extends ChannelInboundHandlerAdapter {
             if (logger.isDebugEnabled()){
                 logger.debug("Server heartbeat request:{}", GsonUtils.getInstance().toJson(request));
             }
-            // 更新最后一次心跳时间
-            channels.get(ctx.channel().id()).setLastHeartBeatTime(new Date());
             InvocationMessageWrap responseInvocationMessage = new InvocationMessageWrap();
             responseInvocationMessage.setType(MessageTypeEnum.HEART_BEAT_RESPONSE);
-            ctx.channel().writeAndFlush(responseInvocationMessage);
+            responseInvocationMessage.setSerial(SerializationTypeEnum.PROTOSTUFF);
+            responseInvocationMessage.setData(new InvocationMessage());
+            ctx.channel().writeAndFlush(responseInvocationMessage).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);;
             ReferenceCountUtil.release(msg);
         } else {
             ctx.fireChannelRead(msg);
