@@ -65,7 +65,7 @@ public class NettyServer implements DisposableBean {
                                     /*Netty提供的日志打印Handler，可以展示发送接收出去的字节*/
                                     .addLast(new LoggingHandler(LogLevel.INFO))
                                     // 空闲检测
-                                    .addLast(new IdleStateHandler(CommonConstant.TIMEOUT_SECONDS, 0, 0))
+                                    .addLast(new IdleStateHandler(CommonConstant.READ_TIMEOUT_SECONDS, 0, 0))
                                     // 解码器
                                     .addLast(new MessageDecoder(65535, 10, 4, 0, 0))
                                     // 编码器
@@ -84,8 +84,7 @@ public class NettyServer implements DisposableBean {
                 channel = future.channel();
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            logger.error("netty sever started failed,msg:{}", ExceptionUtils.getStackTrace(e));
+            logger.error("Netty sever started failed,msg:{}", ExceptionUtils.getStackTrace(e));
         }
     }
 

@@ -45,7 +45,12 @@ public class CommonConstant {
     /**
      * 读写超时时间
      */
-    public static final Integer TIMEOUT_SECONDS = 30;
+    public static final Integer READ_TIMEOUT_SECONDS = 120;
+
+    /**
+     * 写超时时间
+     */
+    public static final Integer WRITE_TIMEOUT_SECONDS = 30;
 
     /**
      * 心跳请求
