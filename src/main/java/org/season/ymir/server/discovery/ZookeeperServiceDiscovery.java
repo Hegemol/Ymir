@@ -6,7 +6,7 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.apache.zookeeper.CreateMode;
-import org.season.ymir.client.ClientCacheManager;
+import org.season.ymir.client.NettyChannelManager;
 import org.season.ymir.client.NettyClient;
 import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.entity.ServiceBean;
@@ -43,7 +43,7 @@ public class ZookeeperServiceDiscovery extends DefaultAbstractServiceDiscovery {
     @Override
     protected void handleClient(List<ServiceBean> serviceList) {
         for (ServiceBean each : serviceList) {
-            boolean clientIsExisted = ClientCacheManager.contains(each.getAddress());
+            boolean clientIsExisted = NettyChannelManager.contains(each.getAddress());
             if (!clientIsExisted){
                 nettyClient.initClient(each.getAddress());
             }
