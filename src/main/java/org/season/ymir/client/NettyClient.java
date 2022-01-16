@@ -1,24 +1,28 @@
 package org.season.ymir.client;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleStateHandler;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.season.ymir.client.handler.NettyClientHandler;
 import org.season.ymir.common.constant.CommonConstant;
-import org.season.ymir.common.entity.ServiceBean;
-import org.season.ymir.common.model.InvocationMessageWrap;
-import org.season.ymir.common.model.Request;
-import org.season.ymir.common.model.Response;
 import org.season.ymir.core.codec.MessageDecoder;
 import org.season.ymir.core.codec.MessageEncoder;
 import org.season.ymir.core.heartbeat.HeartBeatClientHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
 
+import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -26,7 +30,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author KevinClair
  **/
-public class NettyClient {
+public class NettyClient implements DisposableBean {
 
     private static Logger logger = LoggerFactory.getLogger(NettyClient.class);
 
@@ -34,39 +38,13 @@ public class NettyClient {
     private EventLoopGroup loopGroup = new NioEventLoopGroup(4);
 
     /**
-     * 发送请求
-     *
-     * @param rpcRequest 请求参数
-     * @param service    服务信息
-     * @return {@link Response}
-     */
-    public Response sendRequest(InvocationMessageWrap<Request> rpcRequest, ServiceBean service) {
-
-        String address = service.getAddress();
-        if (ClientCacheManager.contains(address)){
-            NettyClientHandler handler = ClientCacheManager.get(address);
-            return handler.sendRequest(rpcRequest);
-        }
-        synchronized (address) {
-            if (ClientCacheManager.contains(address)){
-                NettyClientHandler handler = ClientCacheManager.get(address);
-                return handler.sendRequest(rpcRequest);
-            }
-            NettyClientHandler handler = new NettyClientHandler(address);
-            // 异步建立客户端
-            startClient(address, handler);
-            return handler.sendRequest(rpcRequest);
-        }
-    }
-
-    /**
      * 客户端初始化
      *
      * @param address 服务端地址
      */
     public void initClient(String address) {
-        NettyClientHandler handler = new NettyClientHandler(address);
-        startClient(address, handler);
+        NettyClientHandler handler = new NettyClientHandler();
+        this.startClient(address, handler);
     }
 
     private void startClient(String address, NettyClientHandler handler) {
@@ -88,7 +66,7 @@ public class NettyClient {
                                 /*Netty提供的日志打印Handler，可以展示发送接收出去的字节*/
                                 .addLast(new LoggingHandler(LogLevel.INFO))
                                 // 空闲检测
-                                .addLast(new IdleStateHandler(0, CommonConstant.TIMEOUT_SECONDS, 0))
+                                .addLast(new IdleStateHandler(0, CommonConstant.WRITE_TIMEOUT_SECONDS, 0))
                                 // 解码器
                                 .addLast(new MessageDecoder(65535, 10, 4, 0, 0))
                                 // 编码器
@@ -100,14 +78,19 @@ public class NettyClient {
                     }
                 });
         // 启用客户端连接
-        bootstrap.connect().addListener((ChannelFutureListener) channelFuture -> {
-            if (!channelFuture.isSuccess()) {
-                reconnect(address, handler);
-                return;
-            }
-            logger.info("Server address:{} connect successfully.", address);
-            ClientCacheManager.put(address, handler);
-        });
+        try {
+            bootstrap.connect().sync().addListener((ChannelFutureListener) channelFuture -> {
+                if (!channelFuture.isSuccess()) {
+                    this.reconnect(address, handler);
+                    return;
+                }
+                NettyChannelManager.put(new InetSocketAddress(serverAddress, Integer.parseInt(serverPort)), channelFuture.channel());
+                logger.info("Server address:{} connect successfully.", address);
+            });
+        } catch (InterruptedException e) {
+            logger.error("Netty client start error:{}", ExceptionUtils.getStackTrace(e));
+            this.close();
+        }
     }
 
     /**
@@ -121,8 +104,21 @@ public class NettyClient {
             if (logger.isDebugEnabled()) {
                 logger.debug("Netty client start reconnect, address:{}", address);
             }
-            startClient(address, handler);
+            this.startClient(address, handler);
         }, CommonConstant.RECONNECT_SECONDS, TimeUnit.SECONDS);
     }
 
+    @Override
+    public void destroy() throws Exception {
+        this.close();
+    }
+
+    /**
+     * 关闭
+     */
+    private void close(){
+        if (loopGroup != null){
+            loopGroup.shutdownGracefully();
+        }
+    }
 }
