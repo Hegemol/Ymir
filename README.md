@@ -379,6 +379,4 @@ public class SpiTest {
 * @Reference属性扩展，多版本，分组等；
 * 负载均衡算法优化；
 * 增加provider和consumer的线程池配置参数;
-* 编解码器重写，把序列化类型放在协议中读取；
-* Netty心跳重写，管理心跳服务，断开不需要的连接；
 * 协议重新定义；
