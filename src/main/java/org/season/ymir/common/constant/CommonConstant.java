@@ -94,4 +94,9 @@ public class CommonConstant {
      * 消息体的长度
      */
     public static final byte TOTAL_LENGTH = 14;
+
+    /**
+     * 心跳最大重试次数
+     */
+    public static final int MAX_HEARTBEAT_TIMES = 3;
 }

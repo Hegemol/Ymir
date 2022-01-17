@@ -10,6 +10,7 @@ import io.netty.util.ReferenceCountUtil;
 import org.season.ymir.client.NettyChannelManager;
 import org.season.ymir.common.base.MessageTypeEnum;
 import org.season.ymir.common.base.SerializationTypeEnum;
+import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.model.HeartBeat;
 import org.season.ymir.common.model.InvocationMessage;
 import org.season.ymir.common.model.InvocationMessageWrap;
@@ -52,7 +53,7 @@ public class HeartBeatClientHandler extends ChannelInboundHandlerAdapter {
             if (event.state() == IdleState.WRITER_IDLE){
                 // 超过最大重试次数，关闭连接
                 HeartBeat heartBeat = NettyChannelManager.get((InetSocketAddress) ctx.channel().remoteAddress());
-                if (heartBeat.getRetryTimes() > 3){
+                if (heartBeat.getRetryTimes() > CommonConstant.MAX_HEARTBEAT_TIMES) {
                     logger.warn("Heartbeat check, it's more than 3 times since the last heartbeat,channel {} has lost connection.", ctx.channel().id());
                     NettyChannelManager.remove((InetSocketAddress) ctx.channel().remoteAddress());
                     ctx.close();
