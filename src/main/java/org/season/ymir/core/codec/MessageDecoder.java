@@ -19,10 +19,10 @@ import java.util.Arrays;
 
 /**
  * 自定义协议
- *
+ * <pre>
  *   0     1     2     3     4     5     6     7     8     9     10     11    12    13    14
  *   +-----+-----+-----+-----+----—+-----+-----+-----+-----+------+-----+-----+-----+-----+
- *   |   magic   code        |      requestId        | type|serial|       full length     |
+ *   |   magic   code        |      full length      | type|serial|       requestId     |
  *   +-----------------------+-----------------------+-----+------+-----------------------+
  *   |                                                                                    |
  *   |                                       body                                         |
@@ -32,6 +32,7 @@ import java.util.Arrays;
  * 4B  magic code（魔法数）   4B requestId（请求的Id）    1B type（消息类型）
  * 1B serial（序列化类型）    4B  full length（消息长度）
  * body（object类型数据）
+ * </pre>
  *
  * @author KevinClair
  */
@@ -66,26 +67,31 @@ public class MessageDecoder extends LengthFieldBasedFrameDecoder {
     private Object decode(ByteBuf byteBuf) throws Exception {
         // 校验魔法值是否正确
         checkMagicNumber(byteBuf);
-        // 读取requestId
-        int requestId = byteBuf.readInt();
+        // 读取消息总长度
+        int fullLength = byteBuf.readInt();
         // 读取消息类型
         byte type = byteBuf.readByte();
         // 序列化类型
         byte serialType = byteBuf.readByte();
-        // 消息长度
-        int messageLength = byteBuf.readInt();
-        byte[] body = new byte[messageLength];
-        byteBuf.readBytes(body);
-        SerializationTypeEnum serializationType = SerializationTypeEnum.getType(serialType);
-        InvocationMessage message = ExtensionLoader.getExtensionLoader(Serializer.class).getLoader(serializationType.getName()).deserialize(body);
+        // 读取requestId
+        int requestId = byteBuf.readInt();
+        // 计算消息长度
+        int bodyLength = fullLength - CommonConstant.TOTAL_LENGTH;
+        // 初始化消息对象
         InvocationMessageWrap messageWrap = new InvocationMessageWrap();
         messageWrap.setRequestId(requestId);
         messageWrap.setType(MessageTypeEnum.getType(type));
+        SerializationTypeEnum serializationType = SerializationTypeEnum.getType(serialType);
         messageWrap.setSerial(serializationType);
-        messageWrap.setData(message);
-
-        if (logger.isDebugEnabled()){
-            logger.debug("Channel {} decoder message success, message content:{}", GsonUtils.getInstance().toJson(message));
+        // 如果不是心跳类型，此处应该都是大于0；心跳类型的请求不包含请求体，所以一般fullLength就是全部的消息长度
+        if (bodyLength > 0) {
+            byte[] body = new byte[bodyLength];
+            byteBuf.readBytes(body);
+            InvocationMessage message = ExtensionLoader.getExtensionLoader(Serializer.class).getLoader(serializationType.getName()).deserialize(body);
+            messageWrap.setData(message);
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("Channel {} decoder message success, message content:{}", GsonUtils.getInstance().toJson(messageWrap));
         }
         return messageWrap;
     }
