@@ -12,7 +12,6 @@ import org.season.ymir.common.base.MessageTypeEnum;
 import org.season.ymir.common.base.SerializationTypeEnum;
 import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.model.HeartBeat;
-import org.season.ymir.common.model.InvocationMessage;
 import org.season.ymir.common.model.InvocationMessageWrap;
 import org.season.ymir.common.model.Response;
 import org.season.ymir.common.utils.GsonUtils;
@@ -60,11 +59,12 @@ public class HeartBeatClientHandler extends ChannelInboundHandlerAdapter {
                     return;
                 }
                 // 写超时处理
-                heartBeat.setRetryTimes(heartBeat.getRetryTimes()+1);
+                heartBeat.setRetryTimes(heartBeat.getRetryTimes() + 1);
                 InvocationMessageWrap heartBeatInvocationMessage = new InvocationMessageWrap();
                 heartBeatInvocationMessage.setType(MessageTypeEnum.HEART_BEAT_RQEUEST);
                 heartBeatInvocationMessage.setSerial(SerializationTypeEnum.PROTOSTUFF);
-                heartBeatInvocationMessage.setData(new InvocationMessage());
+                heartBeatInvocationMessage.setRequestId(Integer.MIN_VALUE);
+                heartBeatInvocationMessage.setData(null);
                 heartBeat.getChannel().writeAndFlush(heartBeatInvocationMessage).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
             }
             return;

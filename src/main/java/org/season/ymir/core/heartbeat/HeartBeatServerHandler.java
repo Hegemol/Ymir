@@ -12,7 +12,6 @@ import io.netty.util.ReferenceCountUtil;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.season.ymir.common.base.MessageTypeEnum;
 import org.season.ymir.common.base.SerializationTypeEnum;
-import org.season.ymir.common.model.InvocationMessage;
 import org.season.ymir.common.model.InvocationMessageWrap;
 import org.season.ymir.common.model.Request;
 import org.season.ymir.common.utils.GsonUtils;
@@ -80,14 +79,16 @@ public class HeartBeatServerHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         InvocationMessageWrap<Request> request = (InvocationMessageWrap<Request>) msg;
         if (request.getType().equals(MessageTypeEnum.HEART_BEAT_RQEUEST)){
-            if (logger.isDebugEnabled()){
+            if (logger.isDebugEnabled()) {
                 logger.debug("Server heartbeat request:{}", GsonUtils.getInstance().toJson(request));
             }
             InvocationMessageWrap responseInvocationMessage = new InvocationMessageWrap();
             responseInvocationMessage.setType(MessageTypeEnum.HEART_BEAT_RESPONSE);
             responseInvocationMessage.setSerial(SerializationTypeEnum.PROTOSTUFF);
-            responseInvocationMessage.setData(new InvocationMessage());
-            ctx.channel().writeAndFlush(responseInvocationMessage).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);;
+            responseInvocationMessage.setRequestId(Integer.MIN_VALUE);
+            responseInvocationMessage.setData(null);
+            ctx.channel().writeAndFlush(responseInvocationMessage).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+            ;
             ReferenceCountUtil.release(msg);
         } else {
             ctx.fireChannelRead(msg);
