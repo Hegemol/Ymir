@@ -161,27 +161,65 @@ public class TestController {
     private TestService service;
 
     @PostMapping("/name")
-    public String get(@RequestParam("name") String name){
-        return service.test(name);
+    public String get(@RequestParam("name") String name) {
+      return service.test(name);
     }
 }
 ```
+
 * 发送请求，返回结果
+
 ```shell
 curl --location --request POST 'http://localhost:port/name?name=11'
 ```
+
 ## Ymir的一些设计理念
+
+### ymir协议
+
+#### 详情
+
+* ymir基于本身的数据传递规则，设计了自己的消息协议，具体规则为
+  * magic code(魔法值)，占用4个字节；
+  * full length(body长度)，代表整个消息体的长度数据；
+  * type，代表本次的消息类型，具体请查看枚举[MessageTypeEnum](src/main/java/org/season/ymir/common/base/MessageTypeEnum.java)；
+  *
+  serial，代表本次的消息序列化类型，具体请查看枚举[SerializationTypeEnum](src/main/java/org/season/ymir/common/base/SerializationTypeEnum.java)
+  * requestId，代表本次请求的请求id，由客户端生成；
+  * 请求body；
+
+```text
+ *   0     1     2     3     4     5     6     7     8     9     10     11    12    13    14
+ *   +-----+-----+-----+-----+----—+-----+-----+-----+-----+------+-----+-----+-----+-----+
+ *   |   magic   code        |      full length      | type|serial|       requestId       |
+ *   +-----------------------+-----------------------+-----+------+-----------------------+
+ *   |                                                                                    |
+ *   |                                       body                                         |
+ *   |                                                                                    |
+ *   |                                                                                    |
+ *   +------------------------------------------------------------------------------------+
+ * 4B  magic code（魔法数）   4B requestId（请求的Id）    1B type（消息类型）
+ * 1B serial（序列化类型）    4B  full length（消息长度）
+ * body（object类型数据）
+```
+
 ### 泛化调用
+
 #### 如何使用
-* Ymir的泛化调用允许客户端不依赖服务端的依赖就可以调用服务。在需要使用的地方添加[GenericService](src/main/java/org/season/ymir/core/generic/GenericService.java)的引入即可;
+
+*
+Ymir的泛化调用允许客户端不依赖服务端的依赖就可以调用服务。在需要使用的地方添加[GenericService](src/main/java/org/season/ymir/core/generic/GenericService.java)
+的引入即可;
+
 ```java
+
 @RestController
 public class TestController {
 
-    @Reference
-    private GenericService service;
+  @Reference
+  private GenericService service;
 
-    @PostMapping("/name")
+  @PostMapping("/name")
     public String get(@RequestParam("name") String name){
         return service.invoke("org.season.ymir.example.client.controller.TestInterface", "test", new String[]{"java.lang.String"}, new Object[]{name});
     }
@@ -338,17 +376,33 @@ public class SpiTest {
   ![](./images/Ymir服务发现.png)
 ### Netty请求处理器
 #### 心跳检测处理器
-* Netty本身有自己的心跳检测，但是心跳检测的时间间隔非常长，有两个小时，所以Ymir自己做了客户端以及服务端的心跳检测
-* 大概设计为客户端向服务端发送心跳请求，服务端接收到心跳请求后，做出回应，客户端接收到心跳回应，本次心跳结束；
-  ![](./images/Ymir心跳检测.png)
+
+*
+基于Netty的[IdleStateHandler](https://github.com/netty/netty/blob/4.1/handler/src/main/java/io/netty/handler/timeout/IdleStateHandler.java)
+  * 客户端监听写时间，超时时间为30s；
+  * 服务端监听读事件，超时时间为2min；
+* 具体做法
+  *
+  客户端监听写事件，如果在30s内，客户端没有写事件发生，触发[IdleStateEvent](https://github.com/netty/netty/blob/4.1/handler/src/main/java/io/netty/handler/timeout/IdleStateEvent.java)
+  事件；
+    * 第一次发送心跳请求，客户端心跳请求次数+1，服务端收到心跳请求，做出响应，客户端收到心跳响应，心跳请求次数重新置为0，本次心跳结束，等待下一次心跳；
+    *
+    第一次发送心跳请求，客户端心跳请求次数+1，服务端收到心跳请求，但是未响应心跳结果。客户端未收到心跳响应，等待30s后，继续发送心跳请求，如果心跳请求超过3次后，仍未获取到服务端响应心跳结果，客户端主动关闭通道，断开连接，清除缓存；
+  *
+  服务端监听读事件，如果在2min内，服务端没有读事件，触发[IdleStateEvent](https://github.com/netty/netty/blob/4.1/handler/src/main/java/io/netty/handler/timeout/IdleStateEvent.java)
+  事件；
+    * 服务端监听到读事件，删除当前客户端连接地址缓存，服务端关闭连接；
+      ![](./images/Ymir心跳检测.png)
 #### 编码/解码处理器
+
 * Ymir的编码解码依然用的是Netty自己的编码解码器，在里面对写出以及接收到的数据进行编码解码操作；
-  * [MessageToByteEncoder](https://github.com/netty/netty/blob/4.1/codec/src/main/java/io/netty/handler/codec/MessageToByteEncoder.java) 编码器
-  * [ByteToMessageDecoder](https://github.com/netty/netty/blob/4.1/codec/src/main/java/io/netty/handler/codec/ByteToMessageDecoder.java) 解码器
-* 在客户端和服务端都添加了相同的编码器，添加了不同的解码器，因为服务端和客户端接收到的模型是不一致的，所以需要分开处理
-  * [MessageEncoder](https://github.com/KevinClair/Ymir/blob/master/src/main/java/org/season/ymir/core/codec/MessageEncoder.java) 编码器
-  * [MessageRequestDecoder](https://github.com/KevinClair/Ymir/blob/master/src/main/java/org/season/ymir/core/codec/MessageRequestDecoder.java) 请求解码器
-  * [MessageResponseDecoder](https://github.com/KevinClair/Ymir/blob/master/src/main/java/org/season/ymir/core/codec/MessageResponseDecoder.java) 请求解码器
+  * [MessageToByteEncoder](https://github.com/netty/netty/blob/4.1/codec/src/main/java/io/netty/handler/codec/MessageToByteEncoder.java)
+    编码器
+  * [LengthFieldBasedFrameDecoder](https://github.com/netty/netty/blob/4.1/codec/src/main/java/io/netty/handler/codec/LengthFieldBasedFrameDecoder.java)
+    解码器
+* 在客户端和服务端都添加了相同的编码器和解码器
+  * [MessageEncoder](src/main/java/org/season/ymir/core/codec/MessageEncoder.java) 编码器
+  * [MessageDecoder](src/main/java/org/season/ymir/core/codec/MessageDecoder.java) 请求解码器
 ### 序列化
 #### Gson序列化
 * 使用GsonUtils工具类来对请求参数以及返回参数进行序列化，反序列化操作
@@ -379,4 +433,3 @@ public class SpiTest {
 * @Reference属性扩展，多版本，分组等；
 * 负载均衡算法优化；
 * 增加provider和consumer的线程池配置参数;
-* 协议重新定义；
