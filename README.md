@@ -168,17 +168,13 @@ public class TestController {
 ```
 
 * 发送请求，返回结果
-
 ```shell
 curl --location --request POST 'http://localhost:port/name?name=11'
 ```
 
 ## Ymir的一些设计理念
-
 ### ymir协议
-
 #### 详情
-
 * ymir基于本身的数据传递规则，设计了自己的消息协议，具体规则为
   * magic code(魔法值)，占用4个字节；
   * full length(body长度)，代表整个消息体的长度数据；
@@ -202,7 +198,6 @@ curl --location --request POST 'http://localhost:port/name?name=11'
  * 1B serial（序列化类型）    4B  full length（消息长度）
  * body（object类型数据）
 ```
-
 ### 泛化调用
 
 #### 如何使用
@@ -210,7 +205,6 @@ curl --location --request POST 'http://localhost:port/name?name=11'
 *
 Ymir的泛化调用允许客户端不依赖服务端的依赖就可以调用服务。在需要使用的地方添加[GenericService](src/main/java/org/season/ymir/core/generic/GenericService.java)
 的引入即可;
-
 ```java
 
 @RestController
@@ -247,7 +241,6 @@ public class TestController {
 }
 ```
 * provider就可以通过RpcContext进行获取传递的参数;
-
 ```java
 import org.season.ymir.core.context.RpcContext;
 
@@ -394,7 +387,6 @@ public class SpiTest {
     * 服务端监听到读事件，删除当前客户端连接地址缓存，服务端关闭连接；
       ![](./images/Ymir心跳检测.png)
 #### 编码/解码处理器
-
 * Ymir的编码解码依然用的是Netty自己的编码解码器，在里面对写出以及接收到的数据进行编码解码操作；
   * [MessageToByteEncoder](https://github.com/netty/netty/blob/4.1/codec/src/main/java/io/netty/handler/codec/MessageToByteEncoder.java)
     编码器
@@ -418,6 +410,7 @@ public class SpiTest {
 * 随机获取存在的服务列表中的某一个Service，计算时加权重
 #### 轮询
 * 轮询请求服务列表中的Service
+
 ## 有问题反馈
 在使用中有任何问题，欢迎反馈给我，可以用以下联系方式跟我交流
 * Email: kevinclair@apache.org
