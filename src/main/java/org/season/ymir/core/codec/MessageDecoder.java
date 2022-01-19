@@ -22,7 +22,7 @@ import java.util.Arrays;
  * <pre>
  *   0     1     2     3     4     5     6     7     8     9     10     11    12    13    14
  *   +-----+-----+-----+-----+----—+-----+-----+-----+-----+------+-----+-----+-----+-----+
- *   |   magic   code        |      full length      | type|serial|       requestId     |
+ *   |   magic   code        |      full length      | type|serial|       requestId       |
  *   +-----------------------+-----------------------+-----+------+-----------------------+
  *   |                                                                                    |
  *   |                                       body                                         |
