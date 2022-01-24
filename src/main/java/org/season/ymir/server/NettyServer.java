@@ -67,7 +67,7 @@ public class NettyServer implements DisposableBean {
                                     // 空闲检测
                                     .addLast(new IdleStateHandler(CommonConstant.READ_TIMEOUT_SECONDS, 0, 0))
                                     // 解码器
-                                    .addLast(new MessageDecoder(65535, 10, 4, 0, 0))
+                                    .addLast(new MessageDecoder(65535, 4, 4, -8, 0))
                                     // 编码器
                                     .addLast(new MessageEncoder())
                                     // 心跳处理器
