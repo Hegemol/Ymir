@@ -178,9 +178,8 @@ curl --location --request POST 'http://localhost:port/name?name=11'
 * ymir基于本身的数据传递规则，设计了自己的消息协议，具体规则为
   * magic code(魔法值)，占用4个字节；
   * full length(body长度)，代表整个消息体的长度数据；
-  * type，代表本次的消息类型，具体请查看枚举[MessageTypeEnum](src/main/java/org/season/ymir/common/base/MessageTypeEnum.java)
-  *
-  serial，代表本次的消息序列化类型，具体请查看枚举[SerializationTypeEnum](src/main/java/org/season/ymir/common/base/SerializationTypeEnum.java)
+  * type，代表本次的消息类型，具体请查看枚举[MessageTypeEnum](src/main/java/org/season/ymir/common/base/MessageTypeEnum.java)；
+  * serial，代表本次的消息序列化类型，具体请查看枚举[SerializationTypeEnum](src/main/java/org/season/ymir/common/base/SerializationTypeEnum.java)；
   * requestId，代表本次请求的请求id，由客户端生成；
   * 请求body；
 ```text
@@ -200,8 +199,7 @@ curl --location --request POST 'http://localhost:port/name?name=11'
 ### 泛化调用
 #### 如何使用
 
-*
-Ymir的泛化调用允许客户端不依赖服务端的依赖就可以调用服务。在需要使用的地方添加[GenericService](src/main/java/org/season/ymir/core/generic/GenericService.java)
+* Ymir的泛化调用允许客户端不依赖服务端的依赖就可以调用服务。在需要使用的地方添加[GenericService](src/main/java/org/season/ymir/core/generic/GenericService.java)
 的引入即可;
 ```java
 
@@ -368,18 +366,14 @@ public class SpiTest {
 ### Netty请求处理器
 #### 心跳检测处理器
 
-*
-基于Netty的[IdleStateHandler](https://github.com/netty/netty/blob/4.1/handler/src/main/java/io/netty/handler/timeout/IdleStateHandler.java)
+* 基于Netty的[IdleStateHandler](https://github.com/netty/netty/blob/4.1/handler/src/main/java/io/netty/handler/timeout/IdleStateHandler.java)
   * 客户端监听写时间，超时时间为30s；
   * 服务端监听读事件，超时时间为2min；
 * 具体做法
-  *
-  客户端监听写事件，如果在30s内，客户端没有写事件发生，触发[IdleStateEvent](https://github.com/netty/netty/blob/4.1/handler/src/main/java/io/netty/handler/timeout/IdleStateEvent.java)
+  * 客户端监听写事件，如果在30s内，客户端没有写事件发生，触发[IdleStateEvent](https://github.com/netty/netty/blob/4.1/handler/src/main/java/io/netty/handler/timeout/IdleStateEvent.java)
     * 第一次发送心跳请求，客户端心跳请求次数+1，服务端收到心跳请求，做出响应，客户端收到心跳响应，心跳请求次数重新置为0，本次心跳结束，等待下一次心跳；
-    *
-    第一次发送心跳请求，客户端心跳请求次数+1，服务端收到心跳请求，但是未响应心跳结果。客户端未收到心跳响应，等待30s后，继续发送心跳请求，如果心跳请求超过3次后，仍未获取到服务端响应心跳结果，客户端主动关闭通道，断开连接，清除缓存；
-  *
-  服务端监听读事件，如果在2min内，服务端没有读事件，触发[IdleStateEvent](https://github.com/netty/netty/blob/4.1/handler/src/main/java/io/netty/handler/timeout/IdleStateEvent.java)
+    * 第一次发送心跳请求，客户端心跳请求次数+1，服务端收到心跳请求，但是未响应心跳结果。客户端未收到心跳响应，等待30s后，继续发送心跳请求，如果心跳请求超过3次后，仍未获取到服务端响应心跳结果，客户端主动关闭通道，断开连接，清除缓存；
+  * 服务端监听读事件，如果在2min内，服务端没有读事件，触发[IdleStateEvent](https://github.com/netty/netty/blob/4.1/handler/src/main/java/io/netty/handler/timeout/IdleStateEvent.java)
     * 服务端监听到读事件，删除当前客户端连接地址缓存，服务端关闭连接；
       ![](./images/Ymir心跳检测.png)
 #### 编码/解码处理器
