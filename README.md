@@ -25,6 +25,8 @@ Ymir，出自动漫[进击的巨人](https://baike.baidu.com/item/%E8%BF%9B%E5%8
 * 注册事件通知
 * 隐式传参
 * 心跳检测
+* 异步调用
+* 调用过滤
 
 ## 如何使用
 ### 添加依赖
@@ -123,6 +125,16 @@ public @interface Reference {
      * 服务直连url
      */
     String url() default "";
+
+    /**
+     * 过滤器
+     */
+    String filter() default "";
+  
+    /**
+     * 是否开启异步调用
+     */
+    boolean async() default false;
 }
 ```
 ### 开始使用
@@ -199,7 +211,6 @@ curl --location --request POST 'http://localhost:port/name?name=11'
 ```
 ### 泛化调用
 #### 如何使用
-
 * Ymir的泛化调用允许客户端不依赖服务端的依赖就可以调用服务。在需要使用的地方添加[GenericService](src/main/java/org/season/ymir/core/generic/GenericService.java)
 的引入即可;
 ```java
@@ -247,6 +258,34 @@ public class TestServiceImpl implements TestService {
   public String test(String name) {
     RpcContext.getContext().getAttachments().get("testKey");
     return "Hello " + name;
+  }
+}
+```
+### 异步调用
+#### 如何使用
+* Ymir允许客户端异步调用服务端的接口，有以下两种方式开启异步调用；
+  * 在[Reference](src/main/java/org/season/ymir/core/annotation/Reference.java) 注解中将`async`设置为`true`即可;
+  * 在方法调用前通过隐式传参`RpcContext.getContext().setAttachments("async","true")`即可;
+* 设置了异步调用后，客户端调用接口的返回会返回`Null`，客户端需要通过`RpcContext.getFuture()`返回的`CompletableFuture`对象完成后续的操作，其中`CompletableFuture`中的值就是接口定义的返回值；
+
+```java
+import org.season.ymir.core.context.RpcContext;
+
+@RestController
+public class TestController {
+
+  @Reference(async = true)
+  private TestService service;
+
+  @PostMapping("/name")
+  public String get(@RequestParam("name") String name) {
+    // 此时这个接口会返回Null
+    String response = service.test(name);
+    CompletableFuture<Object> future = RpcContext.getFuture();
+    future.whenComplete(object -> {
+      System.out.println("接口调用");
+    });
+    return response;
   }
 }
 ```
