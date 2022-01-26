@@ -1,13 +1,11 @@
 package org.season.ymir.client.proxy;
 
 import io.netty.channel.Channel;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.season.ymir.client.NettyChannelManager;
 import org.season.ymir.client.NettyClient;
 import org.season.ymir.client.RequestFutureManager;
 import org.season.ymir.common.base.MessageTypeEnum;
 import org.season.ymir.common.base.SerializationTypeEnum;
-import org.season.ymir.common.base.ServiceStatusEnum;
 import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.entity.ServiceBean;
 import org.season.ymir.common.exception.RpcException;
@@ -19,6 +17,7 @@ import org.season.ymir.common.model.Response;
 import org.season.ymir.common.utils.ClassUtil;
 import org.season.ymir.common.utils.LoadBalanceUtils;
 import org.season.ymir.core.annotation.Reference;
+import org.season.ymir.core.context.RpcContext;
 import org.season.ymir.core.filter.DefaultFilterChain;
 import org.season.ymir.core.generic.GenericService;
 import org.season.ymir.core.property.ConfigurationProperty;
@@ -108,7 +107,7 @@ public class ClientProxyFactory {
                 serviceName = (String) args[0];
                 methodName = (String) args[1];
                 Class<?>[] paramTypes = null;
-                if (Objects.nonNull(args[2])){
+                if (Objects.nonNull(args[2])) {
                     // 解析请求参数类型
                     String[] paramTypesStringArray = (String[]) args[2];
                     if (Objects.nonNull(paramTypesStringArray) && paramTypesStringArray.length > 0) {
@@ -137,20 +136,23 @@ public class ClientProxyFactory {
             request.setParameterTypes(parameterTypes);
             requestInvocationMessage.setBody(request);
             // 设置Filter
-            requestInvocationMessage.setHeaders(new HashMap<String,String>(){{put(CommonConstant.FILTER_FROM_HEADERS, reference.filter());}});
+            requestInvocationMessage.setHeaders(new HashMap<String, String>() {{
+                put(CommonConstant.FILTER_FROM_HEADERS, reference.filter());
+            }});
             invocationMessageWrap.setData(requestInvocationMessage);
             invocationMessageWrap.setSerial(SerializationTypeEnum.getType(property.getSerial()));
             invocationMessageWrap.setRequestId(ATOMIC_INTEGER.getAndIncrement());
             // 3.发送请求
-            Response response = sendRequest(invocationMessageWrap, service.getAddress());
-            if (Objects.isNull(response)){
+            CompletableFuture<Response> responseFuture = sendRequest(invocationMessageWrap, service.getAddress());
+            // 4.同步请求和异步请求结果处理，如果是同步请求，请求返回结果为null，需要从RpcContext中获取Future结果
+            if (reference.async() || RpcContext.getContext().getAttachments().get("async").equals("true")) {
+                RpcContext.setFuture(responseFuture.thenApply(future -> future.getResult()));
+                return null;
+            }
+            Response response = this.getResponse(responseFuture, invocationMessageWrap);
+            if (Objects.isNull(response)) {
                 throw new RpcException("the response is null");
             }
-            if (Objects.nonNull(response.getThrowable())){
-                logger.error("Service {} throws exception:{}", serviceName, ExceptionUtils.getStackTrace(response.getThrowable()));
-                throw response.getThrowable();
-            }
-            // 4.结果处理
             return response.getResult();
         }
 
@@ -161,13 +163,13 @@ public class ClientProxyFactory {
          * @param address    服务地址
          * @return {@link Response}
          */
-        private Response sendRequest(InvocationMessageWrap<Request> rpcRequest, String address) {
+        private CompletableFuture<Response> sendRequest(InvocationMessageWrap<Request> rpcRequest, String address) {
 
-            if (NettyChannelManager.contains(address)){
+            if (NettyChannelManager.contains(address)) {
                 return this.sendRequestByChannel(rpcRequest, NettyChannelManager.get(address));
             }
             synchronized (address) {
-                if (NettyChannelManager.contains(address)){
+                if (NettyChannelManager.contains(address)) {
                     return this.sendRequestByChannel(rpcRequest, NettyChannelManager.get(address));
                 }
                 // 建立客户端
@@ -176,31 +178,32 @@ public class ClientProxyFactory {
             }
         }
 
-        private Response sendRequestByChannel(InvocationMessageWrap<Request> request, Channel channel) {
-            CompletableFuture<InvocationMessage<Response>> completableFuture = new CompletableFuture<>();
-            RequestFutureManager.putTask(request.getRequestId(), completableFuture);
+        private Response getResponse(CompletableFuture<Response> responseFuture, InvocationMessageWrap<Request> request) {
             InvocationMessage<Request> data = request.getData();
             try {
-                new DefaultFilterChain(new ArrayList<>(Arrays.asList(data.getHeaders().get(CommonConstant.FILTER_FROM_HEADERS).split(","))), CommonConstant.SERVICE_CONSUMER_SIDE).execute(data);
-                channel.writeAndFlush(request);
                 // 等待响应
-                InvocationMessage<Response> response = completableFuture.get(data.getTimeout(), TimeUnit.MILLISECONDS);
-                return response.getBody();
+                return responseFuture.get(data.getTimeout(), TimeUnit.MILLISECONDS);
             } catch (TimeoutException exception) {
-                Response timeoutExceptionResponse = new Response(ServiceStatusEnum.ERROR);
-                timeoutExceptionResponse.setThrowable(new RpcTimeoutException(String.format("Invoke remote method %s timeout with %s ms", String.join("#", data.getBody().getServiceName(), data.getBody().getMethod()), data.getTimeout())));
-                return timeoutExceptionResponse;
+                throw new RpcTimeoutException(String.format("Invoke remote method %s timeout with %s ms", String.join("#", data.getBody().getServiceName(), data.getBody().getMethod()), data.getTimeout()));
             } catch (Exception e) {
-                Response exceptionResponse = new Response(ServiceStatusEnum.ERROR);
-                exceptionResponse.setThrowable(new RpcException(e));
-                return exceptionResponse;
+                throw new RpcException(e);
             } finally {
                 RequestFutureManager.remove(request.getRequestId());
             }
         }
+
+        private CompletableFuture<Response> sendRequestByChannel(InvocationMessageWrap<Request> request, Channel channel) {
+            CompletableFuture<InvocationMessage<Response>> completableFuture = new CompletableFuture<>();
+            InvocationMessage<Request> data = request.getData();
+            new DefaultFilterChain(new ArrayList<>(Arrays.asList(data.getHeaders().get(CommonConstant.FILTER_FROM_HEADERS).split(","))), CommonConstant.SERVICE_CONSUMER_SIDE).execute(data);
+            channel.writeAndFlush(request).addListener(future -> {
+                if (future.isSuccess()) {
+                    RequestFutureManager.putTask(request.getRequestId(), completableFuture);
+                }
+            });
+            return completableFuture.thenApply(res -> res.getBody());
+        }
     }
-
-
 
 
 }
