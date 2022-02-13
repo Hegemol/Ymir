@@ -52,7 +52,6 @@ public class ServiceExportProcessor implements ApplicationListener<ContextRefres
         if (!flag.compareAndSet(false, true)) {
             return;
         }
-
         ApplicationContext applicationContext = contextRefreshedEvent.getApplicationContext();
         ThreadPoolFactory.execute(() -> handler(applicationContext));
     }
@@ -78,6 +77,9 @@ public class ServiceExportProcessor implements ApplicationListener<ContextRefres
             for (Object obj : beans.values()) {
                 try {
                     Class<?> clazz = obj.getClass();
+                    if (!clazz.getName().startsWith(property.getScanPackages())){
+                        continue;
+                    }
                     Service service = clazz.getAnnotation(Service.class);
                     // 如果不需要注册，跳过
                     if (!service.register()) {
