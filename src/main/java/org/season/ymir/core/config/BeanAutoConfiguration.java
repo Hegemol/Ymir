@@ -213,7 +213,7 @@ public class BeanAutoConfiguration {
      * @return {@link NettyClient}
      */
     @Bean
-    public NettyClient nettyNetClient(ConfigurationProperty property){
+    public NettyClient nettyNetClient(){
         return new NettyClient();
     }
 
