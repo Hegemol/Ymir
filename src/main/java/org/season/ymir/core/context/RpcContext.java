@@ -33,6 +33,13 @@ public class RpcContext {
     }
 
     /**
+     * Clear FutureContext.
+     */
+    public static void clearFutureContext(){
+        FUTURE_CONTEXT.remove();
+    }
+
+    /**
      * get context.
      *
      * @return {@link RpcContext}
