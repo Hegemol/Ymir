@@ -99,4 +99,21 @@ public class CommonConstant {
      * 心跳最大重试次数
      */
     public static final int MAX_HEARTBEAT_TIMES = 3;
+
+    /**
+     * 注册类型zookeeper
+     */
+    public static final String REGISTRY_TYPE_ZOOKEEPER = "zookeeper";
+
+    /**
+     * 注册类型nacos
+     */
+    public static final String REGISTRY_TYPE_NACOS = "nacos";
+
+    /**
+     * 默认空间
+     */
+    public static final String DEFAULT_NAMESPACE = "ymir";
+
+    public static final String CONTEXT_SEP = "/";
 }
