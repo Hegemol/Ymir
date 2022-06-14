@@ -452,7 +452,7 @@ public class SpiTest {
 * [shenyu](https://github.com/apache/incubator-shenyu)
 
 ## 最近计划
-最近准备开始着手做一次项目的重构和升级，调整一下项目的模块以及工程架构；
+* 服务注册类型调整，取消根据type区分类型的设定，使用url的方式指定注册方式
 * @Service属性扩展，增加多版本，分组等属性；
 * @Reference属性扩展，多版本，分组等；
 * 负载均衡算法优化；
