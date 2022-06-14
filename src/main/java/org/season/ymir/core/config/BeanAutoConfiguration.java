@@ -4,7 +4,7 @@ import com.alibaba.nacos.api.PropertyKeyConst;
 import com.alibaba.nacos.api.exception.NacosException;
 import com.alibaba.nacos.api.naming.NamingFactory;
 import com.alibaba.nacos.api.naming.NamingService;
-import org.apache.curator.RetryPolicy;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
@@ -12,8 +12,11 @@ import org.season.ymir.client.NettyClient;
 import org.season.ymir.client.proxy.ClientProxyFactory;
 import org.season.ymir.client.register.NacosServiceRegister;
 import org.season.ymir.client.register.ZookeeperServiceRegister;
+import org.season.ymir.common.constant.CommonConstant;
 import org.season.ymir.common.register.ServiceRegister;
+import org.season.ymir.common.utils.RegistryParseUtil;
 import org.season.ymir.core.ServiceExportProcessor;
+import org.season.ymir.core.annotation.ConditionalOnPropertyStartsWith;
 import org.season.ymir.core.handler.RequestHandler;
 import org.season.ymir.core.property.ConfigurationProperty;
 import org.season.ymir.core.property.RegisterCenterProperty;
@@ -27,8 +30,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.Objects;
+import java.util.Map;
 import java.util.Properties;
+
+import static org.season.ymir.common.constant.CommonConstant.CONTEXT_SEP;
+import static org.season.ymir.common.constant.CommonConstant.DEFAULT_NAMESPACE;
+import static org.season.ymir.common.constant.CommonConstant.REGISTRY_TYPE_NACOS;
 
 /**
  * 客户端Bean注入
@@ -65,26 +72,25 @@ public class BeanAutoConfiguration {
     /**
      * zookeeper注册中心注册器
      */
-    @ConditionalOnProperty(prefix = "ymir.register", name = "type", havingValue = "zookeeper")
+    @ConditionalOnPropertyStartsWith(prefix = "ymir.register", name = "url", havingStartsWithValue = "zookeeper")
     static class ZookeeperClientRegisterCenter{
 
         /**
          * Zk客户端curtor注册
          *
-         * @param zookeeperClientProperty zk客户端属性{@link RegisterCenterProperty}
+         * @param property zk客户端属性{@link RegisterCenterProperty}
          * @return {@link CuratorFramework}
          */
         @Bean
-        public CuratorFramework curatorFramework(RegisterCenterProperty zookeeperClientProperty ){
-            final Properties props = zookeeperClientProperty.getProps();
+        public CuratorFramework curatorFramework(RegisterCenterProperty property){
+            Map<String, String> parseParam = RegistryParseUtil.parseParam(property.getUrl(), CommonConstant.REGISTRY_TYPE_ZOOKEEPER);
 
-            RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, Integer.valueOf(props.getProperty("retryTimes", "3")));
             CuratorFramework client = CuratorFrameworkFactory.builder()
-                    .connectString(zookeeperClientProperty.getUrl())
-                    .connectionTimeoutMs(Integer.valueOf(props.getProperty("connectionTimeout", "6000")))
-                    .sessionTimeoutMs(Integer.valueOf(props.getProperty("sessionTimeout", "6000")))
-                    .retryPolicy(retryPolicy)
-                    .namespace("ymir")
+                    .connectString(parseParam.get("address"))
+                    .connectionTimeoutMs(Integer.valueOf(parseParam.getOrDefault("connectionTimeout", "15000")))
+                    .sessionTimeoutMs(Integer.valueOf(parseParam.getOrDefault("sessionTimeout", "60000")))
+                    .retryPolicy(new ExponentialBackoffRetry(1000, Integer.valueOf(parseParam.getOrDefault("retryTimes", "3"))))
+                    .namespace(DEFAULT_NAMESPACE)
                     .build();
             client.start();
             return client;
@@ -117,35 +123,47 @@ public class BeanAutoConfiguration {
     /**
      * nacos注册中心注册器
      */
-    @ConditionalOnProperty(prefix = "ymir.register", name = "type", havingValue = "nacos")
+    @ConditionalOnPropertyStartsWith(prefix = "ymir.register", name = "url", havingStartsWithValue = "nacos")
     static class NacosClientRegisterCenter{
 
         /**
          * 初始化Nacos客户端
          *
-         * @param nacosCenterProperty 注册中心
+         * @param property 注册中心
          * @return {@link NamingService}
          * @throws NacosException {@link NacosException}
          */
         @Bean
-        public NamingService namingService(RegisterCenterProperty nacosCenterProperty) throws NacosException {
+        public NamingService namingService(RegisterCenterProperty property) throws NacosException {
+            // 地址示例nacos://xxx:8848,yyy:8848/namespace=*****?
+            Map<String, String> parseParam = RegistryParseUtil.parseParam(property.getUrl(), REGISTRY_TYPE_NACOS);
+            String addressInput = parseParam.get("address");
+            int idx = addressInput.indexOf(CONTEXT_SEP);
+            String namespace;
+            String address;
+            if (idx > 0) {
+                address = addressInput.substring(0, idx);
+                namespace = addressInput.substring(idx + 1);
+                if (StringUtils.isBlank(namespace)) {
+                    namespace = DEFAULT_NAMESPACE;
+                }
+            } else {
+                address = addressInput;
+                namespace = DEFAULT_NAMESPACE;
+            }
             Properties nacosProperties = new Properties();
             // server address.
-            nacosProperties.put(PropertyKeyConst.SERVER_ADDR, nacosCenterProperty.getUrl());
-            final Properties props = nacosCenterProperty.getProps();
-            if (Objects.isNull(props)){
-                return NamingFactory.createNamingService(nacosProperties);
-            }
+            nacosProperties.put(PropertyKeyConst.SERVER_ADDR, address);
             // name space.
-            nacosProperties.put(PropertyKeyConst.NAMESPACE, props.getProperty(PropertyKeyConst.NAMESPACE, ""));
+            nacosProperties.put(PropertyKeyConst.NAMESPACE, namespace);
             // the nacos authentication username
-            nacosProperties.put(PropertyKeyConst.USERNAME, props.getProperty(PropertyKeyConst.USERNAME, ""));
+            nacosProperties.put(PropertyKeyConst.USERNAME, parseParam.getOrDefault(PropertyKeyConst.USERNAME, ""));
             // the nacos authentication password
-            nacosProperties.put(PropertyKeyConst.PASSWORD, props.getProperty(PropertyKeyConst.PASSWORD, ""));
+            nacosProperties.put(PropertyKeyConst.PASSWORD, parseParam.getOrDefault(PropertyKeyConst.PASSWORD, ""));
             // access key for namespace
-            nacosProperties.put(PropertyKeyConst.ACCESS_KEY, props.getProperty(PropertyKeyConst.ACCESS_KEY, ""));
+            nacosProperties.put(PropertyKeyConst.ACCESS_KEY, parseParam.getOrDefault(PropertyKeyConst.ACCESS_KEY, ""));
             // secret key for namespace
-            nacosProperties.put(PropertyKeyConst.SECRET_KEY, props.getProperty(PropertyKeyConst.SECRET_KEY, ""));
+            nacosProperties.put(PropertyKeyConst.SECRET_KEY, parseParam.getOrDefault(PropertyKeyConst.SECRET_KEY, ""));
             return NamingFactory.createNamingService(nacosProperties);
         }
 
