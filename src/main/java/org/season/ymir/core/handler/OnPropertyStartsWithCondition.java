@@ -134,7 +134,7 @@ public class OnPropertyStartsWithCondition extends SpringBootCondition {
 
         private boolean isStatrsWith(String value, String requiredValue) {
             if (StringUtils.hasLength(requiredValue)) {
-                return requiredValue.startsWith(value);
+                return value.startsWith(requiredValue);
             }
             return !"false".equalsIgnoreCase(value);
         }
