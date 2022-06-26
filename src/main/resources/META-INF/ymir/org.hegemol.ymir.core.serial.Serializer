@@ -1,0 +1,3 @@
+protostuff = org.hegemol.ymir.core.serial.proto.ProtostuffSerializer
+kryo = org.hegemol.ymir.core.serial.kryo.KryoSerializer
+hessian = org.hegemol.ymir.core.serial.HessianSerializer

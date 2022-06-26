@@ -1,2 +1,0 @@
-random = org.season.ymir.core.balance.RandomBalance
-robin = org.season.ymir.core.balance.RoundRobinLoadBalance

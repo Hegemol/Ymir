@@ -1,3 +1,0 @@
-protostuff = org.season.ymir.core.serial.proto.ProtostuffSerializer
-kryo = org.season.ymir.core.serial.kryo.KryoSerializer
-hessian = org.season.ymir.core.serial.HessianSerializer

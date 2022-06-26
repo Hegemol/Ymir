@@ -1,0 +1,2 @@
+random = org.hegemol.ymir.core.balance.RandomBalance
+robin = org.hegemol.ymir.core.balance.RoundRobinLoadBalance

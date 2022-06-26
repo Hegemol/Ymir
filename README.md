@@ -35,11 +35,13 @@ Ymir，出自动漫[进击的巨人](https://baike.baidu.com/item/%E8%BF%9B%E5%8
 * 打包到本地Maven仓库
 `mvn clean install -Dmaven.test.skip=true`
 * 在需要使用的项目中添加Maven依赖
+
 ```xml
+
 <dependency>
-    <groupId>org.season</groupId>
-    <artifactId>ymir</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+  <groupId>org.hegemol</groupId>
+  <artifactId>ymir</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
 </dependency>
 ```
 ### 配置信息
@@ -58,7 +60,7 @@ private String serial = "protostuff";
 ```
 * Ymir对注册中心的支持;
   * 目前已支持Zookeeper和Nacos;
-  * 预留接口[ServiceDiscovery](src/main/java/org/season/ymir/server/discovery/ServiceDiscovery.java)以及[ServiceRegister](src/main/java/org/season/ymir/common/register/ServiceRegister.java);
+  * 预留接口[ServiceDiscovery](src/main/java/org/hegemol/ymir/server/discovery/ServiceDiscovery.java)以及[ServiceRegister](src/main/java/org/hegemol/ymir/common/register/ServiceRegister.java);
   * 新增加的注册中心只需要实现上面两个接口就可以无缝对接;
 ```yaml
 ymir:
@@ -158,11 +160,13 @@ public class TestServiceImpl implements TestService {
 
 #### 客户端
 * 添加接口对应的Maven依赖
+
 ```xml
+
 <dependency>
-    <groupId>org.season</groupId>
-    <artifactId>ymir-example-common</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+  <groupId>org.hegemolorg.hegemol</groupId>
+  <artifactId>ymir-example-common</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
 </dependency>
 ```
 * 服务引用
@@ -191,8 +195,8 @@ curl --location --request POST 'http://localhost:port/name?name=11'
 * ymir基于本身的数据传递规则，设计了自己的消息协议，具体规则为
   * magic code(魔法值)，占用4个字节；
   * full length(body长度)，代表整个消息体的长度数据；
-  * type，代表本次的消息类型，具体请查看枚举[MessageTypeEnum](src/main/java/org/season/ymir/common/base/MessageTypeEnum.java)；
-  * serial，代表本次的消息序列化类型，具体请查看枚举[SerializationTypeEnum](src/main/java/org/season/ymir/common/base/SerializationTypeEnum.java)；
+  * type，代表本次的消息类型，具体请查看枚举[MessageTypeEnum](src/main/java/org/hegemol/ymir/common/base/MessageTypeEnum.java)；
+  * serial，代表本次的消息序列化类型，具体请查看枚举[SerializationTypeEnum](src/main/java/org/hegemol/ymir/common/base/SerializationTypeEnum.java)；
   * requestId，代表本次请求的请求id，由客户端生成；
   * 请求body；
 ```text
@@ -211,7 +215,7 @@ curl --location --request POST 'http://localhost:port/name?name=11'
 ```
 ### 泛化调用
 #### 如何使用
-* Ymir的泛化调用允许客户端不依赖服务端的依赖就可以调用服务。在需要使用的地方添加[GenericService](src/main/java/org/season/ymir/core/generic/GenericService.java)
+* Ymir的泛化调用允许客户端不依赖服务端的依赖就可以调用服务。在需要使用的地方添加[GenericService](src/main/java/org/hegemol/ymir/core/generic/GenericService.java)
 的引入即可;
 ```java
 
@@ -223,7 +227,7 @@ public class TestController {
 
   @PostMapping("/name")
     public String get(@RequestParam("name") String name){
-        return service.invoke("org.season.ymir.example.client.controller.TestInterface", "test", new String[]{"java.lang.String"}, new Object[]{name});
+        return service.invoke("org.hegemol.ymir.example.client.controller.TestInterface", "test", new String[]{"java.lang.String"}, new Object[]{name});
     }
 }
 ```
@@ -232,8 +236,9 @@ public class TestController {
 #### 如何使用
 * Ymir的服务允许provider和consumer通过RpcContext进行跨端之间的参数传递;
 * consumer在使用时，只需要通过RpcContext进行参数设置即可;
+
 ```java
-import org.season.ymir.core.context.RpcContext;
+import org.hegemol.ymir.core.context.RpcContext;
 
 @RestController
 public class TestController {
@@ -249,8 +254,9 @@ public class TestController {
 }
 ```
 * provider就可以通过RpcContext进行获取传递的参数;
+
 ```java
-import org.season.ymir.core.context.RpcContext;
+import org.hegemol.ymir.core.context.RpcContext;
 
 @Service
 public class TestServiceImpl implements TestService {
@@ -264,12 +270,12 @@ public class TestServiceImpl implements TestService {
 ### 异步调用
 #### 如何使用
 * Ymir允许客户端异步调用服务端的接口，有以下两种方式开启异步调用；
-  * 在[Reference](src/main/java/org/season/ymir/core/annotation/Reference.java) 注解中将`async`设置为`true`即可;
+  * 在[Reference](src/main/java/org/hegemol/ymir/core/annotation/Reference.java) 注解中将`async`设置为`true`即可;
   * 在方法调用前通过隐式传参`RpcContext.getContext().setAttachments("async","true")`即可;
 * 设置了异步调用后，客户端调用接口的返回会返回`Null`，客户端需要通过`RpcContext.getFuture()`返回的`CompletableFuture`对象完成后续的操作，其中`CompletableFuture`中的值就是接口定义的返回值；
 
 ```java
-import org.season.ymir.core.context.RpcContext;
+import org.hegemol.ymir.core.context.RpcContext;
 
 @RestController
 public class TestController {
@@ -314,10 +320,10 @@ public class SpiInterfaceImplSecond implements SpiInterface{
   }
 }
 ```
-* 在resources目录下的META-INF/services/新建文件名org.season.ymir.spi.SpiInterface，填充值
+* 在resources目录下的META-INF/services/新建文件名org.hegemol.ymir.spi.SpiInterface，填充值
 ```text
-org.season.ymir.spi.SpiInterfaceImplOne
-org.season.ymir.spi.SpiInterfaceImplSecond
+org.hegemol.ymir.spi.SpiInterfaceImplOne
+org.hegemol.ymir.spi.SpiInterfaceImplSecond
 ```
 * 运行测试用例
 ```java
@@ -365,11 +371,11 @@ public class SpiInterfaceImplSecond implements SpiInterface{
   }
 }
 ```
-* 在resources目录下的META-INF/ymir/新建文件名org.season.ymir.spi.SpiInterface，文件名为接口的全路径名；
+* 在resources目录下的META-INF/ymir/新建文件名org.hegemol.ymir.spi.SpiInterface，文件名为接口的全路径名；
 > 这里的内容为key=value的样式，其中key为对应的扩展实现，通过`ExtensionLoader`进行加载时需要用到
 ```text
-one=org.season.ymir.spi.SpiInterfaceImplOne
-two=org.season.ymir.spi.SpiInterfaceImplSecond
+one=org.hegemol.ymir.spi.SpiInterfaceImplOne
+two=org.hegemol.ymir.spi.SpiInterfaceImplSecond
 ```
 * 运行测试用例
 ```java
@@ -424,8 +430,8 @@ public class SpiTest {
   * [LengthFieldBasedFrameDecoder](https://github.com/netty/netty/blob/4.1/codec/src/main/java/io/netty/handler/codec/LengthFieldBasedFrameDecoder.java)
     解码器
 * 在客户端和服务端都添加了相同的编码器和解码器
-  * [MessageEncoder](src/main/java/org/season/ymir/core/codec/MessageEncoder.java) 编码器
-  * [MessageDecoder](src/main/java/org/season/ymir/core/codec/MessageDecoder.java) 请求解码器
+  * [MessageEncoder](src/main/java/org/hegemol/ymir/core/codec/MessageEncoder.java) 编码器
+  * [MessageDecoder](src/main/java/org/hegemol/ymir/core/codec/MessageDecoder.java) 请求解码器
 ### 序列化
 #### Gson序列化
 * 使用GsonUtils工具类来对请求参数以及返回参数进行序列化，反序列化操作

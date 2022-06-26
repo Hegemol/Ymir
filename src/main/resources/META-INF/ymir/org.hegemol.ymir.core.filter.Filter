@@ -1,0 +1,2 @@
+providerRpcContext=org.hegemol.ymir.core.filter.impl.ProviderRpcContextFilter
+consumerRpcContext=org.hegemol.ymir.core.filter.impl.ConsumerRpcContextFilter
