@@ -52,7 +52,9 @@ public class NettyServer implements DisposableBean {
             bootstrap.group(bossGroup, workerGroup)
                     .channel(NioServerSocketChannel.class)
                     .localAddress(new InetSocketAddress(property.getPort()))
+                    // 表示系统用于临时存放已完成三次握手的请求的队列的最大长度
                     .option(ChannelOption.SO_BACKLOG, 1024)
+                    // 是否开启TCP底层的心跳机制
                     .childOption(ChannelOption.SO_KEEPALIVE, true)
                     .childOption(ChannelOption.TCP_NODELAY, true)
                     .childHandler(new ChannelInitializer<Channel>() {
