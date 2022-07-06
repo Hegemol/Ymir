@@ -52,7 +52,7 @@ public class MessageDecoder extends LengthFieldBasedFrameDecoder {
             // 判断可读长度
             if (byteBuf.readableBytes() >= CommonConstant.TOTAL_LENGTH){
                 try {
-                    return decode(byteBuf);
+                    return decodeByteBuf(ctx, byteBuf);
                 } catch (Exception e) {
                     logger.error("Decode message error:{}", ExceptionUtils.getStackTrace(e));
                 } finally {
@@ -64,9 +64,9 @@ public class MessageDecoder extends LengthFieldBasedFrameDecoder {
         return decode;
     }
 
-    private Object decode(ByteBuf byteBuf) throws Exception {
+    private Object decodeByteBuf(ChannelHandlerContext ctx, ByteBuf byteBuf) throws Exception {
         // 校验魔法值是否正确
-        checkMagicNumber(byteBuf);
+        checkMagicNumber(ctx, byteBuf);
         // 读取消息总长度
         int fullLength = byteBuf.readInt();
         // 读取消息类型
@@ -96,13 +96,14 @@ public class MessageDecoder extends LengthFieldBasedFrameDecoder {
         return messageWrap;
     }
 
-    private void checkMagicNumber(ByteBuf byteBuf) {
+    private void checkMagicNumber(ChannelHandlerContext ctx, ByteBuf byteBuf) {
         // 读取魔法值
         int magicNumberLength = CommonConstant.MAGIC_NUMBER.length;
         byte[] magicNums = new byte[magicNumberLength];
         byteBuf.readBytes(magicNums);
         for (int i = 0; i < magicNumberLength; i++) {
             if (magicNums[i] != CommonConstant.MAGIC_NUMBER[i]) {
+                ctx.channel().close();
                 throw new IllegalArgumentException(String.format("Invalid magic code: %s", Arrays.toString(magicNums)));
             }
         }
