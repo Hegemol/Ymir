@@ -102,4 +102,9 @@ public class NacosServiceRegister extends DefaultAbstractServiceRegister impleme
         namingService.registerInstance(serviceName, instance);
         logger.info("Service export to nacos success, register url:{}", GsonUtils.getInstance().toJson(model));
     }
+
+    @Override
+    protected void unRegisterBean() throws Exception {
+        // TODO 删除注册节点
+    }
 }

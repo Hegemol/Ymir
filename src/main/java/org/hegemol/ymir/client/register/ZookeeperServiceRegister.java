@@ -88,4 +88,10 @@ public class ZookeeperServiceRegister extends DefaultAbstractServiceRegister imp
     public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
         this.applicationEventPublisher = applicationEventPublisher;
     }
+
+    @Override
+    protected void unRegisterBean() throws Exception {
+        // TODO: 2022/7/19 删除所有注册的节点
+        zkClient.close();
+    }
 }
