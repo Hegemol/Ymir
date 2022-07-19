@@ -3,13 +3,14 @@ package org.hegemol.ymir.common.register;
 import org.hegemol.ymir.common.entity.ServiceBean;
 import org.hegemol.ymir.common.entity.ServiceBeanCache;
 import org.hegemol.ymir.common.exception.RpcException;
+import org.springframework.beans.factory.DisposableBean;
 
 /**
  * 服务注册接口
  *
  * @author KevinClair
  */
-public interface ServiceRegister {
+public interface ServiceRegister extends DisposableBean {
 
     /**
      * 注册实例
