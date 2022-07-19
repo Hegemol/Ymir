@@ -83,6 +83,11 @@ public abstract class DefaultAbstractServiceRegister implements ServiceRegister 
         publishEvent(exportEventModel);
     }
 
+    @Override
+    public void destroy() throws Exception {
+        this.unRegisterBean();
+    }
+
     /**
      * 缓存中不存在时，从注册中心获取
      *
@@ -105,5 +110,7 @@ public abstract class DefaultAbstractServiceRegister implements ServiceRegister 
      * @param exportEventModel 事件导出模型
      */
     protected abstract void exportService(final ServiceBean model, final ServiceBeanEvent exportEventModel) throws Exception;
+
+    protected abstract void unRegisterBean() throws Exception;
 }
 
