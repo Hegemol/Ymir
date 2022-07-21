@@ -36,7 +36,7 @@ public abstract class DefaultAbstractServiceRegister implements ServiceRegister 
     protected Integer port;
 
     // 本地缓存
-    private LoadingCache<String, ServiceBeanCache> service = Caffeine.newBuilder()
+    protected final LoadingCache<String, ServiceBeanCache> service = Caffeine.newBuilder()
             .initialCapacity(10)
             .maximumSize(50000)
             .build(new CacheLoader<String, ServiceBeanCache>() {
@@ -86,6 +86,7 @@ public abstract class DefaultAbstractServiceRegister implements ServiceRegister 
     @Override
     public void destroy() throws Exception {
         this.unRegisterBean();
+        this.close();
     }
 
     /**
@@ -111,6 +112,18 @@ public abstract class DefaultAbstractServiceRegister implements ServiceRegister 
      */
     protected abstract void exportService(final ServiceBean model, final ServiceBeanEvent exportEventModel) throws Exception;
 
+    /**
+     * 删除注册节点
+     *
+     * @throws Exception 异常
+     */
     protected abstract void unRegisterBean() throws Exception;
+
+    /**
+     * 关闭
+     *
+     * @throws Exception 异常
+     */
+    protected abstract void close() throws Exception;
 }
 
