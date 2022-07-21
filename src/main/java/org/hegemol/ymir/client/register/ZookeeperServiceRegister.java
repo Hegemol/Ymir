@@ -1,5 +1,6 @@
 package org.hegemol.ymir.client.register;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.CreateMode;
@@ -18,6 +19,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.util.CollectionUtils;
 
+import java.net.InetAddress;
 import java.util.List;
 import java.util.Objects;
 
@@ -91,7 +93,29 @@ public class ZookeeperServiceRegister extends DefaultAbstractServiceRegister imp
 
     @Override
     protected void unRegisterBean() throws Exception {
-        // TODO: 2022/7/19 删除所有注册的节点
-        zkClient.close();
+        String host = InetAddress.getLocalHost().getHostAddress();
+        String address = host + ":" + port;
+        for (ServiceBeanCache cache : service.asMap().values()) {
+            String path = ZkPathUtils.buildPath(CommonConstant.SERVICE_PROVIDER_SIDE, cache.getName());
+            List<String> childrenData = zkClient.getChildren().forPath(path);
+            if (CollectionUtils.isEmpty(childrenData)){
+                continue;
+            }
+            for (String each : childrenData) {
+                if (StringUtils.isBlank(each)){
+                    continue;
+                }
+                ServiceBean serviceBean = GsonUtils.getInstance().fromJson(each, ServiceBean.class);
+                if (address.equals(serviceBean.getAddress())){
+                    zkClient.delete().forPath(ZkPathUtils.buildUriPath(path, serviceBean.getAddress()));
+                }
+            }
+
+        }
+    }
+
+    @Override
+    protected void close() throws Exception {
+        this.zkClient.close();
     }
 }
