@@ -107,4 +107,9 @@ public class NacosServiceRegister extends DefaultAbstractServiceRegister impleme
     protected void unRegisterBean() throws Exception {
         // TODO 删除注册节点
     }
+
+    @Override
+    protected void close() throws Exception {
+        // TODO 客户端关闭
+    }
 }
