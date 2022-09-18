@@ -1,9 +1,13 @@
 package org.hegemol.ymir.core.handler;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.hegemol.ymir.core.annotation.ConditionalOnPropertyStartsWith;
 import org.springframework.boot.autoconfigure.condition.ConditionMessage;
 import org.springframework.boot.autoconfigure.condition.ConditionOutcome;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.SpringBootCondition;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.Ordered;
@@ -14,11 +18,6 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.util.Assert;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * TODO
@@ -73,16 +72,16 @@ public class OnPropertyStartsWithCondition extends SpringBootCondition {
         List<String> nonMatchingProperties = new ArrayList<>();
         spec.collectProperties(resolver, missingProperties, nonMatchingProperties);
         if (!missingProperties.isEmpty()) {
-            return ConditionOutcome.noMatch(ConditionMessage.forCondition(ConditionalOnProperty.class, spec)
+            return ConditionOutcome.noMatch(ConditionMessage.forCondition(ConditionalOnPropertyStartsWith.class, spec)
                     .didNotFind("property", "properties").items(ConditionMessage.Style.QUOTE, missingProperties));
         }
         if (!nonMatchingProperties.isEmpty()) {
-            return ConditionOutcome.noMatch(ConditionMessage.forCondition(ConditionalOnProperty.class, spec)
+            return ConditionOutcome.noMatch(ConditionMessage.forCondition(ConditionalOnPropertyStartsWith.class, spec)
                     .found("different value in property", "different value in properties")
                     .items(ConditionMessage.Style.QUOTE, nonMatchingProperties));
         }
         return ConditionOutcome
-                .match(ConditionMessage.forCondition(ConditionalOnProperty.class, spec).because("matched"));
+                .match(ConditionMessage.forCondition(ConditionalOnPropertyStartsWith.class, spec).because("matched"));
     }
 
     private static class Spec {
