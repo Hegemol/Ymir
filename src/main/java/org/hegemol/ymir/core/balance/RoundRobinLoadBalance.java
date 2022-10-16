@@ -1,12 +1,12 @@
 package org.hegemol.ymir.core.balance;
 
-import org.hegemol.ymir.common.entity.ServiceBean;
-
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+
+import org.hegemol.ymir.common.entity.ServiceBean;
 
 /**
  * 轮询
@@ -15,34 +15,27 @@ import java.util.concurrent.atomic.AtomicLong;
  **/
 public class RoundRobinLoadBalance  extends AbstractLoadBalance{
 
-    private final int recyclePeriod = 60000;
+    private final int RECYCLE_PERIOD = 60000;
 
     private final ConcurrentMap<String, ConcurrentMap<String, WeightedRoundRobin>> methodWeightMap = new ConcurrentHashMap<>(16);
-
-    private final AtomicBoolean updateLock = new AtomicBoolean();
 
     @Override
     public ServiceBean loadMethod(final List<ServiceBean> services, final String ip) {
         String key = services.get(0).getAddress();
-        ConcurrentMap<String, WeightedRoundRobin> map = methodWeightMap.get(key);
-        if (map == null) {
-            methodWeightMap.putIfAbsent(key, new ConcurrentHashMap<>(16));
-            map = methodWeightMap.get(key);
-        }
+        ConcurrentMap<String, WeightedRoundRobin> map = methodWeightMap.computeIfAbsent(key, k -> new ConcurrentHashMap<String, WeightedRoundRobin>(16));
         int totalWeight = 0;
         long maxCurrent = Long.MIN_VALUE;
         long now = System.currentTimeMillis();
-        ServiceBean selectedInvoker = null;
-        WeightedRoundRobin selectedWRR = null;
+        ServiceBean selectedService = null;
+        WeightedRoundRobin selectedWeightedRoundRobin = null;
         for (ServiceBean service : services) {
             String rKey = service.getAddress();
-            WeightedRoundRobin weightedRoundRobin = map.get(rKey);
             int weight = service.getWeight();
-            if (weightedRoundRobin == null) {
-                weightedRoundRobin = new WeightedRoundRobin();
-                weightedRoundRobin.setWeight(weight);
-                map.putIfAbsent(rKey, weightedRoundRobin);
-            }
+            WeightedRoundRobin weightedRoundRobin = map.computeIfAbsent(rKey, k -> {
+                WeightedRoundRobin roundRobin = new WeightedRoundRobin();
+                roundRobin.setWeight(weight);
+                return roundRobin;
+            });
             if (weight != weightedRoundRobin.getWeight()) {
                 //weight changed
                 weightedRoundRobin.setWeight(weight);
@@ -51,24 +44,17 @@ public class RoundRobinLoadBalance  extends AbstractLoadBalance{
             weightedRoundRobin.setLastUpdate(now);
             if (cur > maxCurrent) {
                 maxCurrent = cur;
-                selectedInvoker = service;
-                selectedWRR = weightedRoundRobin;
+                selectedService = service;
+                selectedWeightedRoundRobin = weightedRoundRobin;
             }
             totalWeight += weight;
         }
-        if (!updateLock.get() && services.size() != map.size() && updateLock.compareAndSet(false, true)) {
-            try {
-                // copy -> modify -> update reference
-                ConcurrentMap<String, WeightedRoundRobin> newMap = new ConcurrentHashMap<>(map);
-                newMap.entrySet().removeIf(item -> now - item.getValue().getLastUpdate() > recyclePeriod);
-                methodWeightMap.put(key, newMap);
-            } finally {
-                updateLock.set(false);
-            }
+        if (services.size() != map.size()){
+            map.entrySet().removeIf(item -> now - item.getValue().getLastUpdate()> RECYCLE_PERIOD);
         }
-        if (selectedInvoker != null) {
-            selectedWRR.sel(totalWeight);
-            return selectedInvoker;
+        if (Objects.nonNull(selectedService)){
+            selectedWeightedRoundRobin.setWeight(totalWeight);
+            return selectedService;
         }
         // should not happen here
         return services.get(0);
