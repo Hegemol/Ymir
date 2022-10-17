@@ -1,6 +1,15 @@
 package org.hegemol.ymir.core;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
+
+import java.lang.reflect.Field;
+import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.hegemol.ymir.client.proxy.ClientProxyFactory;
 import org.hegemol.ymir.common.entity.ServiceBean;
 import org.hegemol.ymir.common.exception.RpcException;
@@ -16,11 +25,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
-
-import java.lang.reflect.Field;
-import java.net.InetAddress;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 服务导出
@@ -90,7 +94,7 @@ public class ServiceExportProcessor implements ApplicationListener<ContextRefres
                         logger.error("Only one interface class can be inherited, class {} is illegal!", obj.getClass().getName());
                         continue;
                     }
-                    ServiceBean serviceBean = new ServiceBean(interfaces[0].getName(), clazz.getName(), address, service.weight(), service.group(), service.version(), service.filter());
+                    ServiceBean serviceBean = new ServiceBean(interfaces[0].getName(), clazz.getName(), address, service.weight(), service.group(), service.version(), service.filter(), service.fictitiousInstance());
                     // register bean;
                     serviceRegister.registerBean(serviceBean);
                     logger.info("Service {} register success", obj.getClass().getName());

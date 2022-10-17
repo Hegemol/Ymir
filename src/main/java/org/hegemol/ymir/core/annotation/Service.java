@@ -1,12 +1,12 @@
 package org.hegemol.ymir.core.annotation;
 
-import org.springframework.stereotype.Component;
-
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+
+import org.springframework.stereotype.Component;
 
 /**
  * 服务导出
@@ -43,4 +43,9 @@ public @interface Service {
      * 过滤器
      */
     String filter() default "";
+
+    /**
+     * 虚拟节点个数，当负载均衡算法选择一致性hash时，启用
+     */
+    int fictitiousInstance() default 5;
 }
