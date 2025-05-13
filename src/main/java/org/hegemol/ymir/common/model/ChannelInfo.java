@@ -7,7 +7,7 @@ import io.netty.channel.Channel;
  *
  * @author KevinClair
  **/
-public class HeartBeat {
+public class ChannelInfo {
 
     /**
      * 通道信息
@@ -19,10 +19,10 @@ public class HeartBeat {
      */
     private int retryTimes;
 
-    public HeartBeat() {
+    public ChannelInfo() {
     }
 
-    public HeartBeat(final Channel channel) {
+    public ChannelInfo(final Channel channel) {
         this.channel = channel;
         this.retryTimes = 0;
     }

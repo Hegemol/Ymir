@@ -11,7 +11,7 @@ import org.hegemol.ymir.client.NettyChannelManager;
 import org.hegemol.ymir.common.base.MessageTypeEnum;
 import org.hegemol.ymir.common.base.SerializationTypeEnum;
 import org.hegemol.ymir.common.constant.CommonConstant;
-import org.hegemol.ymir.common.model.HeartBeat;
+import org.hegemol.ymir.common.model.ChannelInfo;
 import org.hegemol.ymir.common.model.InvocationMessageWrap;
 import org.hegemol.ymir.common.model.Response;
 import org.hegemol.ymir.common.utils.GsonUtils;
@@ -51,21 +51,21 @@ public class HeartBeatClientHandler extends ChannelInboundHandlerAdapter {
             IdleStateEvent event = (IdleStateEvent) evt;
             if (event.state() == IdleState.WRITER_IDLE){
                 // 超过最大重试次数，关闭连接
-                HeartBeat heartBeat = NettyChannelManager.get((InetSocketAddress) ctx.channel().remoteAddress());
-                if (heartBeat.getRetryTimes() > CommonConstant.MAX_HEARTBEAT_TIMES) {
+                ChannelInfo channelInfo = NettyChannelManager.get((InetSocketAddress) ctx.channel().remoteAddress());
+                if (channelInfo.getRetryTimes() > CommonConstant.MAX_HEARTBEAT_TIMES) {
                     logger.warn("Heartbeat check, it's more than 3 times since the last heartbeat,channel {} has lost connection.", ctx.channel().id());
                     NettyChannelManager.remove((InetSocketAddress) ctx.channel().remoteAddress());
                     ctx.close();
                     return;
                 }
                 // 写超时处理
-                heartBeat.setRetryTimes(heartBeat.getRetryTimes() + 1);
+                channelInfo.setRetryTimes(channelInfo.getRetryTimes() + 1);
                 InvocationMessageWrap heartBeatInvocationMessage = new InvocationMessageWrap();
                 heartBeatInvocationMessage.setType(MessageTypeEnum.HEART_BEAT_RQEUEST);
                 heartBeatInvocationMessage.setSerial(SerializationTypeEnum.PROTOSTUFF);
                 heartBeatInvocationMessage.setRequestId(Integer.MIN_VALUE);
                 heartBeatInvocationMessage.setData(null);
-                heartBeat.getChannel().writeAndFlush(heartBeatInvocationMessage).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+                channelInfo.getChannel().writeAndFlush(heartBeatInvocationMessage).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
             }
             return;
         }

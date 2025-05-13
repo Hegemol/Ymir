@@ -1,7 +1,7 @@
 package org.hegemol.ymir.client;
 
 import io.netty.channel.Channel;
-import org.hegemol.ymir.common.model.HeartBeat;
+import org.hegemol.ymir.common.model.ChannelInfo;
 
 import java.net.InetSocketAddress;
 import java.util.Map;
@@ -19,7 +19,7 @@ public class NettyChannelManager {
      * 已连接的服务缓存
      * key: 服务地址，格式：ip:port
      */
-    private static final Map<InetSocketAddress, HeartBeat> manager = new ConcurrentHashMap<>();
+    private static final Map<InetSocketAddress, ChannelInfo> manager = new ConcurrentHashMap<>();
 
     /**
      * 获取缓存，根据远程地址获取客户端的处理器
@@ -36,9 +36,9 @@ public class NettyChannelManager {
      * 获取缓存，根据远程地址获取客户端的处理器
      *
      * @param address 远程服务端地址
-     * @return {@link HeartBeat}
+     * @return {@link ChannelInfo}
      */
-    public static HeartBeat get(InetSocketAddress address){
+    public static ChannelInfo get(InetSocketAddress address){
         return manager.get(address);
     }
 
@@ -49,7 +49,7 @@ public class NettyChannelManager {
      * @param channel 通道
      */
     public static void put(InetSocketAddress address, Channel channel){
-        manager.put(address, new HeartBeat(channel));
+        manager.put(address, new ChannelInfo(channel));
     }
 
     /**
