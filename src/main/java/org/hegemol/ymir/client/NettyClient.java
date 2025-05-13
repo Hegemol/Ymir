@@ -37,25 +37,19 @@ public class NettyClient implements DisposableBean {
     // TODO 可配置化
     private EventLoopGroup loopGroup = new NioEventLoopGroup(4);
 
+    private Bootstrap bootstrap = new Bootstrap();
+
     /**
      * 客户端初始化
-     *
-     * @param address 服务端地址
      */
-    public void initClient(String address) {
-        NettyClientHandler handler = new NettyClientHandler();
-        this.startClient(address, handler);
+    public void initClient() {
+        this.startClient();
     }
 
-    private void startClient(String address, NettyClientHandler handler) {
-        String[] addrInfo = address.split(":");
-        final String serverAddress = addrInfo[0];
-        final String serverPort = addrInfo[1];
+    private void startClient() {
         // 配置客户端
-        Bootstrap bootstrap = new Bootstrap();
         bootstrap.group(loopGroup)
                 .channel(NioSocketChannel.class)
-                .remoteAddress(serverAddress, Integer.parseInt(serverPort))
                 .option(ChannelOption.SO_KEEPALIVE, true)
                 .option(ChannelOption.TCP_NODELAY, true)
                 .handler(new ChannelInitializer<Channel>() {
@@ -74,18 +68,31 @@ public class NettyClient implements DisposableBean {
                                 // 心跳检测
                                 .addLast(new HeartBeatClientHandler())
                                 // 客户端业务处理器
-                                .addLast(handler);
+                                .addLast(new NettyClientHandler());
                     }
                 });
-        // 启用客户端连接
+    }
+
+    public void connect(String address) {
+        if (NettyChannelManager.contains(address)) {
+            return;
+        }
+        String[] addrInfo = address.split(":");
+        String host = addrInfo[0];
+        String port = addrInfo[1];
         try {
-            bootstrap.connect().sync().addListener((ChannelFutureListener) channelFuture -> {
-                if (!channelFuture.isSuccess()) {
-                    this.reconnect(address, handler);
+            bootstrap.connect(host, Integer.parseInt(port)).sync().addListener((ChannelFutureListener) future -> {
+                if (!future.isSuccess()) {
+                    logger.error("Netty client connect to server failed, address:{}", address);
+                    this.reconnect(address);
                     return;
                 }
-                NettyChannelManager.put(new InetSocketAddress(serverAddress, Integer.parseInt(serverPort)), channelFuture.channel());
-                logger.info("Server address:{} connect successfully.", address);
+                logger.info("Netty client connect to server successfully, address:{}", address);
+                Channel channel = future.channel();
+                NettyChannelManager.put(new InetSocketAddress(host, Integer.parseInt(port)), channel);
+                channel.closeFuture().addListener((ChannelFutureListener) closeFuture -> {
+                    this.close();
+                });
             });
         } catch (InterruptedException e) {
             logger.error("Netty client start error:{}", ExceptionUtils.getStackTrace(e));
@@ -97,14 +104,16 @@ public class NettyClient implements DisposableBean {
      * 重新链接服务端
      *
      * @param address 客户端地址
-     * @param handler 处理器
      */
-    public void reconnect(String address, NettyClientHandler handler) {
+    public void reconnect(String address) {
         loopGroup.schedule(() -> {
+            if (NettyChannelManager.contains(address)) {
+                return;
+            }
             if (logger.isDebugEnabled()) {
                 logger.debug("Netty client start reconnect, address:{}", address);
             }
-            this.startClient(address, handler);
+            this.connect(address);
         }, CommonConstant.RECONNECT_SECONDS, TimeUnit.SECONDS);
     }
 
@@ -116,8 +125,8 @@ public class NettyClient implements DisposableBean {
     /**
      * 关闭
      */
-    private void close(){
-        if (loopGroup != null){
+    private void close() {
+        if (loopGroup != null) {
             loopGroup.shutdownGracefully();
         }
     }

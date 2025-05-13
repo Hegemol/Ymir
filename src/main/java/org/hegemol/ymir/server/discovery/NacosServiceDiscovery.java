@@ -42,7 +42,7 @@ public class NacosServiceDiscovery extends DefaultAbstractServiceDiscovery {
         for (ServiceBean each : serviceList) {
             boolean clientIsExisted = NettyChannelManager.contains(each.getAddress());
             if (!clientIsExisted) {
-                nettyClient.initClient(each.getAddress());
+                nettyClient.connect(each.getAddress());
             }
         }
     }

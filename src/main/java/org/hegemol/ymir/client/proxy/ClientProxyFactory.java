@@ -173,7 +173,7 @@ public class ClientProxyFactory {
                     return this.sendRequestByChannel(rpcRequest, NettyChannelManager.get(address));
                 }
                 // 建立客户端
-                netClient.initClient(address);
+                netClient.connect(address);
                 return this.sendRequestByChannel(rpcRequest, NettyChannelManager.get(address));
             }
         }
