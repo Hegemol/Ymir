@@ -40,16 +40,15 @@ public class HeartBeatClientHandler extends ChannelInboundHandlerAdapter {
             }
             NettyChannelManager.get((InetSocketAddress) ctx.channel().remoteAddress()).setRetryTimes(0);
             ReferenceCountUtil.release(msg);
-        } else {
-            ctx.fireChannelRead(msg);
         }
+        ctx.fireChannelRead(msg);
     }
 
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         if (evt instanceof IdleStateEvent) {
             IdleStateEvent event = (IdleStateEvent) evt;
-            if (event.state() == IdleState.WRITER_IDLE){
+            if (event.state() == IdleState.WRITER_IDLE) {
                 // 超过最大重试次数，关闭连接
                 ChannelInfo channelInfo = NettyChannelManager.get((InetSocketAddress) ctx.channel().remoteAddress());
                 if (channelInfo.getRetryTimes() > CommonConstant.MAX_HEARTBEAT_TIMES) {

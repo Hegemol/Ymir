@@ -1,11 +1,6 @@
 package org.hegemol.ymir.core.heartbeat;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelId;
-import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.*;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.ReferenceCountUtil;
@@ -78,7 +73,7 @@ public class HeartBeatServerHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         InvocationMessageWrap<Request> request = (InvocationMessageWrap<Request>) msg;
-        if (request.getType().equals(MessageTypeEnum.HEART_BEAT_RQEUEST)){
+        if (request.getType().equals(MessageTypeEnum.HEART_BEAT_RQEUEST)) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Server heartbeat request:{}", GsonUtils.getInstance().toJson(request));
             }
@@ -88,10 +83,8 @@ public class HeartBeatServerHandler extends ChannelInboundHandlerAdapter {
             responseInvocationMessage.setRequestId(Integer.MIN_VALUE);
             responseInvocationMessage.setData(null);
             ctx.channel().writeAndFlush(responseInvocationMessage).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
-            ;
             ReferenceCountUtil.release(msg);
-        } else {
-            ctx.fireChannelRead(msg);
         }
+        ctx.fireChannelRead(msg);
     }
 }
